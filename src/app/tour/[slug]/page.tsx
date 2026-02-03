@@ -149,9 +149,9 @@ export default function PublicTourViewer() {
             
             <div className={cn(
               "overflow-hidden transition-all duration-300 ease-in-out px-4",
-              isDetailsExpanded ? "max-h-[500px] pb-4 opacity-100" : "max-h-0 opacity-0"
+              isDetailsExpanded ? "max-h-[600px] pb-4 opacity-100" : "max-h-0 opacity-0"
             )}>
-              <div className="space-y-3 pt-2">
+              <div className="space-y-4 pt-2">
                 {tour.address && (
                   <a 
                     href={getMapsUrl() || '#'} 
@@ -163,8 +163,19 @@ export default function PublicTourViewer() {
                     <span className="underline underline-offset-4 decoration-white/20 group-hover:decoration-primary">{tour.address}</span>
                   </a>
                 )}
+                
+                {activeScene?.description && (
+                  <div className="bg-primary/10 rounded-xl p-3 border border-primary/20">
+                    <p className="text-[9px] font-black text-primary uppercase mb-1 tracking-wider">Sobre esta estancia</p>
+                    <p className="text-[11px] text-white/80 leading-relaxed">
+                      {activeScene.description}
+                    </p>
+                  </div>
+                )}
+
                 {tour.description && (
                   <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                    <p className="text-[9px] font-black text-white/40 uppercase mb-1 tracking-wider">Detalles del Proyecto</p>
                     <p className="text-[11px] text-white/50 leading-relaxed italic">
                       {tour.description}
                     </p>
