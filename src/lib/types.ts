@@ -2,7 +2,7 @@
 export interface Tour {
   id: string;
   name: string;
-  clientName: string; // Internal client name
+  clientName: string; // Internal client name for grouping
   slug: string;
   description: string;
   published: boolean;
@@ -30,8 +30,8 @@ export interface Hotspot {
   sceneId: string;
   targetSceneId: string;
   label: string;
-  yaw: number; // in radians or degrees, usually 0 to 2PI
-  pitch: number; // in radians or degrees, usually -PI/2 to PI/2
+  yaw: number; // in degrees
+  pitch: number; // in degrees
 }
 
 export interface User {
