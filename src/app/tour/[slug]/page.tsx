@@ -7,7 +7,13 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, limit } from 'firebase/firestore';
 import { ThreeSixtyViewer } from '@/components/ThreeSixtyViewer';
 import { Button } from '@/components/ui/button';
-import { Globe, Map, ChevronUp, Share2, Info, Loader2 } from 'lucide-react';
+import { Globe, Map, ChevronUp, Share2, Info, Loader2, Check } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function PublicTourViewer() {
   const { slug } = useParams();
@@ -95,19 +101,57 @@ export default function PublicTourViewer() {
 
       {/* Controls Bar */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-4">
-        <div className="bg-black/40 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 flex items-center gap-8 text-white shadow-2xl">
-           <div className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group">
-              <ChevronUp className="w-4 h-4 group-hover:translate-y-[-2px] transition-transform" />
-              <span className="text-sm font-medium">Escenas ({scenes?.length || 0})</span>
-           </div>
+        <div className="bg-black/40 backdrop-blur-md px-6 py-1 rounded-full border border-white/10 flex items-center gap-2 text-white shadow-2xl">
            
-           <div 
-             className={`flex items-center gap-2 cursor-pointer transition-colors ${showFloorPlan ? 'text-primary' : 'hover:text-primary'}`}
+           <Popover>
+             <PopoverTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-10 px-4">
+                  <ChevronUp className="w-4 h-4" />
+                  <span className="text-sm font-medium">Escenas ({scenes?.length || 0})</span>
+                </Button>
+             </PopoverTrigger>
+             <PopoverContent side="top" className="w-72 p-0 bg-black/80 backdrop-blur-xl border-white/10 text-white mb-2 rounded-2xl overflow-hidden shadow-2xl">
+                <div className="p-4 border-b border-white/10">
+                  <h3 className="font-bold text-sm">Explorar Estancias</h3>
+                </div>
+                <ScrollArea className="h-64">
+                  <div className="p-2 space-y-1">
+                    {scenes?.map((scene: any) => (
+                      <button
+                        key={scene.id}
+                        onClick={() => setActiveSceneId(scene.id)}
+                        className={`w-full flex items-center gap-3 p-2 rounded-xl transition-all group ${
+                          activeSceneId === scene.id 
+                            ? 'bg-primary/20 text-primary border border-primary/20' 
+                            : 'hover:bg-white/10 text-white/70 hover:text-white'
+                        }`}
+                      >
+                        <div className="relative w-16 h-10 rounded-lg overflow-hidden flex-shrink-0">
+                          <img src={scene.imageUrl} className="w-full h-full object-cover" alt={scene.name} />
+                          {activeSceneId === scene.id && (
+                            <div className="absolute inset-0 bg-primary/40 flex items-center justify-center">
+                              <Check className="w-4 h-4 text-white" />
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-xs font-medium truncate flex-1 text-left">{scene.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </ScrollArea>
+             </PopoverContent>
+           </Popover>
+
+           <div className="h-4 w-px bg-white/20 mx-2" />
+           
+           <Button 
+             variant="ghost" 
              onClick={() => setShowFloorPlan(!showFloorPlan)}
+             className={`flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-10 px-4 ${showFloorPlan ? 'text-primary bg-primary/10' : ''}`}
            >
               <Map className="w-4 h-4" />
               <span className="text-sm font-medium">Plano</span>
-           </div>
+           </Button>
         </div>
       </div>
 
