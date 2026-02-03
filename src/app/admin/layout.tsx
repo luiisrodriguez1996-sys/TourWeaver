@@ -9,12 +9,6 @@ import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -35,6 +29,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const { data: siteConfig } = useDoc(siteConfigRef);
 
+  // Español por defecto si no es explícitamente inglés
+  const isSpanish = siteConfig?.defaultLanguage !== 'en';
+
   if (isUserLoading || isAdminLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
@@ -46,7 +43,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  // If not admin, redirect to public home
+  // Si no es admin, redirigir al home público
   if (!user || !adminData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
@@ -54,17 +51,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <LogOut className="text-destructive w-8 h-8" />
           </div>
-          <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-          <p className="text-muted-foreground mb-8">This portal is restricted to tour owners. Please contact support if you believe this is an error.</p>
+          <h1 className="text-2xl font-bold mb-2">Acceso Denegado</h1>
+          <p className="text-muted-foreground mb-8">Este portal está restringido al propietario. Contacta con soporte si crees que esto es un error.</p>
           <Link href="/">
-            <Button className="w-full">Return Home</Button>
+            <Button className="w-full">Volver al Inicio</Button>
           </Link>
         </div>
       </div>
     );
   }
-
-  const isSpanish = siteConfig?.defaultLanguage === 'es';
 
   return (
     <div className="min-h-screen flex bg-[#F8FAFC]">
