@@ -30,7 +30,7 @@ const SuggestSceneLinksOutputSchema = z.array(
   z.object({
     sourceSceneId: z.string().describe('The ID of the scene to link from.'),
     targetSceneId: z.string().describe('The ID of the scene to link to.'),
-    reason: z.string().describe('The AI's reasoning for suggesting this link.'),
+    reason: z.string().describe("The AI's reasoning for suggesting this link."),
   })
 ).describe('An array of suggested scene links.');
 export type SuggestSceneLinksOutput = z.infer<typeof SuggestSceneLinksOutputSchema>;
