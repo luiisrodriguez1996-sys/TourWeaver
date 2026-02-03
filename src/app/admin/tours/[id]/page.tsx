@@ -1,15 +1,17 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Scene, Hotspot } from '@/lib/types';
+import { Scene, Hotspot, Tour } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { ThreeSixtyViewer } from '@/components/ThreeSixtyViewer';
+import { Switch } from '@/components/ui/switch';
 import { 
   Plus, 
   Save, 
@@ -23,7 +25,8 @@ import {
   Loader2,
   Check,
   AlertCircle,
-  MapPin
+  MapPin,
+  Settings
 } from 'lucide-react';
 import {
   Select,
@@ -35,14 +38,15 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { useDoc, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, collection, writeBatch, deleteDoc, setDoc } from 'firebase/firestore';
+import { doc, collection, writeBatch } from 'firebase/firestore';
 
 export default function TourEditor() {
   const { id } = useParams();
   const router = useRouter();
   const { toast } = useToast();
   const firestore = useFirestore();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const sceneFileInputRef = useRef<HTMLInputElement>(null);
+  const floorPlanFileInputRef = useRef<HTMLInputElement>(null);
   
   const tourRef = useMemoFirebase(() => {
     if (!firestore || !id) return null;
@@ -57,12 +61,31 @@ export default function TourEditor() {
   const { data: tour, isLoading: isTourLoading } = useDoc(tourRef);
   const { data: serverScenes, isLoading: isScenesLoading } = useCollection(scenesRef);
   
+  // Local state for tour-level fields
+  const [localTourInfo, setLocalTourInfo] = useState({
+    name: '',
+    description: '',
+    floorPlanUrl: '',
+    showFloorPlan: false
+  });
+
   const [localScenes, setLocalScenes] = useState<Scene[]>([]);
   const [deletedSceneIds, setDeletedSceneIds] = useState<string[]>([]);
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  useEffect(() => {
+    if (tour) {
+      setLocalTourInfo({
+        name: tour.name || '',
+        description: tour.description || '',
+        floorPlanUrl: tour.floorPlanUrl || '',
+        showFloorPlan: !!tour.showFloorPlan
+      });
+    }
+  }, [tour]);
 
   useEffect(() => {
     if (serverScenes && localScenes.length === 0) {
@@ -112,7 +135,7 @@ export default function TourEditor() {
     });
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSceneFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && id) {
       setIsUploading(true);
@@ -147,6 +170,31 @@ export default function TourEditor() {
         }
       };
       
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleFloorPlanFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setIsUploading(true);
+      const reader = new FileReader();
+      
+      reader.onloadend = async () => {
+        try {
+          let imageUrl = reader.result as string;
+          if (file.size > 500000) {
+            imageUrl = await compressImage(imageUrl, 2048, 0.6);
+          }
+          setLocalTourInfo(prev => ({ ...prev, floorPlanUrl: imageUrl, showFloorPlan: true }));
+          setHasUnsavedChanges(true);
+          setIsUploading(false);
+          toast({ title: "Plano cargado", description: "El plano ha sido añadido al proyecto." });
+        } catch (error) {
+          setIsUploading(false);
+          toast({ variant: "destructive", title: "Error", description: "No se pudo procesar el plano." });
+        }
+      };
       reader.readAsDataURL(file);
     }
   };
@@ -209,14 +257,21 @@ export default function TourEditor() {
         batch.delete(sceneDocRef);
       }
 
-      // 3. Actualizar miniatura del tour si hay estancias
-      if (localScenes.length > 0 && tourRef) {
-        batch.set(tourRef, { thumbnailUrl: localScenes[0].imageUrl, updatedAt: Date.now() }, { merge: true });
+      // 3. Actualizar metadata del tour
+      if (tourRef) {
+        batch.set(tourRef, { 
+          name: localTourInfo.name,
+          description: localTourInfo.description,
+          floorPlanUrl: localTourInfo.floorPlanUrl,
+          showFloorPlan: localTourInfo.showFloorPlan,
+          thumbnailUrl: localScenes.length > 0 ? localScenes[0].imageUrl : tour.thumbnailUrl || '',
+          updatedAt: Date.now() 
+        }, { merge: true });
       }
 
       await batch.commit();
 
-      setDeletedSceneIds([]); // Limpiar cola de eliminación
+      setDeletedSceneIds([]);
       setHasUnsavedChanges(false);
       setIsSaving(false);
       toast({ 
@@ -236,7 +291,6 @@ export default function TourEditor() {
     }
     
     if (activeSceneId) {
-      // Si la escena ya existía en el servidor, añadirla a la cola de eliminación física
       if (serverScenes?.some(s => s.id === activeSceneId)) {
         setDeletedSceneIds(prev => [...prev, activeSceneId]);
       }
@@ -245,7 +299,7 @@ export default function TourEditor() {
       setLocalScenes(filtered);
       setActiveSceneId(filtered[0]?.id || null);
       setHasUnsavedChanges(true);
-      toast({ title: "Estancia removida de la lista", description: "Presiona Guardar Todo para aplicar el borrado permanente." });
+      toast({ title: "Estancia removida", description: "Presiona Guardar Todo para aplicar los cambios." });
     }
   };
 
@@ -270,7 +324,7 @@ export default function TourEditor() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold font-headline">{tour.name}</h1>
+            <h1 className="text-2xl font-bold font-headline">{localTourInfo.name || tour.name}</h1>
             <p className="text-sm text-muted-foreground flex items-center gap-2">
               Editor de Proyecto • {localScenes.length} Estancias
               {hasUnsavedChanges && (
@@ -306,13 +360,13 @@ export default function TourEditor() {
                 variant="outline" 
                 size="sm" 
                 className="gap-2" 
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => sceneFileInputRef.current?.click()}
                 disabled={isUploading}
              >
-                {isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
-                {isUploading ? 'Procesando...' : 'Añadir Panorámica'}
+                {isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                {isUploading ? 'Procesando...' : 'Añadir Estancia'}
              </Button>
-             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+             <input type="file" ref={sceneFileInputRef} className="hidden" accept="image/*" onChange={handleSceneFileChange} />
           </div>
 
           <div className="space-y-2 max-h-[300px] lg:max-h-none overflow-y-auto">
@@ -367,9 +421,10 @@ export default function TourEditor() {
 
         <div className="lg:col-span-3 space-y-4 overflow-y-auto pl-0 lg:pl-2">
           <Tabs defaultValue="details">
-            <TabsList className="w-full grid grid-cols-2">
-              <TabsTrigger value="details">Detalles</TabsTrigger>
+            <TabsList className="w-full grid grid-cols-3">
+              <TabsTrigger value="details">Estancia</TabsTrigger>
               <TabsTrigger value="hotspots">Enlaces</TabsTrigger>
+              <TabsTrigger value="tour">Tour</TabsTrigger>
             </TabsList>
             
             <TabsContent value="details" className="pt-4 space-y-4">
@@ -468,6 +523,81 @@ export default function TourEditor() {
                   ))}
                 </div>
               )}
+            </TabsContent>
+
+            <TabsContent value="tour" className="pt-4 space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Nombre del Tour</Label>
+                  <Input 
+                    value={localTourInfo.name} 
+                    onChange={(e) => {
+                      setLocalTourInfo({ ...localTourInfo, name: e.target.value });
+                      setHasUnsavedChanges(true);
+                    }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Descripción General</Label>
+                  <Textarea 
+                    value={localTourInfo.description} 
+                    className="h-24"
+                    onChange={(e) => {
+                      setLocalTourInfo({ ...localTourInfo, description: e.target.value });
+                      setHasUnsavedChanges(true);
+                    }}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Plano de Navegación</Label>
+                    <p className="text-xs text-muted-foreground">Muestra un mapa de la propiedad</p>
+                  </div>
+                  <Switch 
+                    checked={localTourInfo.showFloorPlan} 
+                    onCheckedChange={(checked) => {
+                      setLocalTourInfo({ ...localTourInfo, showFloorPlan: checked });
+                      setHasUnsavedChanges(true);
+                    }}
+                  />
+                </div>
+
+                {localTourInfo.showFloorPlan && (
+                  <div className="space-y-4 pt-2">
+                    <div 
+                      className="aspect-video bg-muted rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors overflow-hidden relative"
+                      onClick={() => floorPlanFileInputRef.current?.click()}
+                    >
+                      {localTourInfo.floorPlanUrl ? (
+                        <>
+                          <img src={localTourInfo.floorPlanUrl} className="w-full h-full object-contain" alt="Plano" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity">
+                             <Upload className="w-6 h-6 text-white" />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <MapIcon className="w-8 h-8 text-muted-foreground mb-2" />
+                          <span className="text-xs font-medium">Subir Imagen del Plano</span>
+                        </>
+                      )}
+                    </div>
+                    <input 
+                      type="file" 
+                      ref={floorPlanFileInputRef} 
+                      className="hidden" 
+                      accept="image/*" 
+                      onChange={handleFloorPlanFileChange} 
+                    />
+                    <p className="text-[10px] text-muted-foreground text-center">Formatos recomendados: JPG, PNG. Máx 5MB.</p>
+                  </div>
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         </div>

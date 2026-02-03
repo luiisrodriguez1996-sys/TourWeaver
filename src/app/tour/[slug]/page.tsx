@@ -162,21 +162,24 @@ export default function PublicTourViewer() {
              </PopoverContent>
            </Popover>
 
-           <div className="h-4 w-px bg-white/20 mx-2" />
-           
-           <Button 
-             variant="ghost" 
-             onClick={() => setShowFloorPlan(!showFloorPlan)}
-             className={`flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-10 px-4 ${showFloorPlan ? 'text-primary bg-primary/10' : ''}`}
-           >
-              <Map className="w-4 h-4" />
-              <span className="text-sm font-medium">Plano</span>
-           </Button>
+           {tour.showFloorPlan && (
+             <>
+               <div className="h-4 w-px bg-white/20 mx-2" />
+               <Button 
+                 variant="ghost" 
+                 onClick={() => setShowFloorPlan(!showFloorPlan)}
+                 className={`flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-10 px-4 ${showFloorPlan ? 'text-primary bg-primary/10' : ''}`}
+               >
+                  <Map className="w-4 h-4" />
+                  <span className="text-sm font-medium">Plano</span>
+               </Button>
+             </>
+           )}
         </div>
       </div>
 
       {/* Floor Plan Overlay */}
-      {showFloorPlan && (
+      {(showFloorPlan && tour.showFloorPlan) && (
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-30 flex items-center justify-center p-8 animate-in fade-in duration-300">
            <div className="bg-white rounded-3xl p-8 max-w-3xl w-full relative shadow-2xl">
               <Button 
@@ -197,7 +200,7 @@ export default function PublicTourViewer() {
                  />
                  <div className="absolute top-1/2 left-1/2 w-6 h-6 bg-primary rounded-full border-4 border-white shadow-lg animate-bounce"></div>
               </div>
-              <p className="mt-4 text-sm text-muted-foreground text-center">Haz clic en una ubicación para saltar a esa escena.</p>
+              <p className="mt-4 text-sm text-muted-foreground text-center">Referencia visual de la propiedad.</p>
            </div>
         </div>
       )}

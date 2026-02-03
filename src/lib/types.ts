@@ -1,3 +1,4 @@
+
 export interface Tour {
   id: string;
   name: string;
@@ -5,6 +6,7 @@ export interface Tour {
   description: string;
   published: boolean;
   floorPlanUrl?: string;
+  showFloorPlan?: boolean;
   createdAt: number;
   updatedAt: number;
   scenes: Scene[];
