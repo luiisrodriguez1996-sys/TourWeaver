@@ -21,9 +21,6 @@ export default function Home() {
             <Link href="#contacto" className="hover:text-primary transition-colors">Contacto</Link>
           </nav>
           <div className="flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="ghost">Acceso Propietario</Button>
-            </Link>
             <Button className="hidden sm:flex">Solicitar Presupuesto</Button>
           </div>
         </div>
@@ -100,7 +97,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Portfolio Section placeholder */}
+        {/* Portfolio Section */}
         <section id="portafolio" className="py-24 bg-background/30">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-2xl mx-auto mb-16">
@@ -161,8 +158,8 @@ export default function Home() {
           </div>
           <p className="text-sm text-muted-foreground">© 2024 Tour Weaver - Servicios de Visualización 360°. Todos los derechos reservados.</p>
           <div className="flex gap-6">
-            <Link href="#" className="text-sm text-muted-foreground hover:text-primary">Servicios</Link>
-            <Link href="#" className="text-sm text-muted-foreground hover:text-primary">Privacidad</Link>
+            <Link href="#servicios" className="text-sm text-muted-foreground hover:text-primary">Servicios</Link>
+            <Link href="#contacto" className="text-sm text-muted-foreground hover:text-primary">Contacto</Link>
           </div>
         </div>
       </footer>
