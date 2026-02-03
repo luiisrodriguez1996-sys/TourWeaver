@@ -28,7 +28,8 @@ import {
   Settings,
   Crosshair,
   User,
-  ExternalLink
+  ExternalLink,
+  Search
 } from 'lucide-react';
 import {
   Select,
@@ -69,8 +70,7 @@ export default function TourEditor() {
     description: '',
     floorPlanUrl: '',
     showFloorPlan: false,
-    latitude: '',
-    longitude: ''
+    address: ''
   });
 
   const [localScenes, setLocalScenes] = useState<Scene[]>([]);
@@ -88,8 +88,7 @@ export default function TourEditor() {
         description: tour.description || '',
         floorPlanUrl: tour.floorPlanUrl || '',
         showFloorPlan: !!tour.showFloorPlan,
-        latitude: tour.latitude?.toString() || '',
-        longitude: tour.longitude?.toString() || ''
+        address: tour.address || ''
       });
     }
   }, [tour]);
@@ -251,8 +250,7 @@ export default function TourEditor() {
           description: localTourInfo.description,
           floorPlanUrl: localTourInfo.floorPlanUrl,
           showFloorPlan: localTourInfo.showFloorPlan,
-          latitude: localTourInfo.latitude ? parseFloat(localTourInfo.latitude) : null,
-          longitude: localTourInfo.longitude ? parseFloat(localTourInfo.longitude) : null,
+          address: localTourInfo.address,
           thumbnailUrl: localScenes.length > 0 ? localScenes[0].imageUrl : tour.thumbnailUrl || '',
           updatedAt: Date.now() 
         }, { merge: true });
@@ -428,46 +426,31 @@ export default function TourEditor() {
                 />
               </div>
               
-              <div className="space-y-3 pt-2">
+              <div className="space-y-2 pt-2">
                 <Label className="text-xs flex items-center gap-2">
-                  <MapPin className="w-3 h-3 text-primary" /> Google Maps (Locación)
+                  <MapPin className="w-3 h-3 text-primary" /> Dirección de la Propiedad
                 </Label>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-[9px] uppercase font-bold text-muted-foreground">Latitud</Label>
-                    <Input 
-                      value={localTourInfo.latitude} 
-                      placeholder="-34.603"
-                      className="h-7 text-[10px]"
-                      onChange={(e) => {
-                        setLocalTourInfo({ ...localTourInfo, latitude: e.target.value });
-                        setHasUnsavedChanges(true);
-                      }}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[9px] uppercase font-bold text-muted-foreground">Longitud</Label>
-                    <Input 
-                      value={localTourInfo.longitude} 
-                      placeholder="-58.381"
-                      className="h-7 text-[10px]"
-                      onChange={(e) => {
-                        setLocalTourInfo({ ...localTourInfo, longitude: e.target.value });
-                        setHasUnsavedChanges(true);
-                      }}
-                    />
-                  </div>
+                <div className="relative">
+                  <Input 
+                    value={localTourInfo.address} 
+                    placeholder="ej. Av. Corrientes 1234, CABA"
+                    className="h-8 text-xs pr-8"
+                    onChange={(e) => {
+                      setLocalTourInfo({ ...localTourInfo, address: e.target.value });
+                      setHasUnsavedChanges(true);
+                    }}
+                  />
+                  {localTourInfo.address && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute right-0 top-0 h-8 w-8 text-primary"
+                      onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(localTourInfo.address)}`, '_blank')}
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                    </Button>
+                  )}
                 </div>
-                {localTourInfo.latitude && localTourInfo.longitude && (
-                  <Button 
-                    variant="link" 
-                    size="sm" 
-                    className="h-auto p-0 text-[10px] text-primary"
-                    onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${localTourInfo.latitude},${localTourInfo.longitude}`, '_blank')}
-                  >
-                    <ExternalLink className="w-3 h-3 mr-1" /> Probar en Maps
-                  </Button>
-                )}
               </div>
 
               <div className="flex items-center justify-between p-2 bg-muted/40 rounded-lg">

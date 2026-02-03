@@ -26,8 +26,7 @@ export default function NewTour() {
     clientName: '',
     slug: '',
     description: '',
-    latitude: '',
-    longitude: ''
+    address: ''
   });
 
   // Obtener clientes existentes para sugerencias
@@ -53,8 +52,7 @@ export default function NewTour() {
         clientName: formData.clientName,
         slug: formData.slug || formData.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, ''),
         description: formData.description,
-        latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-        longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+        address: formData.address,
         published: false,
         createdAt: Date.now(),
         updatedAt: Date.now()
@@ -158,38 +156,19 @@ export default function NewTour() {
               />
             </div>
 
-            <div className="space-y-4 pt-2">
-              <Label className="text-sm font-bold flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-primary" /> Ubicación (Coordenadas Google Maps)
+            <div className="space-y-2 pt-2">
+              <Label htmlFor="address" className="text-sm font-bold flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" /> Dirección de la Propiedad
               </Label>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="latitude" className="text-xs">Latitud</Label>
-                  <Input 
-                    id="latitude"
-                    type="number"
-                    step="any"
-                    placeholder="ej. -34.6037"
-                    value={formData.latitude}
-                    onChange={e => setFormData({ ...formData, latitude: e.target.value })}
-                    className="rounded-xl"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="longitude" className="text-xs">Longitud</Label>
-                  <Input 
-                    id="longitude"
-                    type="number"
-                    step="any"
-                    placeholder="ej. -58.3816"
-                    value={formData.longitude}
-                    onChange={e => setFormData({ ...formData, longitude: e.target.value })}
-                    className="rounded-xl"
-                  />
-                </div>
-              </div>
+              <Input 
+                id="address" 
+                placeholder="ej. Av. Corrientes 1234, CABA, Argentina" 
+                value={formData.address}
+                onChange={e => setFormData({ ...formData, address: e.target.value })}
+                className="rounded-xl h-11"
+              />
               <p className="text-[10px] text-muted-foreground italic">
-                Copia las coordenadas desde Google Maps para permitir que los clientes vean la ubicación real.
+                Esta dirección se usará para que los clientes puedan buscar la propiedad en Google Maps.
               </p>
             </div>
           </CardContent>

@@ -51,13 +51,17 @@
           "type": "string",
           "description": "URL of the thumbnail image for the tour."
         },
+        "address": {
+          "type": "string",
+          "description": "The physical address of the property."
+        },
         "latitude": {
           "type": "number",
-          "description": "Latitude coordinate for Google Maps location."
+          "description": "Latitude coordinate for Google Maps location (Optional)."
         },
         "longitude": {
           "type": "number",
-          "description": "Longitude coordinate for Google Maps location."
+          "description": "Longitude coordinate for Google Maps location (Optional)."
         }
       },
       "required": [

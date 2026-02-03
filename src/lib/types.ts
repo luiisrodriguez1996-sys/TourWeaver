@@ -9,6 +9,7 @@ export interface Tour {
   floorPlanUrl?: string;
   showFloorPlan?: boolean;
   thumbnailUrl?: string;
+  address?: string; // Physical address
   latitude?: number;
   longitude?: number;
   createdAt: number;

@@ -71,6 +71,8 @@ export default function PublicTourViewer() {
   const handleOpenMaps = () => {
     if (tour?.latitude && tour?.longitude) {
       window.open(`https://www.google.com/maps/search/?api=1&query=${tour.latitude},${tour.longitude}`, '_blank');
+    } else if (tour?.address) {
+      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tour.address)}`, '_blank');
     }
   };
 
@@ -124,6 +126,11 @@ export default function PublicTourViewer() {
                 </div>
               )}
             </div>
+            {tour.address && (
+              <p className="text-[10px] text-white/40 mb-2 truncate flex items-center gap-1">
+                <MapPin className="w-2.5 h-2.5" /> {tour.address}
+              </p>
+            )}
             <p className="text-sm text-white/60 flex items-center gap-1">
               <Info className="w-3 h-3" /> {activeScene?.name || 'Cargando...'}
             </p>
@@ -131,7 +138,7 @@ export default function PublicTourViewer() {
         </div>
         
         <div className="flex gap-2 pointer-events-auto">
-          {tour.latitude && tour.longitude && (
+          {(tour.address || (tour.latitude && tour.longitude)) && (
             <Button 
               variant="secondary" 
               size="icon" 
