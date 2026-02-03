@@ -30,17 +30,20 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const sphereRef = useRef<THREE.Mesh | null>(null);
   const requestRef = useRef<number | null>(null);
+  const raycasterRef = useRef(new THREE.Raycaster());
   
   const [isLoadingTexture, setIsLoadingTexture] = useState(true);
   const [isFading, setIsFading] = useState(false);
   const [isUserInteracting, setIsUserInteracting] = useState(false);
-  const [onPointerDownMouseX, setOnPointerDownMouseX] = useState(0);
-  const [onPointerDownMouseY, setOnPointerDownMouseY] = useState(0);
   
+  // Tracking for drag vs click
+  const pointerDownPos = useRef({ x: 0, y: 0 });
+  const pointerDownTime = useRef(0);
   const lonRef = useRef(0);
   const latRef = useRef(0);
+  const onPointerDownMouseX = useRef(0);
+  const onPointerDownMouseY = useRef(0);
 
-  // Animation effect when changing image
   useEffect(() => {
     setIsFading(true);
     const timer = setTimeout(() => setIsFading(false), 800);
@@ -82,7 +85,6 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
       },
       undefined,
       (err) => {
-        console.error("Error loading texture:", err);
         setIsLoadingTexture(false);
       }
     );
@@ -138,40 +140,67 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
         }
         rendererRef.current.dispose();
       }
-      if (sphereRef.current) {
-        sphereRef.current.geometry.dispose();
-        if (Array.isArray(sphereRef.current.material)) {
-          sphereRef.current.material.forEach(m => m.dispose());
-        } else {
-          sphereRef.current.material.dispose();
-        }
-      }
     };
   }, [imageUrl]);
 
   const onPointerDown = (event: React.PointerEvent) => {
     if (event.isPrimary === false) return;
     setIsUserInteracting(true);
-    setOnPointerDownMouseX(event.clientX);
-    setOnPointerDownMouseY(event.clientY);
+    onPointerDownMouseX.current = event.clientX;
+    onPointerDownMouseY.current = event.clientY;
+    
+    pointerDownPos.current = { x: event.clientX, y: event.clientY };
+    pointerDownTime.current = Date.now();
   };
 
   const onPointerMove = (event: React.PointerEvent) => {
     if (event.isPrimary === false || !isUserInteracting) return;
-    lonRef.current = (onPointerDownMouseX - event.clientX) * 0.1 + lonRef.current;
-    latRef.current = (event.clientY - onPointerDownMouseY) * 0.1 + latRef.current;
-    setOnPointerDownMouseX(event.clientX);
-    setOnPointerDownMouseY(event.clientY);
+    lonRef.current = (onPointerDownMouseX.current - event.clientX) * 0.1 + lonRef.current;
+    latRef.current = (event.clientY - onPointerDownMouseY.current) * 0.1 + latRef.current;
+    onPointerDownMouseX.current = event.clientX;
+    onPointerDownMouseY.current = event.clientY;
   };
 
   const onPointerUp = (event: React.PointerEvent) => {
     if (event.isPrimary === false) return;
     setIsUserInteracting(false);
+
+    // Detect if it was a click or a drag
+    const moveX = Math.abs(event.clientX - pointerDownPos.current.x);
+    const moveY = Math.abs(event.clientY - pointerDownPos.current.y);
+    const moveDist = Math.sqrt(moveX * moveX + moveY * moveY);
+    const duration = Date.now() - pointerDownTime.current;
+
+    // Threshold: 5px movement and less than 300ms duration for a "click"
+    if (isEditing && onSceneClick && !isLoadingTexture && moveDist < 5 && duration < 300) {
+      calculateClickCoordinates(event);
+    }
   };
 
-  const onContainerClick = (event: React.MouseEvent) => {
-    if (isEditing && onSceneClick && !isLoadingTexture) {
-      onSceneClick(lonRef.current % 360, latRef.current);
+  const calculateClickCoordinates = (event: React.PointerEvent) => {
+    if (!cameraRef.current || !sphereRef.current || !canvasHolderRef.current) return;
+
+    const rect = canvasHolderRef.current.getBoundingClientRect();
+    const mouse = new THREE.Vector2();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    raycasterRef.current.setFromCamera(mouse, cameraRef.current);
+    const intersects = raycasterRef.current.intersectObject(sphereRef.current);
+
+    if (intersects.length > 0) {
+      const point = intersects[0].point;
+      const radius = 500;
+      
+      // Convert Cartesian to Spherical for longitude/latitude
+      // Note: Three.js Y is up. Sphere is mirrored (radius -500).
+      const phi = Math.acos(point.y / radius); // 0 to PI
+      const theta = Math.atan2(point.z, point.x); // -PI to PI
+      
+      const clickLat = 90 - (phi * 180 / Math.PI);
+      const clickLon = (theta * 180 / Math.PI);
+      
+      onSceneClick(clickLon, clickLat);
     }
   };
 
@@ -215,11 +244,9 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
-      onClick={onContainerClick}
     >
       <div ref={canvasHolderRef} className="absolute inset-0" />
 
-      {/* Transition Overlay */}
       <div className={cn(
         "absolute inset-0 bg-black pointer-events-none z-40 transition-opacity duration-700 ease-in-out",
         (isFading || isLoadingTexture) ? "opacity-100" : "opacity-0"
@@ -261,7 +288,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
 
       <div className="absolute top-4 left-4 flex gap-2 z-30">
         <div className="bg-black/40 backdrop-blur-md px-3 py-1 rounded-full text-xs text-white/80 border border-white/10">
-          {isEditing ? 'Toca para tejer enlaces' : 'Vista Panorámica'}
+          {isEditing ? 'Haz clic para tejer un enlace' : 'Vista Panorámica'}
         </div>
       </div>
     </div>
