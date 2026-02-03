@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -27,8 +28,8 @@ import {
 import { suggestSceneLinks } from '@/ai/flows/ai-suggest-scene-links';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
-import { useDoc, useFirestore, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useDoc, useCollection, useFirestore, useMemoFirebase, updateDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { doc, collection } from 'firebase/firestore';
 
 export default function TourEditor() {
   const { id } = useParams();
@@ -42,22 +43,39 @@ export default function TourEditor() {
     return doc(firestore, 'tours', id as string);
   }, [firestore, id]);
 
-  const { data: tour, isLoading } = useDoc(tourRef);
+  const scenesRef = useMemoFirebase(() => {
+    if (!firestore || !id) return null;
+    return collection(firestore, 'tours', id as string, 'scenes');
+  }, [firestore, id]);
+
+  const { data: tour, isLoading: isTourLoading } = useDoc(tourRef);
+  const { data: scenes, isLoading: isScenesLoading } = useCollection(scenesRef);
   
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Local state for editable fields to prevent spamming Firestore
+  const [localSceneName, setLocalSceneName] = useState('');
+  const [localSceneDesc, setLocalSceneDesc] = useState('');
+
   useEffect(() => {
-    if (tour?.scenes?.length > 0 && !activeSceneId) {
-      setActiveSceneId(tour.scenes[0].id);
+    if (scenes && scenes.length > 0 && !activeSceneId) {
+      setActiveSceneId(scenes[0].id);
     }
-  }, [tour, activeSceneId]);
+  }, [scenes, activeSceneId]);
 
-  const activeScene = tour?.scenes?.find((s: any) => s.id === activeSceneId);
+  const activeScene = scenes?.find((s: any) => s.id === activeSceneId);
 
-  const compressImage = (dataUrl: string, maxWidth = 4096, quality = 0.8): Promise<string> => {
+  useEffect(() => {
+    if (activeScene) {
+      setLocalSceneName(activeScene.name || '');
+      setLocalSceneDesc(activeScene.description || '');
+    }
+  }, [activeSceneId, activeScene]);
+
+  const compressImage = (dataUrl: string, maxWidth = 4096, quality = 0.7): Promise<string> => {
     return new Promise((resolve) => {
       const img = new Image();
       img.src = dataUrl;
@@ -76,13 +94,15 @@ export default function TourEditor() {
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
 
+        // Intento inicial
         let compressed = canvas.toDataURL('image/jpeg', quality);
         
-        if (compressed.length > 900000) {
+        // Si sigue siendo muy grande para un doc de Firestore (1MB limit), bajamos agresivamente
+        if (compressed.length > 800000) {
           compressed = canvas.toDataURL('image/jpeg', 0.5);
         }
         
-        if (compressed.length > 900000) {
+        if (compressed.length > 800000) {
           canvas.width = width / 2;
           canvas.height = height / 2;
           ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -96,7 +116,7 @@ export default function TourEditor() {
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
+    if (file && id) {
       setIsUploading(true);
       const reader = new FileReader();
       
@@ -104,12 +124,31 @@ export default function TourEditor() {
         try {
           let imageUrl = reader.result as string;
           
-          if (file.size > 700000) {
+          if (file.size > 500000) {
             toast({ title: "Optimizando imagen", description: "Ajustando resolución para el servidor..." });
             imageUrl = await compressImage(imageUrl);
           }
 
-          addNewScene('Nueva Estancia', imageUrl);
+          const sceneId = Math.random().toString(36).substr(2, 9);
+          const sceneDocRef = doc(firestore!, 'tours', id as string, 'scenes', sceneId);
+          
+          const newSceneData = {
+            id: sceneId,
+            tourId: id,
+            name: 'Nueva Estancia',
+            description: '',
+            imageUrl: imageUrl,
+            hotspots: []
+          };
+
+          setDocumentNonBlocking(sceneDocRef, newSceneData, { merge: true });
+          
+          // If first scene, update tour thumbnail
+          if (!scenes || scenes.length === 0) {
+            updateDocumentNonBlocking(tourRef!, { thumbnailUrl: imageUrl });
+          }
+
+          setActiveSceneId(sceneId);
           setIsUploading(false);
           toast({ title: "Imagen lista", description: "La escena ha sido procesada y añadida." });
         } catch (error) {
@@ -122,76 +161,47 @@ export default function TourEditor() {
     }
   };
 
-  const addNewScene = (name: string, imageUrl: string) => {
-    if (!tour || !tourRef) return;
-    
-    const newScene: Scene = {
-      id: Math.random().toString(36).substr(2, 9),
-      tourId: tour.id,
-      name: name,
-      description: '',
-      imageUrl: imageUrl,
-      hotspots: []
-    };
-
-    const updatedScenes = [...(tour.scenes || []), newScene];
-    updateDocumentNonBlocking(tourRef, { scenes: updatedScenes });
-    setActiveSceneId(newScene.id);
-  };
-
-  const updateSceneDetails = (field: 'name' | 'description', value: string) => {
-    if (!tour || !tourRef || !activeSceneId) return;
-
-    const updatedScenes = tour.scenes.map((s: any) => {
-      if (s.id === activeSceneId) {
-        return { ...s, [field]: value };
-      }
-      return s;
+  const syncSceneToFirestore = () => {
+    if (!firestore || !id || !activeSceneId) return;
+    const sceneDocRef = doc(firestore, 'tours', id as string, 'scenes', activeSceneId);
+    updateDocumentNonBlocking(sceneDocRef, {
+      name: localSceneName,
+      description: localSceneDesc
     });
-
-    updateDocumentNonBlocking(tourRef, { scenes: updatedScenes });
   };
 
   const addHotspot = (yaw: number, pitch: number) => {
-    if (!activeSceneId || !tour || !tourRef) return;
+    if (!activeSceneId || !id || !firestore || !scenes || scenes.length < 2) {
+       toast({ variant: "destructive", title: "Acción no permitida", description: "Necesitas al menos dos escenas para crear un enlace." });
+       return;
+    }
     
+    const targetScene = scenes.find(s => s.id !== activeSceneId);
     const newHotspot: Hotspot = {
       id: Math.random().toString(36).substr(2, 9),
       sceneId: activeSceneId,
-      targetSceneId: tour.scenes.find((s: any) => s.id !== activeSceneId)?.id || '',
-      label: 'Siguiente Estancia',
+      targetSceneId: targetScene?.id || '',
+      label: `Ir a ${targetScene?.name || 'Siguiente Estancia'}`,
       yaw,
       pitch
     };
 
-    const updatedScenes = tour.scenes.map((s: any) => {
-      if (s.id === activeSceneId) {
-        return { ...s, hotspots: [...(s.hotspots || []), newHotspot] };
-      }
-      return s;
-    });
-
-    updateDocumentNonBlocking(tourRef, { scenes: updatedScenes });
-    toast({ title: "Enlace Añadido", description: "Configura el destino en el panel derecho." });
+    const sceneDocRef = doc(firestore, 'tours', id as string, 'scenes', activeSceneId);
+    const updatedHotspots = [...(activeScene?.hotspots || []), newHotspot];
+    updateDocumentNonBlocking(sceneDocRef, { hotspots: updatedHotspots });
+    toast({ title: "Enlace Añadido", description: "Toca el punto para navegar o configúralo en el panel." });
   };
 
   const removeHotspot = (hotspotId: string) => {
-    if (!tour || !tourRef || !activeSceneId) return;
-
-    const updatedScenes = tour.scenes.map((s: any) => {
-      if (s.id === activeSceneId) {
-        return { ...s, hotspots: s.hotspots.filter((h: any) => h.id !== hotspotId) };
-      }
-      return s;
-    });
-
-    updateDocumentNonBlocking(tourRef, { scenes: updatedScenes });
+    if (!firestore || !id || !activeSceneId || !activeScene) return;
+    const sceneDocRef = doc(firestore, 'tours', id as string, 'scenes', activeSceneId);
+    const updatedHotspots = activeScene.hotspots.filter((h: any) => h.id !== hotspotId);
+    updateDocumentNonBlocking(sceneDocRef, { hotspots: updatedHotspots });
   };
 
   const handleSaveAll = () => {
     setIsSaving(true);
-    // updateDocumentNonBlocking already happens on each change, 
-    // but we simulate a global save for user feedback
+    syncSceneToFirestore();
     setTimeout(() => {
       setIsSaving(false);
       toast({ 
@@ -199,11 +209,11 @@ export default function TourEditor() {
         description: "Toda la información ha sido sincronizada.",
         action: <Check className="w-4 h-4 text-green-500" />
       });
-    }, 800);
+    }, 500);
   };
 
   const handleAiSuggest = async () => {
-    if (!tour || tour.scenes.length < 2) {
+    if (!scenes || scenes.length < 2) {
       toast({ 
         variant: "destructive",
         title: "Escenas Insuficientes", 
@@ -214,7 +224,7 @@ export default function TourEditor() {
 
     setIsAiLoading(true);
     try {
-      const inputScenes = tour.scenes.map((s: any) => ({
+      const inputScenes = scenes.map((s: any) => ({
         id: s.id,
         description: s.description || s.name,
         imageDataUri: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElUWFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqGhc4SFxlNWVlsZ2iPj50mJqpGSk5SFxwdJhoc4iJipjKlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oAAAIRAxEAPwD/AD/AP/Z'
@@ -222,30 +232,27 @@ export default function TourEditor() {
 
       const suggestions = await suggestSceneLinks({ scenes: inputScenes });
       
-      const updatedScenes = [...tour.scenes];
       suggestions.forEach(sug => {
-        const sceneIndex = updatedScenes.findIndex(s => s.id === sug.sourceSceneId);
-        if (sceneIndex !== -1) {
+        const sceneDocRef = doc(firestore!, 'tours', id as string, 'scenes', sug.sourceSceneId);
+        const sourceScene = scenes.find(s => s.id === sug.sourceSceneId);
+        if (sourceScene) {
           const newHotspot: Hotspot = {
             id: 'ai-' + Math.random().toString(36).substr(2, 9),
             sceneId: sug.sourceSceneId,
             targetSceneId: sug.targetSceneId,
-            label: `Ir a ${tour.scenes.find((sc: any) => sc.id === sug.targetSceneId)?.name || 'Siguiente Escena'}`,
+            label: `Ir a ${scenes.find((sc: any) => sc.id === sug.targetSceneId)?.name || 'Siguiente Escena'}`,
             yaw: Math.random() * 360,
             pitch: 0
           };
-          if (!updatedScenes[sceneIndex].hotspots) updatedScenes[sceneIndex].hotspots = [];
-          updatedScenes[sceneIndex].hotspots.push(newHotspot);
+          const updatedHotspots = [...(sourceScene.hotspots || []), newHotspot];
+          updateDocumentNonBlocking(sceneDocRef, { hotspots: updatedHotspots });
         }
       });
 
-      if (tourRef) {
-        updateDocumentNonBlocking(tourRef, { scenes: updatedScenes });
-        toast({ 
-          title: "Análisis de IA Completo", 
-          description: `Se sugeririeron ${suggestions.length} conexiones inteligentes.` 
-        });
-      }
+      toast({ 
+        title: "Análisis de IA Completo", 
+        description: `Se sugirieron ${suggestions.length} conexiones inteligentes.` 
+      });
     } catch (error) {
       toast({ variant: "destructive", title: "Error de IA", description: "No se pudieron generar sugerencias." });
     } finally {
@@ -253,7 +260,19 @@ export default function TourEditor() {
     }
   };
 
-  if (isLoading) {
+  const deleteActiveScene = () => {
+    if (!firestore || !id || !activeSceneId || !scenes) return;
+    if (scenes.length <= 1) {
+       toast({ variant: "destructive", title: "Error", description: "Un tour debe tener al menos una escena." });
+       return;
+    }
+    const sceneDocRef = doc(firestore, 'tours', id as string, 'scenes', activeSceneId);
+    deleteDocumentNonBlocking(sceneDocRef);
+    setActiveSceneId(scenes.find(s => s.id !== activeSceneId)?.id || null);
+    toast({ title: "Escena eliminada" });
+  };
+
+  if (isTourLoading || isScenesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -275,7 +294,7 @@ export default function TourEditor() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold font-headline">{tour.name}</h1>
-            <p className="text-sm text-muted-foreground">Editor de Proyecto • {tour.scenes?.length || 0} Estancias</p>
+            <p className="text-sm text-muted-foreground">Editor de Proyecto • {scenes?.length || 0} Estancias</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -327,7 +346,7 @@ export default function TourEditor() {
           </div>
 
           <div className="space-y-2 max-h-[300px] lg:max-h-none overflow-y-auto">
-            {tour.scenes?.map((scene: any) => (
+            {scenes?.map((scene: any) => (
               <Card 
                 key={scene.id} 
                 className={`cursor-pointer transition-all border-2 ${activeSceneId === scene.id ? 'border-primary bg-primary/5' : 'border-transparent hover:bg-muted'}`}
@@ -408,24 +427,27 @@ export default function TourEditor() {
               <div className="space-y-2">
                 <Label>Nombre de Estancia</Label>
                 <Input 
-                  value={activeScene?.name || ''} 
+                  value={localSceneName} 
                   placeholder="Dormitorio, Salón..." 
-                  onChange={(e) => updateSceneDetails('name', e.target.value)}
+                  onChange={(e) => setLocalSceneName(e.target.value)}
+                  onBlur={syncSceneToFirestore}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Notas de Escena</Label>
                 <Textarea 
-                  value={activeScene?.description || ''} 
+                  value={localSceneDesc} 
                   placeholder="Info extra para el cliente..." 
                   className="resize-none h-24" 
-                  onChange={(e) => updateSceneDetails('description', e.target.value)}
+                  onChange={(e) => setLocalSceneDesc(e.target.value)}
+                  onBlur={syncSceneToFirestore}
                 />
               </div>
               <Separator />
               <Button 
                 variant="outline" 
                 className="w-full gap-2 text-destructive border-destructive/20 hover:bg-destructive/10"
+                onClick={deleteActiveScene}
               >
                 <Trash2 className="w-4 h-4" /> Eliminar Escena
               </Button>
@@ -453,8 +475,10 @@ export default function TourEditor() {
                          </Button>
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[10px]">Texto del botón</Label>
-                        <Input size={1} value={h.label} className="h-8 text-xs" readOnly />
+                        <Label className="text-[10px]">Punto de destino</Label>
+                        <p className="text-xs font-medium truncate">
+                           {scenes.find(s => s.id === h.targetSceneId)?.name || 'Desconocido'}
+                        </p>
                       </div>
                     </div>
                   </Card>

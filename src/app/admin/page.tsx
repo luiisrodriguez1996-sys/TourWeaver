@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -76,7 +77,7 @@ export default function AdminDashboard() {
           <Card key={tour.id} className="overflow-hidden group hover:shadow-xl transition-all duration-300 border-none shadow-md">
             <div className="relative aspect-video bg-muted overflow-hidden">
               <img 
-                src={tour.scenes?.[0]?.imageUrl || 'https://picsum.photos/seed/placeholder/600/400'} 
+                src={tour.thumbnailUrl || 'https://picsum.photos/seed/placeholder/600/400'} 
                 alt={tour.name} 
                 className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
                 data-ai-hint="virtual tour"

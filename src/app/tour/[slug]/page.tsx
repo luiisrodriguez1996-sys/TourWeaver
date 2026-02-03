@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -17,21 +18,28 @@ export default function PublicTourViewer() {
     return query(collection(firestore, 'tours'), where('slug', '==', slug), limit(1));
   }, [firestore, slug]);
 
-  const { data: tours, isLoading } = useCollection(tourQuery);
+  const { data: tours, isLoading: isTourLoading } = useCollection(tourQuery);
   const tour = tours?.[0];
+
+  const scenesRef = useMemoFirebase(() => {
+    if (!firestore || !tour) return null;
+    return collection(firestore, 'tours', tour.id, 'scenes');
+  }, [firestore, tour]);
+
+  const { data: scenes, isLoading: isScenesLoading } = useCollection(scenesRef);
 
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null);
   const [showFloorPlan, setShowFloorPlan] = useState(false);
 
   useEffect(() => {
-    if (tour?.scenes?.length > 0 && !activeSceneId) {
-      setActiveSceneId(tour.scenes[0].id);
+    if (scenes && scenes.length > 0 && !activeSceneId) {
+      setActiveSceneId(scenes[0].id);
     }
-  }, [tour, activeSceneId]);
+  }, [scenes, activeSceneId]);
 
-  const activeScene = tour?.scenes?.find((s: any) => s.id === activeSceneId);
+  const activeScene = scenes?.find((s: any) => s.id === activeSceneId);
 
-  if (isLoading) {
+  if (isTourLoading || (tour && isScenesLoading)) {
     return (
       <div className="h-screen bg-black flex flex-col items-center justify-center text-white gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
@@ -56,10 +64,10 @@ export default function PublicTourViewer() {
       {/* Header Info */}
       <div className="absolute top-0 left-0 right-0 p-6 z-20 pointer-events-none flex justify-between items-start">
         <div className="pointer-events-auto">
-          <div className="bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-white max-w-sm">
+          <div className="bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-white max-w-sm shadow-2xl">
             <h1 className="text-lg font-bold font-headline">{tour.name}</h1>
             <p className="text-sm text-white/60 flex items-center gap-1">
-              <Info className="w-3 h-3" /> {activeScene?.name || 'Escena'}
+              <Info className="w-3 h-3" /> {activeScene?.name || 'Cargando...'}
             </p>
           </div>
         </div>
@@ -87,10 +95,10 @@ export default function PublicTourViewer() {
 
       {/* Controls Bar */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-4">
-        <div className="bg-black/40 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 flex items-center gap-8 text-white">
+        <div className="bg-black/40 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 flex items-center gap-8 text-white shadow-2xl">
            <div className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors group">
               <ChevronUp className="w-4 h-4 group-hover:translate-y-[-2px] transition-transform" />
-              <span className="text-sm font-medium">Escenas</span>
+              <span className="text-sm font-medium">Escenas ({scenes?.length || 0})</span>
            </div>
            
            <div 
