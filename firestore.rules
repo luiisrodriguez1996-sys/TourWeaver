@@ -1,129 +1,48 @@
 rules_version = '2';
 
-/**
- * FIRESTORE SECURITY RULES
- * 
- * CORE PHILOSOPHY:
- * This ruleset implements a Public-Read/Admin-Write model. The application is a 
- * virtual tour platform where the general public can view tours, scenes, and hotspots, 
- * but only authorized administrators can create or modify content.
- * 
- * DATA STRUCTURE:
- * - /siteConfigurations/{id}: Global settings like language.
- * - /roles_admin/{userId}: A registry of administrative users.
- * - /tours/{tourId}: Top-level tour metadata.
- * - /tours/{tourId}/scenes/{sceneId}: Scenes belonging to a specific tour.
- * - /tours/{tourId}/scenes/{sceneId}/hotspots/{hotspotId}: Navigation points within a scene.
- * 
- * KEY SECURITY DECISIONS:
- * 1. Admin-Only Management: Per user requirements, only the owner (Admin) can publish or 
- *    manage tours. This is enforced by checking for a document in the 'roles_admin' collection.
- * 2. Public Accessibility: Tours and their components (scenes/hotspots) are publicly 
- *    readable to allow unauthenticated users to experience the virtual tours.
- * 3. Relational Integrity: In the prototyping phase, we enforce that sub-resources 
- *    (Scenes, Hotspots) correctly reference their parent IDs to maintain path consistency.
- * 4. Structural Segregation: Administrative roles are separated into a dedicated 
- *    'roles_admin' collection to avoid polluting content documents with role metadata.
- * 
- * DENORMALIZATION FOR AUTHORIZATION:
- * Admin status is determined by the existence of a document at /roles_admin/{uid}. 
- * While this requires a lookup, it centralizes permissions for site-wide management.
- */
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
     // --- GLOBAL HELPER FUNCTIONS ---
 
-    /**
-     * @description Checks if the request is from an authenticated user.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * @description Checks if the authenticated user's UID matches the provided userId.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * @description Checks if the user exists in the roles_admin collection.
-     */
+    // Verifica que el documento exista Y que el campo isAdmin sea true (booleano)
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      return isSignedIn() && 
+        get(/databases/$(database)/documents/roles_admin/$(request.auth.uid)).data.isAdmin == true;
     }
 
     // --- COLLECTION RULES ---
 
-    /**
-     * @description Rules for site-wide configuration settings (e.g., default language).
-     * @path /siteConfigurations/{siteConfigurationId}
-     * @allow (get) Any user can read the site configuration.
-     * @deny (update) A non-admin user attempts to change the default language.
-     * @principle Restricts site-wide configuration to administrators.
-     */
     match /siteConfigurations/{siteConfigurationId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
-    }
-
-    /**
-     * @description Rules for the admin roles registry.
-     * @path /roles_admin/{userId}
-     * @allow (get) A user checks their own admin status.
-     * @deny (create) An anonymous user attempts to grant themselves admin rights.
-     * @principle Uses a dedicated collection to manage global administrative privileges.
-     */
-    match /roles_admin/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
-      allow list: if isAdmin();
       allow create, update, delete: if isAdmin();
     }
 
-    /**
-     * @description Rules for the virtual tours.
-     * @path /tours/{tourId}
-     * @allow (list) Public users browsing the tour gallery.
-     * @allow (create) An admin publishing a new tour.
-     * @deny (delete) A signed-in user who is not an admin attempting to delete a tour.
-     * @principle Enforces admin-only management of public-facing content.
-     */
+    match /roles_admin/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create, update, delete: if false; // Solo se gestiona desde la consola de Firebase
+    }
+
     match /tours/{tourId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
+      allow create, update, delete: if isAdmin();
 
-      /**
-       * @description Rules for scenes within a tour.
-       * @path /tours/{tourId}/scenes/{sceneId}
-       * @allow (create) Admin adding a scene that correctly references the parent tourId.
-       * @deny (create) Admin adding a scene where data.tourId does not match the URL path.
-       * @principle Ensures relational integrity between the tour and its scenes.
-       */
       match /scenes/{sceneId} {
         allow get, list: if true;
-        allow create: if isAdmin() && request.resource.data.tourId == tourId;
-        allow update: if isAdmin() && resource != null && request.resource.data.tourId == resource.data.tourId;
-        allow delete: if isAdmin() && resource != null;
+        allow create, update, delete: if isAdmin();
 
-        /**
-         * @description Rules for hotspots within a scene.
-         * @path /tours/{tourId}/scenes/{sceneId}/hotspots/{hotspotId}
-         * @allow (get) Public access to hotspots for navigation.
-         * @deny (update) Changing the sceneId of a hotspot, which would break the path relationship.
-         * @principle Maintains immutability of relational keys for data consistency.
-         */
         match /hotspots/{hotspotId} {
           allow get, list: if true;
-          allow create: if isAdmin() && request.resource.data.sceneId == sceneId;
-          allow update: if isAdmin() && resource != null && request.resource.data.sceneId == resource.data.sceneId;
-          allow delete: if isAdmin() && resource != null;
+          allow create, update, delete: if isAdmin();
         }
       }
     }
