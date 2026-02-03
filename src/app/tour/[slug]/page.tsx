@@ -123,7 +123,6 @@ export default function PublicTourViewer() {
 
   return (
     <div className="h-[100dvh] w-full relative overflow-hidden bg-black flex flex-col touch-none">
-      {/* Header Info - Desplegable */}
       <div className="absolute top-0 left-0 right-0 p-4 md:p-6 z-20 pointer-events-none flex flex-col md:flex-row justify-between items-start gap-4">
         <div className="pointer-events-auto w-full md:w-auto">
           <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 text-white max-w-sm shadow-2xl overflow-hidden">
@@ -175,7 +174,7 @@ export default function PublicTourViewer() {
 
                 {tour.description && (
                   <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                    <p className="text-[9px] font-black text-white/40 uppercase mb-1 tracking-wider">Detalles del Proyecto</p>
+                    <p className="text-[9px] font-black text-white/40 uppercase mb-1 tracking-wider">Detalles de la Propiedad</p>
                     <p className="text-[11px] text-white/50 leading-relaxed italic">
                       {tour.description}
                     </p>
@@ -214,7 +213,6 @@ export default function PublicTourViewer() {
         </div>
       </div>
 
-      {/* Main Viewer */}
       <div className="flex-grow w-full h-full relative">
         {activeScene && (
           <ThreeSixtyViewer 
@@ -225,7 +223,6 @@ export default function PublicTourViewer() {
         )}
       </div>
 
-      {/* Controls Bar */}
       <div className="absolute bottom-16 md:bottom-20 left-1/2 -translate-x-1/2 z-20 flex items-center gap-4">
         <div className="bg-black/40 backdrop-blur-md px-6 py-1 rounded-full border border-white/10 flex items-center gap-2 text-white shadow-2xl pointer-events-auto">
            
@@ -286,7 +283,6 @@ export default function PublicTourViewer() {
         </div>
       </div>
 
-      {/* Floor Plan Overlay */}
       {(showFloorPlan && tour.showFloorPlan) && (
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-30 flex items-center justify-center p-8 animate-in fade-in duration-300">
            <div className="bg-white rounded-[2.5rem] p-8 max-w-3xl w-full relative shadow-2xl">
@@ -308,7 +304,6 @@ export default function PublicTourViewer() {
                    className="w-full h-full object-contain"
                    data-ai-hint="house floorplan"
                  />
-                 {/* Interactive Markers for all scenes */}
                  {scenes?.map((s: any) => s.floorPlanX !== undefined && (
                    <button
                      key={s.id}
@@ -335,7 +330,6 @@ export default function PublicTourViewer() {
         </div>
       )}
 
-      {/* Branding */}
       <div className="absolute bottom-4 right-8 z-20 pointer-events-none">
         <span className="text-neutral-500/40 text-[10px] font-bold tracking-widest uppercase">Potenciado por Tour Weaver</span>
       </div>

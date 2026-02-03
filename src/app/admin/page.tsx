@@ -90,7 +90,7 @@ export default function AdminDashboard() {
     const tourRef = doc(firestore, 'tours', id);
     updateDocumentNonBlocking(tourRef, { published: !currentStatus });
     toast({
-      title: currentStatus ? (isSpanish ? "Proyecto Privado" : "Private Project") : (isSpanish ? "Proyecto Publicado" : "Project Published"),
+      title: currentStatus ? (isSpanish ? "Propiedad Privada" : "Private Property") : (isSpanish ? "Propiedad Publicada" : "Property Published"),
       description: currentStatus ? (isSpanish ? "El tour ya no es visible para el público." : "The tour is no longer visible to the public.") : (isSpanish ? "El tour ahora es accesible mediante su enlace." : "The tour is now accessible via its link."),
     });
   };
@@ -103,7 +103,7 @@ export default function AdminDashboard() {
     
     toast({
       variant: "destructive",
-      title: isSpanish ? "Proyecto Eliminado" : "Project Deleted",
+      title: isSpanish ? "Propiedad Eliminada" : "Property Deleted",
       description: isSpanish ? "El tour ha sido borrado permanentemente." : "The tour has been permanently deleted.",
     });
     
@@ -160,7 +160,7 @@ export default function AdminDashboard() {
               <DropdownMenuItem className="cursor-pointer" onClick={() => togglePublish(tour.id, tour.published)}>
                 {tour.published ? (
                   <>
-                    <EyeOff className="mr-2 h-4 w-4" /> {isSpanish ? 'Hacer Privado' : 'Make Private'}
+                    <EyeOff className="mr-2 h-4 w-4" /> {isSpanish ? 'Hacer Privada' : 'Make Private'}
                   </>
                 ) : (
                   <>
@@ -171,11 +171,10 @@ export default function AdminDashboard() {
               <DropdownMenuItem 
                 className="text-destructive cursor-pointer focus:bg-destructive/10 focus:text-destructive" 
                 onClick={() => {
-                  // Pequeño delay para permitir que el dropdown limpie sus estilos antes de abrir el AlertDialog
                   setTimeout(() => setTourToDeleteId(tour.id), 100);
                 }}
               >
-                <Trash2 className="mr-2 h-4 w-4" /> {isSpanish ? 'Eliminar Proyecto' : 'Delete Project'}
+                <Trash2 className="mr-2 h-4 w-4" /> {isSpanish ? 'Eliminar Propiedad' : 'Delete Property'}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -206,7 +205,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold font-headline">
-            {isSpanish ? 'Gestión de Proyectos' : 'Project Management'}
+            {isSpanish ? 'Gestión de Propiedades' : 'Property Management'}
           </h1>
           <p className="text-muted-foreground">
             {isSpanish ? 'Organiza y publica tus tours virtuales profesionales' : 'Organize and publish your professional virtual tours'}
@@ -227,13 +226,12 @@ export default function AdminDashboard() {
           </Tabs>
           <Link href="/admin/tours/new">
             <Button className="bg-primary hover:bg-primary/90 rounded-xl px-6">
-              {isSpanish ? 'Nuevo Proyecto' : 'New Project'}
+              {isSpanish ? 'Nueva Propiedad' : 'New Property'}
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Vista de Clientes - Subvista de carpeta seleccionada */}
       {viewMode === 'clients' && selectedClient && (
         <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
           <Button variant="ghost" onClick={() => setSelectedClient(null)} className="gap-2 text-muted-foreground hover:text-primary">
@@ -243,7 +241,7 @@ export default function AdminDashboard() {
             <Folder className="w-8 h-8 text-primary" />
             <h2 className="text-2xl font-bold">{selectedClient}</h2>
             <Badge variant="secondary" className="bg-primary/10 text-primary">
-              {groupedTours[selectedClient]?.length} {isSpanish ? 'Proyectos' : 'Projects'}
+              {groupedTours[selectedClient]?.length} {isSpanish ? 'Propiedades' : 'Properties'}
             </Badge>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -252,7 +250,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Vista de Carpetas de Clientes */}
       {viewMode === 'clients' && !selectedClient && (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-in fade-in zoom-in-95 duration-300">
           {clients.map((client) => (
@@ -270,14 +267,14 @@ export default function AdminDashboard() {
                   <div>
                     <h3 className="text-lg font-bold line-clamp-1">{client}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {groupedTours[client]?.length} {isSpanish ? 'Proyectos' : 'Projects'}
+                      {groupedTours[client]?.length} {isSpanish ? 'Propiedades' : 'Properties'}
                     </p>
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="bg-gray-50/50 justify-center py-3 border-t">
                 <span className="text-xs font-bold text-primary flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                  {isSpanish ? 'Ver Proyectos' : 'View Projects'} <ChevronRight className="w-3 h-3" />
+                  {isSpanish ? 'Ver Propiedades' : 'View Properties'} <ChevronRight className="w-3 h-3" />
                 </span>
               </CardFooter>
             </Card>
@@ -285,7 +282,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Vista de Lista Total */}
       {viewMode === 'all' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
           {tours?.map((tour: any) => renderTourCard(tour))}
@@ -298,13 +294,13 @@ export default function AdminDashboard() {
             <Briefcase className="text-muted-foreground w-8 h-8" />
           </div>
           <h2 className="text-xl font-bold mb-2">
-            {isSpanish ? 'No hay proyectos registrados' : 'No registered projects'}
+            {isSpanish ? 'No hay propiedades registradas' : 'No registered properties'}
           </h2>
           <p className="text-muted-foreground mb-6">
             {isSpanish ? 'Comienza a crear tu primer encargo profesional.' : 'Start creating your first professional assignment.'}
           </p>
           <Link href="/admin/tours/new">
-            <Button className="rounded-xl px-8">{isSpanish ? 'Registrar Proyecto' : 'Register Project'}</Button>
+            <Button className="rounded-xl px-8">{isSpanish ? 'Registrar Propiedad' : 'Register Property'}</Button>
           </Link>
         </div>
       )}
@@ -312,7 +308,6 @@ export default function AdminDashboard() {
       <AlertDialog open={tourToDeleteId !== null} onOpenChange={(open) => {
         if (!open) {
           setTourToDeleteId(null);
-          // Forzar la limpieza de estilos de Radix UI si es necesario
           document.body.style.pointerEvents = 'auto';
         }
       }}>
@@ -326,8 +321,8 @@ export default function AdminDashboard() {
             </AlertDialogTitle>
             <AlertDialogDescription className="text-base">
               {isSpanish 
-                ? 'Esta acción no se puede deshacer. Se eliminará el proyecto permanentemente de nuestros servidores.' 
-                : 'This action cannot be undone. This will permanently delete your project from our servers.'}
+                ? 'Esta acción no se puede deshacer. Se eliminará la propiedad permanentemente de nuestros servidores.' 
+                : 'This action cannot be undone. This will permanently delete your property from our servers.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">
@@ -338,7 +333,7 @@ export default function AdminDashboard() {
               onClick={handleDeleteConfirm}
               className="bg-destructive hover:bg-destructive/90 rounded-xl"
             >
-              {isSpanish ? 'Sí, eliminar proyecto' : 'Yes, delete project'}
+              {isSpanish ? 'Sí, eliminar propiedad' : 'Yes, delete property'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -62,7 +62,7 @@ export default function NewTour() {
       
       const docRef = await addDocumentNonBlocking(collection(firestore, 'tours'), tourData);
       if (docRef) {
-        toast({ title: "Proyecto Inicializado", description: "Ahora puedes añadir tus escenas 360° en el editor." });
+        toast({ title: "Propiedad Inicializada", description: "Ahora puedes añadir tus escenas 360° en el editor." });
         router.push(`/admin/tours/${docRef.id}`);
       }
     } catch (error) {
@@ -74,7 +74,7 @@ export default function NewTour() {
   return (
     <div className="max-w-2xl mx-auto py-8">
       <Link href="/admin" className="flex items-center gap-2 text-muted-foreground hover:text-primary mb-8 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Volver a Proyectos
+        <ArrowLeft className="w-4 h-4" /> Volver a Propiedades
       </Link>
 
       <Card className="border-none shadow-xl rounded-3xl overflow-hidden">
@@ -147,7 +147,7 @@ export default function NewTour() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-sm font-bold">Notas del Proyecto</Label>
+              <Label htmlFor="description" className="text-sm font-bold">Notas de la Propiedad</Label>
               <Textarea 
                 id="description" 
                 placeholder="Detalles sobre la propiedad..." 
@@ -196,7 +196,7 @@ export default function NewTour() {
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   Inicializando...
                 </>
-              ) : 'Crear Proyecto e Ir al Editor'}
+              ) : 'Crear Propiedad e Ir al Editor'}
             </Button>
           </CardFooter>
         </form>

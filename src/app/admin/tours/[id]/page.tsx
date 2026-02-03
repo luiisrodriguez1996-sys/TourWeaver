@@ -60,7 +60,6 @@ export default function TourEditor() {
     return collection(firestore, 'tours', id as string, 'scenes');
   }, [firestore, id]);
 
-  // Obtener todos los tours para sugerencias de clientes
   const allToursRef = useMemoFirebase(() => {
     if (!firestore) return null;
     return collection(firestore, 'tours');
@@ -186,7 +185,7 @@ export default function TourEditor() {
           setLocalTourInfo(prev => ({ ...prev, floorPlanUrl: imageUrl, showFloorPlan: true }));
           setHasUnsavedChanges(true);
           setIsUploading(false);
-          toast({ title: "Plano cargado", description: "El plano ha sido añadido al proyecto." });
+          toast({ title: "Plano cargado", description: "El plano ha sido añadido a la propiedad." });
         } catch (error) {
           setIsUploading(false);
           toast({ variant: "destructive", title: "Error", description: "No se pudo procesar el plano." });
@@ -272,7 +271,7 @@ export default function TourEditor() {
       setDeletedSceneIds([]);
       setHasUnsavedChanges(false);
       setIsSaving(false);
-      toast({ title: "Proyecto Guardado", description: "Todos los cambios han sido sincronizados." });
+      toast({ title: "Propiedad Guardada", description: "Todos los cambios han sido sincronizados." });
     } catch (error) {
       console.error(error);
       setIsSaving(false);
@@ -312,8 +311,8 @@ export default function TourEditor() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-3xl shadow-xl max-w-md">
-          <h1 className="text-2xl font-bold mb-2">Proyecto no encontrado</h1>
-          <p className="text-muted-foreground mb-8">El tour que intentas editar no existe o no tienes permisos para acceder.</p>
+          <h1 className="text-2xl font-bold mb-2">Propiedad no encontrada</h1>
+          <p className="text-muted-foreground mb-8">La propiedad que intentas editar no existe o no tienes permisos para acceder.</p>
           <Button onClick={() => router.push('/admin')}>Volver al Panel</Button>
         </div>
       </div>
@@ -333,7 +332,7 @@ export default function TourEditor() {
             </div>
             <h1 className="text-2xl font-bold font-headline">{localTourInfo.name || tour.name}</h1>
             <p className="text-sm text-muted-foreground flex items-center gap-2">
-              Editor de Proyecto • {localScenes.length} Estancias
+              Editor de Propiedad • {localScenes.length} Estancias
               {hasUnsavedChanges && (
                 <span className="flex items-center gap-1 text-accent font-bold animate-pulse">
                   <AlertCircle className="w-3 h-3" /> Cambios sin guardar
@@ -355,7 +354,6 @@ export default function TourEditor() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto lg:h-[calc(100vh-180px)]">
-        {/* PANEL IZQUIERDO: Portafolio y Configuración Global */}
         <div className="lg:col-span-3 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
           <section className="space-y-4">
             <h3 className="font-semibold text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-2">
@@ -402,7 +400,7 @@ export default function TourEditor() {
 
           <section className="space-y-4 pb-10">
             <h3 className="font-semibold text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <Settings className="w-4 h-4" /> Configuración del Proyecto
+              <Settings className="w-4 h-4" /> Configuración de la Propiedad
             </h3>
             <div className="space-y-4">
               <div className="space-y-1.5">
@@ -536,7 +534,6 @@ export default function TourEditor() {
           </section>
         </div>
 
-        {/* PANEL CENTRAL: Visor 360 */}
         <div className="lg:col-span-6 flex flex-col gap-4 min-h-[400px]">
           <div className="flex-grow rounded-3xl overflow-hidden shadow-xl border relative bg-black">
             {activeScene ? (
@@ -563,7 +560,6 @@ export default function TourEditor() {
           </Card>
         </div>
 
-        {/* PANEL DERECHO: Detalles de Estancia y Ubicación */}
         <div className="lg:col-span-3 space-y-4 overflow-y-auto pl-2 custom-scrollbar">
           <Tabs defaultValue="details">
             <TabsList className="w-full grid grid-cols-2">
@@ -592,7 +588,6 @@ export default function TourEditor() {
                       onClick={handleFloorPlanClick}
                     >
                       <img src={localTourInfo.floorPlanUrl} className="w-full h-full object-contain pointer-events-none" alt="Mini Plano" />
-                      {/* Marcadores de todas las escenas */}
                       {localScenes.map(s => s.floorPlanX !== undefined && (
                         <div 
                           key={s.id}
