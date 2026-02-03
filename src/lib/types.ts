@@ -9,6 +9,8 @@ export interface Tour {
   floorPlanUrl?: string;
   showFloorPlan?: boolean;
   thumbnailUrl?: string;
+  latitude?: number;
+  longitude?: number;
   createdAt: number;
   updatedAt: number;
   scenes: Scene[];

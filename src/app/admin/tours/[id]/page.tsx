@@ -27,7 +27,8 @@ import {
   MapPin,
   Settings,
   Crosshair,
-  User
+  User,
+  ExternalLink
 } from 'lucide-react';
 import {
   Select,
@@ -67,7 +68,9 @@ export default function TourEditor() {
     clientName: '',
     description: '',
     floorPlanUrl: '',
-    showFloorPlan: false
+    showFloorPlan: false,
+    latitude: '',
+    longitude: ''
   });
 
   const [localScenes, setLocalScenes] = useState<Scene[]>([]);
@@ -84,7 +87,9 @@ export default function TourEditor() {
         clientName: tour.clientName || '',
         description: tour.description || '',
         floorPlanUrl: tour.floorPlanUrl || '',
-        showFloorPlan: !!tour.showFloorPlan
+        showFloorPlan: !!tour.showFloorPlan,
+        latitude: tour.latitude?.toString() || '',
+        longitude: tour.longitude?.toString() || ''
       });
     }
   }, [tour]);
@@ -246,6 +251,8 @@ export default function TourEditor() {
           description: localTourInfo.description,
           floorPlanUrl: localTourInfo.floorPlanUrl,
           showFloorPlan: localTourInfo.showFloorPlan,
+          latitude: localTourInfo.latitude ? parseFloat(localTourInfo.latitude) : null,
+          longitude: localTourInfo.longitude ? parseFloat(localTourInfo.longitude) : null,
           thumbnailUrl: localScenes.length > 0 ? localScenes[0].imageUrl : tour.thumbnailUrl || '',
           updatedAt: Date.now() 
         }, { merge: true });
@@ -256,6 +263,7 @@ export default function TourEditor() {
       setIsSaving(false);
       toast({ title: "Proyecto Guardado", description: "Todos los cambios han sido sincronizados." });
     } catch (error) {
+      console.error(error);
       setIsSaving(false);
       toast({ variant: "destructive", title: "Error al guardar", description: "Ocurrió un problema al subir los datos." });
     }
@@ -312,7 +320,7 @@ export default function TourEditor() {
             <div className="flex items-center gap-1.5 text-primary text-[10px] font-bold uppercase">
               <User className="w-3 h-3" /> {localTourInfo.clientName}
             </div>
-            <h1 className="text-2xl font-bold font-headline">{localTourInfo.name}</h1>
+            <h1 className="text-2xl font-bold font-headline">{localTourInfo.name || tour.name}</h1>
             <p className="text-sm text-muted-foreground flex items-center gap-2">
               Editor de Proyecto • {localScenes.length} Estancias
               {hasUnsavedChanges && (
@@ -419,6 +427,49 @@ export default function TourEditor() {
                   }}
                 />
               </div>
+              
+              <div className="space-y-3 pt-2">
+                <Label className="text-xs flex items-center gap-2">
+                  <MapPin className="w-3 h-3 text-primary" /> Google Maps (Locación)
+                </Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-[9px] uppercase font-bold text-muted-foreground">Latitud</Label>
+                    <Input 
+                      value={localTourInfo.latitude} 
+                      placeholder="-34.603"
+                      className="h-7 text-[10px]"
+                      onChange={(e) => {
+                        setLocalTourInfo({ ...localTourInfo, latitude: e.target.value });
+                        setHasUnsavedChanges(true);
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[9px] uppercase font-bold text-muted-foreground">Longitud</Label>
+                    <Input 
+                      value={localTourInfo.longitude} 
+                      placeholder="-58.381"
+                      className="h-7 text-[10px]"
+                      onChange={(e) => {
+                        setLocalTourInfo({ ...localTourInfo, longitude: e.target.value });
+                        setHasUnsavedChanges(true);
+                      }}
+                    />
+                  </div>
+                </div>
+                {localTourInfo.latitude && localTourInfo.longitude && (
+                  <Button 
+                    variant="link" 
+                    size="sm" 
+                    className="h-auto p-0 text-[10px] text-primary"
+                    onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${localTourInfo.latitude},${localTourInfo.longitude}`, '_blank')}
+                  >
+                    <ExternalLink className="w-3 h-3 mr-1" /> Probar en Maps
+                  </Button>
+                )}
+              </div>
+
               <div className="flex items-center justify-between p-2 bg-muted/40 rounded-lg">
                 <Label className="text-xs cursor-pointer" htmlFor="floorplan-toggle">Habilitar Plano</Label>
                 <Switch 

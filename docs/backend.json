@@ -50,6 +50,14 @@
         "thumbnailUrl": {
           "type": "string",
           "description": "URL of the thumbnail image for the tour."
+        },
+        "latitude": {
+          "type": "number",
+          "description": "Latitude coordinate for Google Maps location."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Longitude coordinate for Google Maps location."
         }
       },
       "required": [

@@ -68,6 +68,12 @@ export default function PublicTourViewer() {
     }
   };
 
+  const handleOpenMaps = () => {
+    if (tour?.latitude && tour?.longitude) {
+      window.open(`https://www.google.com/maps/search/?api=1&query=${tour.latitude},${tour.longitude}`, '_blank');
+    }
+  };
+
   // Determinamos si el usuario puede ver el tour
   const canView = tour ? (tour.published || isAdmin) : false;
 
@@ -125,6 +131,17 @@ export default function PublicTourViewer() {
         </div>
         
         <div className="flex gap-2 pointer-events-auto">
+          {tour.latitude && tour.longitude && (
+            <Button 
+              variant="secondary" 
+              size="icon" 
+              className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-11 w-11"
+              onClick={handleOpenMaps}
+              title="Ver en Google Maps"
+            >
+              <MapPin className="w-4 h-4" />
+            </Button>
+          )}
           <Button 
             variant="secondary" 
             size="icon" 

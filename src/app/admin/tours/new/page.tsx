@@ -1,14 +1,14 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Briefcase, ArrowLeft, Loader2, User, Search } from 'lucide-react';
+import { Briefcase, ArrowLeft, Loader2, User, Search, MapPin } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { useFirestore, addDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
@@ -25,7 +25,9 @@ export default function NewTour() {
     name: '',
     clientName: '',
     slug: '',
-    description: ''
+    description: '',
+    latitude: '',
+    longitude: ''
   });
 
   // Obtener clientes existentes para sugerencias
@@ -51,6 +53,8 @@ export default function NewTour() {
         clientName: formData.clientName,
         slug: formData.slug || formData.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, ''),
         description: formData.description,
+        latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+        longitude: formData.longitude ? parseFloat(formData.longitude) : null,
         published: false,
         createdAt: Date.now(),
         updatedAt: Date.now()
@@ -104,9 +108,6 @@ export default function NewTour() {
                   ))}
                 </datalist>
               </div>
-              <p className="text-[10px] text-muted-foreground italic px-1">
-                Puedes elegir un cliente existente o crear uno nuevo simplemente escribiendo su nombre.
-              </p>
             </div>
 
             <Separator />
@@ -149,12 +150,47 @@ export default function NewTour() {
               <Label htmlFor="description" className="text-sm font-bold">Notas del Proyecto</Label>
               <Textarea 
                 id="description" 
-                placeholder="Detalles sobre la propiedad, requisitos especiales del broker..." 
-                rows={4}
+                placeholder="Detalles sobre la propiedad..." 
+                rows={3}
                 value={formData.description}
                 onChange={e => setFormData({ ...formData, description: e.target.value })}
                 className="rounded-xl resize-none"
               />
+            </div>
+
+            <div className="space-y-4 pt-2">
+              <Label className="text-sm font-bold flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" /> Ubicación (Coordenadas Google Maps)
+              </Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="latitude" className="text-xs">Latitud</Label>
+                  <Input 
+                    id="latitude"
+                    type="number"
+                    step="any"
+                    placeholder="ej. -34.6037"
+                    value={formData.latitude}
+                    onChange={e => setFormData({ ...formData, latitude: e.target.value })}
+                    className="rounded-xl"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="longitude" className="text-xs">Longitud</Label>
+                  <Input 
+                    id="longitude"
+                    type="number"
+                    step="any"
+                    placeholder="ej. -58.3816"
+                    value={formData.longitude}
+                    onChange={e => setFormData({ ...formData, longitude: e.target.value })}
+                    className="rounded-xl"
+                  />
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground italic">
+                Copia las coordenadas desde Google Maps para permitir que los clientes vean la ubicación real.
+              </p>
             </div>
           </CardContent>
           <CardFooter className="bg-gray-50/50 p-8 border-t">
