@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Tour, Scene, Hotspot } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,9 @@ import {
   Link as LinkIcon,
   PlusCircle,
   Map as MapIcon,
-  Sparkles
+  Sparkles,
+  Camera,
+  Upload
 } from 'lucide-react';
 import { suggestSceneLinks } from '@/ai/flows/ai-suggest-scene-links';
 import { useToast } from '@/hooks/use-toast';
@@ -32,6 +35,8 @@ export default function TourEditor() {
   const router = useRouter();
   const { toast } = useToast();
   const firestore = useFirestore();
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const tourRef = useMemoFirebase(() => {
     if (!firestore || !id) return null;
@@ -50,6 +55,37 @@ export default function TourEditor() {
   }, [tour, activeSceneId]);
 
   const activeScene = tour?.scenes?.find((s: any) => s.id === activeSceneId);
+
+  const handleCapture = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      toast({ title: "Foto capturada", description: "Procesando imagen para la nueva escena..." });
+      // Aquí iría la lógica de subida a Storage si fuera necesaria, 
+      // por ahora simulamos que se añade una nueva escena
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        addNewScene('Nueva Escena (Cámara)', reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const addNewScene = (name: string, imageUrl: string) => {
+    if (!tour || !tourRef) return;
+    
+    const newScene: Scene = {
+      id: Math.random().toString(36).substr(2, 9),
+      tourId: tour.id,
+      name: name,
+      description: '',
+      imageUrl: imageUrl,
+      hotspots: []
+    };
+
+    const updatedScenes = [...(tour.scenes || []), newScene];
+    updateDocumentNonBlocking(tourRef, { scenes: updatedScenes });
+    setActiveSceneId(newScene.id);
+  };
 
   const addHotspot = (yaw: number, pitch: number) => {
     if (!activeSceneId || !tour || !tourRef) return;
@@ -71,7 +107,7 @@ export default function TourEditor() {
     });
 
     updateDocumentNonBlocking(tourRef, { scenes: updatedScenes });
-    toast({ title: "Punto de Interés Añadido", description: "Ahora puedes seleccionar su destino." });
+    toast({ title: "Punto de Interés Añadido", description: "Configura el destino en el panel derecho." });
   };
 
   const handleAiSuggest = async () => {
@@ -115,7 +151,7 @@ export default function TourEditor() {
         updateDocumentNonBlocking(tourRef, { scenes: updatedScenes });
         toast({ 
           title: "Análisis de IA Completo", 
-          description: `Se sugirieron ${suggestions.length} conexiones basadas en el contexto visual.` 
+          description: `Se sugirieron ${suggestions.length} conexiones inteligentes.` 
         });
       }
     } catch (error) {
@@ -125,45 +161,53 @@ export default function TourEditor() {
     }
   };
 
-  if (isLoading) return <div className="p-8">Cargando editor...</div>;
+  if (isLoading) return <div className="p-8">Cargando editor profesional...</div>;
   if (!tour) return <div className="p-8">Tour no encontrado.</div>;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.push('/admin')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
             <h1 className="text-2xl font-bold font-headline">{tour.name}</h1>
-            <p className="text-sm text-muted-foreground">Editor de Tour • {tour.scenes?.length || 0} Escenas</p>
+            <p className="text-sm text-muted-foreground">Editor de Proyecto • {tour.scenes?.length || 0} Escenas</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2" onClick={handleAiSuggest} disabled={isAiLoading}>
+          <Button variant="outline" className="hidden sm:flex gap-2" onClick={handleAiSuggest} disabled={isAiLoading}>
             <Sparkles className={`w-4 h-4 text-accent ${isAiLoading ? 'animate-spin' : ''}`} />
-            {isAiLoading ? 'IA Trabajando...' : 'IA Enlazador de Escenas'}
+            {isAiLoading ? 'IA Pensando...' : 'Auto-Enlazar IA'}
           </Button>
           <Button className="bg-primary hover:bg-primary/90 gap-2">
-            <Save className="w-4 h-4" /> Guardar Cambios
+            <Save className="w-4 h-4" /> Guardar Todo
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-180px)]">
-        {/* Left Sidebar: Scene List */}
-        <div className="lg:col-span-3 space-y-4 overflow-y-auto pr-2">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto lg:h-[calc(100vh-180px)]">
+        {/* Left Sidebar: Scene List & Camera Options */}
+        <div className="lg:col-span-3 space-y-4 overflow-y-auto pr-0 lg:pr-2">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              <ImageIcon className="w-4 h-4" /> Escenas
+              <ImageIcon className="w-4 h-4" /> Portafolio de Escenas
             </h3>
-            <Button size="icon" variant="ghost" className="h-8 w-8 text-primary">
-              <PlusCircle className="w-5 h-5" />
-            </Button>
           </div>
           
-          <div className="space-y-2">
+          <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 mb-4">
+             <Button variant="outline" size="sm" className="gap-2" onClick={() => fileInputRef.current?.click()}>
+                <Upload className="w-3 h-3" /> Subir
+             </Button>
+             <Button variant="outline" size="sm" className="gap-2 text-accent border-accent/30" onClick={() => cameraInputRef.current?.click()}>
+                <Camera className="w-3 h-3" /> Cámara
+             </Button>
+             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" />
+             <input type="file" ref={cameraInputRef} className="hidden" accept="image/*" capture="environment" onChange={handleCapture} />
+          </div>
+
+          <div className="space-y-2 max-h-[300px] lg:max-h-none overflow-y-auto">
             {tour.scenes?.map((scene: any) => (
               <Card 
                 key={scene.id} 
@@ -176,30 +220,30 @@ export default function TourEditor() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{scene.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{(scene.hotspots || []).length} puntos</p>
+                    <p className="text-xs text-muted-foreground truncate">{(scene.hotspots || []).length} enlaces</p>
                   </div>
                 </div>
               </Card>
             ))}
           </div>
 
-          <Separator className="my-6" />
+          <Separator className="my-6 hidden lg:block" />
 
-          <div className="space-y-4">
+          <div className="space-y-4 hidden lg:block">
             <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              <MapIcon className="w-4 h-4" /> Plano 2D
+              <MapIcon className="w-4 h-4" /> Plano Guía
             </h3>
             <Card className="bg-muted/30 border-dashed border-2 flex flex-col items-center justify-center p-6 gap-2 text-center">
               <MapIcon className="w-8 h-8 text-muted-foreground/50" />
-              <p className="text-xs text-muted-foreground">Sube un plano 2D para dar contexto</p>
+              <p className="text-xs text-muted-foreground">Adjunta un plano 2D para orientación</p>
               <Button variant="outline" size="sm" className="mt-2">Subir Plano</Button>
             </Card>
           </div>
         </div>
 
         {/* Center: 360 Viewer */}
-        <div className="lg:col-span-6 flex flex-col gap-4">
-          <div className="flex-grow rounded-3xl overflow-hidden shadow-xl border">
+        <div className="lg:col-span-6 flex flex-col gap-4 min-h-[400px]">
+          <div className="flex-grow rounded-3xl overflow-hidden shadow-xl border relative">
             {activeScene ? (
               <ThreeSixtyViewer 
                 imageUrl={activeScene.imageUrl} 
@@ -209,7 +253,7 @@ export default function TourEditor() {
               />
             ) : (
               <div className="w-full h-full bg-muted flex items-center justify-center">
-                <p>Selecciona una escena para editar</p>
+                <p>Añade tu primera escena para empezar</p>
               </div>
             )}
           </div>
@@ -219,54 +263,54 @@ export default function TourEditor() {
               <div className="w-8 h-8 bg-accent/20 rounded-full flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-accent" />
               </div>
-              <p className="text-sm text-accent-foreground">
-                <span className="font-bold">Consejo:</span> Haz clic en cualquier lugar de la vista 360 para añadir un nuevo punto de interés.
+              <p className="text-xs sm:text-sm text-accent-foreground">
+                <span className="font-bold">Modo Tejedor:</span> Toca en la vista 360 para crear un punto de navegación hacia otra estancia.
               </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Right Sidebar: Details & Hotspots Editor */}
-        <div className="lg:col-span-3 space-y-4 overflow-y-auto pl-2">
+        <div className="lg:col-span-3 space-y-4 overflow-y-auto pl-0 lg:pl-2">
           <Tabs defaultValue="details">
             <TabsList className="w-full grid grid-cols-2">
               <TabsTrigger value="details">Detalles</TabsTrigger>
-              <TabsTrigger value="hotspots">Puntos</TabsTrigger>
+              <TabsTrigger value="hotspots">Enlaces</TabsTrigger>
             </TabsList>
             
             <TabsContent value="details" className="pt-4 space-y-4">
               <div className="space-y-2">
-                <Label>Nombre de la Escena</Label>
-                <Input value={activeScene?.name || ''} placeholder="ej. Dormitorio Principal" readOnly />
+                <Label>Nombre de Estancia</Label>
+                <Input value={activeScene?.name || ''} placeholder="Dormitorio, Salón..." readOnly />
               </div>
               <div className="space-y-2">
-                <Label>Descripción</Label>
-                <Textarea value={activeScene?.description || ''} placeholder="Añade contexto para los visitantes..." readOnly />
+                <Label>Notas de Escena</Label>
+                <Textarea value={activeScene?.description || ''} placeholder="Info extra para el cliente..." readOnly className="resize-none h-24" />
               </div>
               <Separator />
-              <Button variant="destructive" className="w-full gap-2">
+              <Button variant="destructive" variant="outline" className="w-full gap-2 text-destructive border-destructive/20 hover:bg-destructive/10">
                 <Trash2 className="w-4 h-4" /> Eliminar Escena
               </Button>
             </TabsContent>
 
             <TabsContent value="hotspots" className="pt-4 space-y-4">
               {(!activeScene?.hotspots || activeScene.hotspots.length === 0) ? (
-                <div className="text-center py-10 opacity-50">
-                   <LinkIcon className="w-8 h-8 mx-auto mb-2" />
-                   <p className="text-sm">Sin puntos en esta escena</p>
+                <div className="text-center py-10 opacity-50 border rounded-xl border-dashed">
+                   <LinkIcon className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                   <p className="text-sm">Sin conexiones establecidas</p>
                 </div>
               ) : (
                 activeScene?.hotspots.map((h: any) => (
                   <Card key={h.id} className="p-3 bg-white border">
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center justify-between">
-                         <span className="text-xs font-bold uppercase text-primary">Punto de Interés</span>
+                         <span className="text-[10px] font-bold uppercase text-primary px-2 py-1 bg-primary/10 rounded">Navegación</span>
                          <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive">
                            <Trash2 className="w-4 h-4" />
                          </Button>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs">Etiqueta</Label>
+                      <div className="space-y-1">
+                        <Label className="text-[10px]">Texto del botón</Label>
                         <Input size={1} value={h.label} className="h-8 text-xs" readOnly />
                       </div>
                     </div>
