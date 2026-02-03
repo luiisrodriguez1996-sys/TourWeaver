@@ -18,20 +18,15 @@ import {
   Trash2, 
   ArrowLeft, 
   ImageIcon, 
-  Link as LinkIcon,
   PlusCircle,
-  Map as MapIcon,
-  Upload,
-  Loader2,
-  AlertCircle,
   MapPin,
   Settings,
   Crosshair,
   User,
   ExternalLink,
-  Search,
-  CheckCircle2,
-  Map as MapIconLucide
+  Loader2,
+  AlertCircle,
+  Upload
 } from 'lucide-react';
 import {
   Select,
@@ -81,7 +76,6 @@ export default function TourEditor() {
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [showMapPreview, setShowMapPreview] = useState(false);
 
   useEffect(() => {
     if (tour) {
@@ -433,56 +427,29 @@ export default function TourEditor() {
                 <Label className="text-xs flex items-center gap-2">
                   <MapPin className="w-3 h-3 text-primary" /> Dirección de la Propiedad
                 </Label>
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Input 
-                      value={localTourInfo.address} 
-                      placeholder="ej. Av. Corrientes 1234, CABA"
-                      className="h-8 text-xs pr-8"
-                      onChange={(e) => {
-                        setLocalTourInfo({ ...localTourInfo, address: e.target.value });
-                        setHasUnsavedChanges(true);
-                        setShowMapPreview(false); // Reset preview on change
-                      }}
-                    />
-                    {localTourInfo.address && (
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="absolute right-0 top-0 h-8 w-8 text-primary"
-                        onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(localTourInfo.address)}`, '_blank')}
-                        title="Ver en Google Maps"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                      </Button>
-                    )}
-                  </div>
-                  
+                <div className="relative">
+                  <Input 
+                    value={localTourInfo.address} 
+                    placeholder="ej. Av. Corrientes 1234, CABA"
+                    className="h-8 text-xs pr-8"
+                    onChange={(e) => {
+                      setLocalTourInfo({ ...localTourInfo, address: e.target.value });
+                      setHasUnsavedChanges(true);
+                    }}
+                  />
                   {localTourInfo.address && (
                     <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full h-7 text-[10px] gap-2 border-primary/20 hover:bg-primary/5"
-                      onClick={() => setShowMapPreview(!showMapPreview)}
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute right-0 top-0 h-8 w-8 text-primary"
+                      onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(localTourInfo.address)}`, '_blank')}
+                      title="Ver en Google Maps"
                     >
-                      <MapIconLucide className="w-3 h-3" />
-                      {showMapPreview ? 'Ocultar Mapa' : 'Verificar en Mapa'}
+                      <ExternalLink className="w-3 h-3" />
                     </Button>
                   )}
-
-                  {showMapPreview && localTourInfo.address && (
-                    <div className="aspect-video rounded-lg overflow-hidden border bg-muted animate-in fade-in slide-in-from-top-2 duration-300">
-                      <iframe
-                        width="100%"
-                        height="100%"
-                        frameBorder="0"
-                        style={{ border: 0 }}
-                        src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_FIREBASE_API_KEY}&q=${encodeURIComponent(localTourInfo.address)}`}
-                        allowFullScreen
-                      ></iframe>
-                    </div>
-                  )}
                 </div>
+                <p className="text-[10px] text-muted-foreground italic">Se mostrará en la vista pública con un enlace a Maps.</p>
               </div>
 
               <div className="flex items-center justify-between p-2 bg-muted/40 rounded-lg">
@@ -604,7 +571,7 @@ export default function TourEditor() {
             <TabsContent value="links" className="pt-4 space-y-4">
               {(!activeScene?.hotspots || activeScene.hotspots.length === 0) ? (
                 <div className="text-center py-12 opacity-40 border rounded-2xl border-dashed">
-                   <LinkIcon className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                   <PlusCircle className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                    <p className="text-xs">Usa la vista 360 para crear enlaces</p>
                 </div>
               ) : (
