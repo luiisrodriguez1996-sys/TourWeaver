@@ -7,7 +7,7 @@ import { useCollection, useFirestore, useMemoFirebase, useUser, useDoc } from '@
 import { collection, query, where, limit, doc } from 'firebase/firestore';
 import { ThreeSixtyViewer } from '@/components/ThreeSixtyViewer';
 import { Button } from '@/components/ui/button';
-import { Globe, Map, ChevronUp, Share2, Info, Loader2, Check, MapPin, ArrowLeft, Shield } from 'lucide-react';
+import { Globe, Map, ChevronUp, ChevronDown, Share2, Info, Loader2, Check, MapPin, ArrowLeft, Shield } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -16,6 +16,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export default function PublicTourViewer() {
   const { slug } = useParams();
@@ -23,6 +24,8 @@ export default function PublicTourViewer() {
   const { toast } = useToast();
   const { user } = useUser();
   
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
+
   // Verificación de administrador para permitir ver tours privados
   const adminRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -68,12 +71,15 @@ export default function PublicTourViewer() {
     }
   };
 
+  const getMapsUrl = () => {
+    if (tour?.googleMapsUrl) return tour.googleMapsUrl;
+    if (tour?.address) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tour.address)}`;
+    return null;
+  };
+
   const handleOpenMaps = () => {
-    if (tour?.googleMapsUrl) {
-      window.open(tour.googleMapsUrl, '_blank');
-    } else if (tour?.address) {
-      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tour.address)}`, '_blank');
-    }
+    const url = getMapsUrl();
+    if (url) window.open(url, '_blank');
   };
 
   // Determinamos si el usuario puede ver el tour
@@ -114,26 +120,55 @@ export default function PublicTourViewer() {
 
   return (
     <div className="h-[100dvh] w-full relative overflow-hidden bg-black flex flex-col touch-none">
-      {/* Header Info */}
-      <div className="absolute top-0 left-0 right-0 p-6 z-20 pointer-events-none flex justify-between items-start">
-        <div className="pointer-events-auto">
-          <div className="bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-white max-w-sm shadow-2xl">
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-lg font-bold font-headline">{tour.name}</h1>
-              {!tour.published && isAdmin && (
-                <div className="flex items-center gap-1 bg-accent/20 text-accent px-2 py-0.5 rounded text-[10px] font-bold border border-accent/20">
-                  <Shield className="w-3 h-3" /> MODO ADMIN
+      {/* Header Info - Desplegable */}
+      <div className="absolute top-0 left-0 right-0 p-4 md:p-6 z-20 pointer-events-none flex flex-col md:flex-row justify-between items-start gap-4">
+        <div className="pointer-events-auto w-full md:w-auto">
+          <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 text-white max-w-sm shadow-2xl overflow-hidden">
+            <div 
+              className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors"
+              onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
+            >
+              <div className="flex-1 min-w-0 pr-4">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <h1 className="text-base font-bold font-headline truncate">{tour.name}</h1>
+                  {!tour.published && isAdmin && (
+                    <div className="flex-shrink-0 flex items-center gap-1 bg-accent/20 text-accent px-1.5 py-0.5 rounded text-[8px] font-bold border border-accent/20">
+                      <Shield className="w-2.5 h-2.5" /> ADMIN
+                    </div>
+                  )}
                 </div>
-              )}
+                <p className="text-[10px] text-white/60 flex items-center gap-1">
+                  <Info className="w-3 h-3" /> {activeScene?.name || 'Cargando...'}
+                </p>
+              </div>
+              {isDetailsExpanded ? <ChevronUp className="w-4 h-4 text-white/60" /> : <ChevronDown className="w-4 h-4 text-white/60" />}
             </div>
-            {tour.address && (
-              <p className="text-[10px] text-white/40 mb-2 truncate flex items-center gap-1">
-                <MapPin className="w-2.5 h-2.5" /> {tour.address}
-              </p>
-            )}
-            <p className="text-sm text-white/60 flex items-center gap-1">
-              <Info className="w-3 h-3" /> {activeScene?.name || 'Cargando...'}
-            </p>
+            
+            <div className={cn(
+              "overflow-hidden transition-all duration-300 ease-in-out px-4",
+              isDetailsExpanded ? "max-h-[500px] pb-4 opacity-100" : "max-h-0 opacity-0"
+            )}>
+              <div className="space-y-3 pt-2">
+                {tour.address && (
+                  <a 
+                    href={getMapsUrl() || '#'} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="group flex items-start gap-2 text-xs text-white/80 hover:text-primary transition-colors"
+                  >
+                    <MapPin className="w-3.5 h-3.5 mt-0.5 text-primary" />
+                    <span className="underline underline-offset-4 decoration-white/20 group-hover:decoration-primary">{tour.address}</span>
+                  </a>
+                )}
+                {tour.description && (
+                  <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                    <p className="text-[11px] text-white/50 leading-relaxed italic">
+                      {tour.description}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
         
@@ -142,7 +177,7 @@ export default function PublicTourViewer() {
             <Button 
               variant="secondary" 
               size="icon" 
-              className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-11 w-11"
+              className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-10 w-10 md:h-11 md:w-11"
               onClick={handleOpenMaps}
               title="Ver en Google Maps"
             >
@@ -152,13 +187,13 @@ export default function PublicTourViewer() {
           <Button 
             variant="secondary" 
             size="icon" 
-            className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-11 w-11"
+            className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-10 w-10 md:h-11 md:w-11"
             onClick={handleShare}
           >
             <Share2 className="w-4 h-4" />
           </Button>
           <Link href="/">
-            <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-11 w-11">
+            <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-10 w-10 md:h-11 md:w-11">
                <Globe className="w-4 h-4" />
             </Button>
           </Link>
@@ -176,8 +211,8 @@ export default function PublicTourViewer() {
         )}
       </div>
 
-      {/* Controls Bar */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-4">
+      {/* Controls Bar - Elevado para evitar colisiones con el branding */}
+      <div className="absolute bottom-16 md:bottom-20 left-1/2 -translate-x-1/2 z-20 flex items-center gap-4">
         <div className="bg-black/40 backdrop-blur-md px-6 py-1 rounded-full border border-white/10 flex items-center gap-2 text-white shadow-2xl pointer-events-auto">
            
            <Popover>
@@ -284,9 +319,9 @@ export default function PublicTourViewer() {
         </div>
       )}
 
-      {/* Branding */}
+      {/* Branding - Ajustado con gris transparente */}
       <div className="absolute bottom-4 right-8 z-20 pointer-events-none opacity-40">
-        <span className="text-white text-[10px] font-bold tracking-widest uppercase">Potenciado por Tour Weaver</span>
+        <span className="text-white/40 text-[10px] font-bold tracking-widest uppercase">Potenciado por Tour Weaver</span>
       </div>
     </div>
   );
