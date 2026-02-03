@@ -3,11 +3,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, limit } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase, useUser, useDoc } from '@/firebase';
+import { collection, query, where, limit, doc } from 'firebase/firestore';
 import { ThreeSixtyViewer } from '@/components/ThreeSixtyViewer';
 import { Button } from '@/components/ui/button';
-import { Globe, Map, ChevronUp, Share2, Info, Loader2, Check, MapPin, ArrowLeft } from 'lucide-react';
+import { Globe, Map, ChevronUp, Share2, Info, Loader2, Check, MapPin, ArrowLeft, Shield } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -21,14 +21,23 @@ export default function PublicTourViewer() {
   const { slug } = useParams();
   const firestore = useFirestore();
   const { toast } = useToast();
+  const { user } = useUser();
   
+  // Verificación de administrador para permitir ver tours privados
+  const adminRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, 'roles_admin', user.uid);
+  }, [firestore, user]);
+
+  const { data: adminData, isLoading: isAdminLoading } = useDoc(adminRef);
+  const isAdmin = adminData?.isAdmin === true;
+
   const tourQuery = useMemoFirebase(() => {
     if (!firestore || !slug) return null;
     return query(collection(firestore, 'tours'), where('slug', '==', slug), limit(1));
   }, [firestore, slug]);
 
   const { data: tours, isLoading: isTourLoading } = useCollection(tourQuery);
-  // Importante: 'tours' es null inicialmente en el hook useCollection hasta que llega el primer snapshot
   const tour = tours?.[0];
 
   const scenesRef = useMemoFirebase(() => {
@@ -59,8 +68,11 @@ export default function PublicTourViewer() {
     }
   };
 
-  // Solo mostramos cargando si el hook dice que está cargando O si los datos aún son nulos (primera carga)
-  if (isTourLoading || (tours === null) || (tour && isScenesLoading)) {
+  // Determinamos si el usuario puede ver el tour
+  const canView = tour ? (tour.published || isAdmin) : false;
+
+  // Estado de carga inicial
+  if (isTourLoading || (tours === null) || (tour && isScenesLoading) || (tour && !tour.published && isAdminLoading)) {
     return (
       <div className="h-screen bg-black flex flex-col items-center justify-center text-white gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
@@ -69,8 +81,8 @@ export default function PublicTourViewer() {
     );
   }
 
-  // Si ya no está cargando y no hay tour, entonces sí mostramos el error
-  if (!tour) {
+  // Si no hay tour o es privado y no es admin
+  if (!tour || !canView) {
     return (
       <div className="h-screen bg-black flex items-center justify-center text-white p-6">
         <div className="text-center p-12 bg-white/5 backdrop-blur-lg rounded-[2.5rem] border border-white/10 max-w-md shadow-2xl">
@@ -98,7 +110,14 @@ export default function PublicTourViewer() {
       <div className="absolute top-0 left-0 right-0 p-6 z-20 pointer-events-none flex justify-between items-start">
         <div className="pointer-events-auto">
           <div className="bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-white max-w-sm shadow-2xl">
-            <h1 className="text-lg font-bold font-headline">{tour.name}</h1>
+            <div className="flex items-center gap-2 mb-1">
+              <h1 className="text-lg font-bold font-headline">{tour.name}</h1>
+              {!tour.published && isAdmin && (
+                <div className="flex items-center gap-1 bg-accent/20 text-accent px-2 py-0.5 rounded text-[10px] font-bold border border-accent/20">
+                  <Shield className="w-3 h-3" /> MODO ADMIN
+                </div>
+              )}
+            </div>
             <p className="text-sm text-white/60 flex items-center gap-1">
               <Info className="w-3 h-3" /> {activeScene?.name || 'Cargando...'}
             </p>
