@@ -4,7 +4,7 @@ import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit3, ExternalLink, MoreVertical, Trash2, Eye, EyeOff, Globe } from 'lucide-react';
+import { Edit3, ExternalLink, MoreVertical, Trash2, Eye, EyeOff, Globe, Briefcase } from 'lucide-react';
 import Link from 'next/link';
 import {
   DropdownMenu,
@@ -31,7 +31,7 @@ export default function AdminDashboard() {
     return doc(firestore, 'siteConfigurations', 'default');
   }, [firestore]);
   const { data: siteConfig } = useDoc(siteConfigRef);
-  const isSpanish = siteConfig?.defaultLanguage === 'es';
+  const isSpanish = siteConfig?.defaultLanguage !== 'en';
 
   const togglePublish = (id: string, currentStatus: boolean) => {
     if (!firestore) return;
@@ -58,15 +58,15 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold font-headline">
-            {isSpanish ? 'Mis Tours' : 'My Tours'}
+            {isSpanish ? 'Proyectos de Clientes' : 'Client Projects'}
           </h1>
           <p className="text-muted-foreground">
-            {isSpanish ? 'Administra y publica tus experiencias inmersivas' : 'Manage and publish your immersive experiences'}
+            {isSpanish ? 'Gestiona y publica los tours virtuales que has creado para tus clientes' : 'Manage and publish virtual tours created for your clients'}
           </p>
         </div>
         <Link href="/admin/tours/new">
           <Button className="bg-primary hover:bg-primary/90">
-            {isSpanish ? 'Crear Nuevo Tour' : 'Create New Tour'}
+            {isSpanish ? 'Nuevo Encargo' : 'New Assignment'}
           </Button>
         </Link>
       </div>
@@ -83,7 +83,7 @@ export default function AdminDashboard() {
               />
               <div className="absolute top-2 right-2 flex gap-2">
                 <Badge className={tour.published ? 'bg-green-500' : 'bg-gray-400'}>
-                  {tour.published ? (isSpanish ? 'Publicado' : 'Published') : (isSpanish ? 'Borrador' : 'Draft')}
+                  {tour.published ? (isSpanish ? 'Activo' : 'Active') : (isSpanish ? 'Privado' : 'Private')}
                 </Badge>
               </div>
             </div>
@@ -100,16 +100,16 @@ export default function AdminDashboard() {
                     <DropdownMenuItem className="cursor-pointer" onClick={() => togglePublish(tour.id, tour.published)}>
                       {tour.published ? (
                         <>
-                          <EyeOff className="mr-2 h-4 w-4" /> {isSpanish ? 'Despublicar' : 'Unpublish'}
+                          <EyeOff className="mr-2 h-4 w-4" /> {isSpanish ? 'Hacer Privado' : 'Make Private'}
                         </>
                       ) : (
                         <>
-                          <Eye className="mr-2 h-4 w-4" /> {isSpanish ? 'Publicar' : 'Publish'}
+                          <Eye className="mr-2 h-4 w-4" /> {isSpanish ? 'Publicar para Cliente' : 'Publish for Client'}
                         </>
                       )}
                     </DropdownMenuItem>
                     <DropdownMenuItem className="text-destructive cursor-pointer" onClick={() => deleteTour(tour.id)}>
-                      <Trash2 className="mr-2 h-4 w-4" /> {isSpanish ? 'Eliminar' : 'Delete'}
+                      <Trash2 className="mr-2 h-4 w-4" /> {isSpanish ? 'Eliminar Proyecto' : 'Delete Project'}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -123,7 +123,7 @@ export default function AdminDashboard() {
             <CardFooter className="gap-2 border-t pt-4 bg-gray-50/50">
               <Link href={`/admin/tours/${tour.id}`} className="flex-1">
                 <Button variant="outline" className="w-full gap-2 text-primary border-primary hover:bg-primary hover:text-white">
-                  <Edit3 className="w-4 h-4" /> {isSpanish ? 'Editar' : 'Edit'}
+                  <Edit3 className="w-4 h-4" /> {isSpanish ? 'Gestionar' : 'Manage'}
                 </Button>
               </Link>
               <Link href={`/tour/${tour.slug}`}>
@@ -139,12 +139,12 @@ export default function AdminDashboard() {
       {(!tours || tours.length === 0) && (
         <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed">
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-            <Globe className="text-muted-foreground w-8 h-8" />
+            <Briefcase className="text-muted-foreground w-8 h-8" />
           </div>
-          <h2 className="text-xl font-bold mb-2">No hay tours creados</h2>
-          <p className="text-muted-foreground mb-6">Comienza creando tu primera experiencia de tour virtual.</p>
+          <h2 className="text-xl font-bold mb-2">No tienes proyectos activos</h2>
+          <p className="text-muted-foreground mb-6">Comienza a registrar tu primer encargo profesional.</p>
           <Link href="/admin/tours/new">
-            <Button>Crear Tour</Button>
+            <Button>Registrar Proyecto</Button>
           </Link>
         </div>
       )}
