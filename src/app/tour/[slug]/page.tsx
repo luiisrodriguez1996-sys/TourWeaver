@@ -7,7 +7,7 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, limit } from 'firebase/firestore';
 import { ThreeSixtyViewer } from '@/components/ThreeSixtyViewer';
 import { Button } from '@/components/ui/button';
-import { Globe, Map, ChevronUp, Share2, Info, Loader2, Check, MapPin } from 'lucide-react';
+import { Globe, Map, ChevronUp, Share2, Info, Loader2, Check, MapPin, ArrowLeft } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -28,6 +28,7 @@ export default function PublicTourViewer() {
   }, [firestore, slug]);
 
   const { data: tours, isLoading: isTourLoading } = useCollection(tourQuery);
+  // Importante: 'tours' es null inicialmente en el hook useCollection hasta que llega el primer snapshot
   const tour = tours?.[0];
 
   const scenesRef = useMemoFirebase(() => {
@@ -58,7 +59,8 @@ export default function PublicTourViewer() {
     }
   };
 
-  if (isTourLoading || (tour && isScenesLoading)) {
+  // Solo mostramos cargando si el hook dice que está cargando O si los datos aún son nulos (primera carga)
+  if (isTourLoading || (tours === null) || (tour && isScenesLoading)) {
     return (
       <div className="h-screen bg-black flex flex-col items-center justify-center text-white gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
@@ -67,12 +69,24 @@ export default function PublicTourViewer() {
     );
   }
 
+  // Si ya no está cargando y no hay tour, entonces sí mostramos el error
   if (!tour) {
     return (
-      <div className="h-screen bg-black flex items-center justify-center text-white">
-        <div className="text-center p-8 bg-white/5 backdrop-blur-lg rounded-3xl border border-white/10">
-          <h2 className="text-2xl font-bold mb-2">Tour no encontrado</h2>
-          <p className="text-white/60">El enlace podría estar roto o el tour ha sido desactivado.</p>
+      <div className="h-screen bg-black flex items-center justify-center text-white p-6">
+        <div className="text-center p-12 bg-white/5 backdrop-blur-lg rounded-[2.5rem] border border-white/10 max-w-md shadow-2xl">
+          <div className="w-20 h-20 bg-destructive/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Globe className="text-destructive w-10 h-10" />
+          </div>
+          <h2 className="text-3xl font-bold font-headline mb-4">Tour no encontrado</h2>
+          <p className="text-white/60 mb-10 leading-relaxed">
+            El enlace podría estar roto o el tour ha sido desactivado por el administrador.
+          </p>
+          <Link href="/">
+            <Button size="lg" className="w-full gap-2 rounded-2xl h-14 text-lg">
+              <ArrowLeft className="w-5 h-5" />
+              Volver al Inicio
+            </Button>
+          </Link>
         </div>
       </div>
     );
@@ -95,13 +109,13 @@ export default function PublicTourViewer() {
           <Button 
             variant="secondary" 
             size="icon" 
-            className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20"
+            className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-11 w-11"
             onClick={handleShare}
           >
             <Share2 className="w-4 h-4" />
           </Button>
           <Link href="/">
-            <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20">
+            <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-11 w-11">
                <Globe className="w-4 h-4" />
             </Button>
           </Link>
@@ -181,17 +195,19 @@ export default function PublicTourViewer() {
       {/* Floor Plan Overlay */}
       {(showFloorPlan && tour.showFloorPlan) && (
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-30 flex items-center justify-center p-8 animate-in fade-in duration-300">
-           <div className="bg-white rounded-3xl p-8 max-w-3xl w-full relative shadow-2xl">
+           <div className="bg-white rounded-[2.5rem] p-8 max-w-3xl w-full relative shadow-2xl">
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="absolute top-4 right-4 h-8 w-8 rounded-full"
+                className="absolute top-6 right-6 h-10 w-10 rounded-full hover:bg-muted"
                 onClick={() => setShowFloorPlan(false)}
               >
                 ✕
               </Button>
-              <h2 className="text-2xl font-bold font-headline mb-4 text-primary">Mapa de Navegación</h2>
-              <div className="aspect-video bg-muted rounded-xl overflow-hidden relative border">
+              <h2 className="text-2xl font-bold font-headline mb-6 text-primary flex items-center gap-2">
+                <Map className="w-6 h-6" /> Mapa de Navegación
+              </h2>
+              <div className="aspect-video bg-muted rounded-3xl overflow-hidden relative border shadow-inner">
                  <img 
                    src={tour.floorPlanUrl || "https://picsum.photos/seed/plan1/800/600"} 
                    alt="Plano" 
@@ -206,28 +222,29 @@ export default function PublicTourViewer() {
                        setActiveSceneId(s.id);
                        setShowFloorPlan(false);
                      }}
-                     className={`absolute w-5 h-5 rounded-full border-2 border-white shadow-xl -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 flex items-center justify-center ${
+                     className={`absolute w-6 h-6 rounded-full border-2 border-white shadow-xl -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 flex items-center justify-center ${
                        s.id === activeSceneId 
-                        ? 'bg-primary z-20 animate-pulse ring-4 ring-primary/30' 
+                        ? 'bg-primary z-20 animate-pulse ring-4 ring-primary/30 scale-125' 
                         : 'bg-muted-foreground/80 z-10 hover:bg-primary'
                      }`}
                      style={{ left: `${s.floorPlanX}%`, top: `${s.floorPlanY}%` }}
                      title={s.name}
                    >
-                     <MapPin className={`w-3 h-3 text-white ${s.id === activeSceneId ? 'block' : 'hidden group-hover:block'}`} />
+                     <MapPin className={`w-3.5 h-3.5 text-white ${s.id === activeSceneId ? 'block' : 'hidden group-hover:block'}`} />
                    </button>
                  ))}
               </div>
-              <p className="mt-4 text-sm text-muted-foreground text-center">Toca los puntos en el mapa para navegar por la propiedad.</p>
+              <p className="mt-6 text-sm text-muted-foreground text-center font-medium">
+                Toca los puntos en el mapa para navegar por la propiedad de forma instantánea.
+              </p>
            </div>
         </div>
       )}
 
       {/* Branding */}
       <div className="absolute bottom-4 right-8 z-20 pointer-events-none opacity-40">
-        <span className="text-white text-xs font-bold tracking-widest uppercase">Potenciado por Tour Weaver</span>
+        <span className="text-white text-[10px] font-bold tracking-widest uppercase">Potenciado por Tour Weaver</span>
       </div>
     </div>
   );
 }
-
