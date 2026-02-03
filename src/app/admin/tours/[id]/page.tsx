@@ -27,7 +27,8 @@ import {
   Loader2,
   AlertCircle,
   Upload,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Search
 } from 'lucide-react';
 import {
   Select,
@@ -59,8 +60,15 @@ export default function TourEditor() {
     return collection(firestore, 'tours', id as string, 'scenes');
   }, [firestore, id]);
 
+  // Obtener todos los tours para sugerencias de clientes
+  const allToursRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'tours');
+  }, [firestore]);
+
   const { data: tour, isLoading: isTourLoading } = useDoc(tourRef);
   const { data: serverScenes, isLoading: isScenesLoading } = useCollection(scenesRef);
+  const { data: allTours } = useCollection(allToursRef);
   
   const [localTourInfo, setLocalTourInfo] = useState({
     name: '',
@@ -101,6 +109,10 @@ export default function TourEditor() {
       }
     }
   }, [serverScenes]);
+
+  const existingClients = allTours 
+    ? Array.from(new Set(allTours.map((t: any) => t.clientName).filter(Boolean)))
+    : [];
 
   const activeScene = localScenes.find((s) => s.id === activeSceneId);
 
@@ -395,14 +407,23 @@ export default function TourEditor() {
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <Label className="text-xs">Cliente (Privado)</Label>
-                <Input 
-                  value={localTourInfo.clientName} 
-                  className="h-8 text-xs"
-                  onChange={(e) => {
-                    setLocalTourInfo({ ...localTourInfo, clientName: e.target.value });
-                    setHasUnsavedChanges(true);
-                  }}
-                />
+                <div className="relative">
+                  <Input 
+                    list="edit-clients-list"
+                    value={localTourInfo.clientName} 
+                    className="h-8 text-xs pr-8"
+                    onChange={(e) => {
+                      setLocalTourInfo({ ...localTourInfo, clientName: e.target.value });
+                      setHasUnsavedChanges(true);
+                    }}
+                  />
+                  <Search className="w-3 h-3 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <datalist id="edit-clients-list">
+                    {existingClients.map((client: any) => (
+                      <option key={client} value={client} />
+                    ))}
+                  </datalist>
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">Nombre Público</Label>
