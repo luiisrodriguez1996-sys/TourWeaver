@@ -58,6 +58,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     const width = canvasHolderRef.current.clientWidth || 800;
     const height = canvasHolderRef.current.clientHeight || 600;
 
+    // Cleanup previous renderer
     if (rendererRef.current) {
       if (canvasHolderRef.current.contains(rendererRef.current.domElement)) {
         canvasHolderRef.current.removeChild(rendererRef.current.domElement);
@@ -72,7 +73,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     cameraRef.current = camera;
 
     const geometry = new THREE.SphereGeometry(500, 60, 40);
-    // Invertimos la esfera para verla desde el interior
+    // Invert geometry to view from inside
     geometry.scale(-1, 1, 1);
 
     const textureLoader = new THREE.TextureLoader();
@@ -80,9 +81,6 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
       imageUrl,
       () => {
         setIsLoadingTexture(false);
-        if (rendererRef.current && sceneRef.current && cameraRef.current) {
-          rendererRef.current.render(sceneRef.current, cameraRef.current);
-        }
       },
       undefined,
       () => {
@@ -115,13 +113,18 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
 
     const update = () => {
       if (!cameraRef.current || !rendererRef.current || !sceneRef.current) return;
+      
       latRef.current = Math.max(-85, Math.min(85, latRef.current));
       const phi = THREE.MathUtils.degToRad(90 - latRef.current);
       const theta = THREE.MathUtils.degToRad(lonRef.current);
-      const x = 500 * Math.sin(phi) * Math.cos(theta);
-      const y = 500 * Math.cos(phi);
-      const z = 500 * Math.sin(phi) * Math.sin(theta);
-      cameraRef.current.lookAt(x, y, z);
+
+      const target = new THREE.Vector3(
+        500 * Math.sin(phi) * Math.cos(theta),
+        500 * Math.cos(phi),
+        500 * Math.sin(phi) * Math.sin(theta)
+      );
+      
+      cameraRef.current.lookAt(target);
       rendererRef.current.render(sceneRef.current, cameraRef.current);
     };
 
@@ -166,14 +169,13 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     if (event.isPrimary === false) return;
     setIsUserInteracting(false);
 
-    // Detectar si fue un clic limpio o un arrastre para rotar
     const moveX = Math.abs(event.clientX - pointerDownPos.current.x);
     const moveY = Math.abs(event.clientY - pointerDownPos.current.y);
     const moveDist = Math.sqrt(moveX * moveX + moveY * moveY);
     const duration = Date.now() - pointerDownTime.current;
 
-    // Umbral: menos de 8px de movimiento y menos de 350ms para considerarlo "clic"
-    if (isEditing && onSceneClick && !isLoadingTexture && moveDist < 8 && duration < 350) {
+    // Threshold: less than 10px move and short duration to consider it a "click"
+    if (isEditing && onSceneClick && !isLoadingTexture && moveDist < 10 && duration < 300) {
       calculateClickCoordinates(event);
     }
   };
@@ -193,14 +195,8 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
       const point = intersects[0].point;
       const radius = 500;
       
-      // CRÍTICO: Dado que la esfera tiene escala negativa en X (geometry.scale(-1, 1, 1)),
-      // debemos invertir el valor de X del punto de colisión para que los ángulos
-      // coincidan con el sistema de coordenadas "lógico" que usamos para rotar la cámara.
-      const logicalX = -point.x;
-      const logicalZ = point.z;
-      
-      const phi = Math.acos(point.y / radius); // 0 a PI
-      const theta = Math.atan2(logicalZ, logicalX); // -PI a PI
+      const phi = Math.acos(point.y / radius); 
+      const theta = Math.atan2(point.z, point.x); 
       
       const clickLat = 90 - (phi * 180 / Math.PI);
       const clickLon = (theta * 180 / Math.PI);
@@ -211,19 +207,23 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
 
   const getHotspotPosition = (hLon: number, hLat: number) => {
     if (!cameraRef.current || !canvasHolderRef.current || isLoadingTexture) return null;
+    
     const phi = THREE.MathUtils.degToRad(90 - hLat);
     const theta = THREE.MathUtils.degToRad(hLon);
+    
     const vector = new THREE.Vector3(
       500 * Math.sin(phi) * Math.cos(theta),
       500 * Math.cos(phi),
       500 * Math.sin(phi) * Math.sin(theta)
     );
+    
     vector.project(cameraRef.current);
     
     const camDir = new THREE.Vector3();
     cameraRef.current.getWorldDirection(camDir);
     const dot = camDir.dot(vector.clone().normalize());
     
+    // Check if hotspot is behind the camera
     if (dot < 0) return null;
     
     const x = (vector.x * 0.5 + 0.5) * canvasHolderRef.current.clientWidth;
