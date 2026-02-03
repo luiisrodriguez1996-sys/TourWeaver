@@ -211,7 +211,7 @@ export default function PublicTourViewer() {
         )}
       </div>
 
-      {/* Controls Bar - Elevado para evitar colisiones con el branding */}
+      {/* Controls Bar */}
       <div className="absolute bottom-16 md:bottom-20 left-1/2 -translate-x-1/2 z-20 flex items-center gap-4">
         <div className="bg-black/40 backdrop-blur-md px-6 py-1 rounded-full border border-white/10 flex items-center gap-2 text-white shadow-2xl pointer-events-auto">
            
@@ -219,10 +219,10 @@ export default function PublicTourViewer() {
              <PopoverTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-10 px-4">
                   <ChevronUp className="w-4 h-4" />
-                  <span className="text-sm font-medium">Escenas ({scenes?.length || 0})</span>
+                  <span className="text-sm font-medium">Estancias ({scenes?.length || 0})</span>
                 </Button>
              </PopoverTrigger>
-             <PopoverContent side="top" className="w-72 p-0 bg-black/80 backdrop-blur-xl border-white/10 text-white mb-2 rounded-2xl overflow-hidden shadow-2xl">
+             <PopoverContent align="center" side="top" className="w-72 p-0 bg-black/80 backdrop-blur-xl border-white/10 text-white mb-2 rounded-2xl overflow-hidden shadow-2xl">
                 <div className="p-4 border-b border-white/10">
                   <h3 className="font-bold text-sm">Explorar Estancias</h3>
                 </div>
@@ -319,7 +319,7 @@ export default function PublicTourViewer() {
         </div>
       )}
 
-      {/* Branding - Ajustado con gris transparente */}
+      {/* Branding */}
       <div className="absolute bottom-4 right-8 z-20 pointer-events-none opacity-40">
         <span className="text-white/40 text-[10px] font-bold tracking-widest uppercase">Potenciado por Tour Weaver</span>
       </div>
