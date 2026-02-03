@@ -577,6 +577,16 @@ export default function TourEditor() {
                     onChange={(e) => updateLocalScene({ name: e.target.value })}
                   />
                 </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Descripción de la Estancia</Label>
+                  <Textarea 
+                    value={activeScene?.description || ''} 
+                    placeholder="Describe acabados, detalles de iluminación o características..." 
+                    className="h-24 text-xs resize-none"
+                    onChange={(e) => updateLocalScene({ description: e.target.value })}
+                  />
+                </div>
                 
                 {localTourInfo.showFloorPlan && localTourInfo.floorPlanUrl && (
                   <div className="space-y-3">
