@@ -14,10 +14,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 export default function PublicTourViewer() {
   const { slug } = useParams();
   const firestore = useFirestore();
+  const { toast } = useToast();
   
   const tourQuery = useMemoFirebase(() => {
     if (!firestore || !slug) return null;
@@ -44,6 +47,16 @@ export default function PublicTourViewer() {
   }, [scenes, activeSceneId]);
 
   const activeScene = scenes?.find((s: any) => s.id === activeSceneId);
+
+  const handleShare = () => {
+    if (typeof window !== 'undefined') {
+      navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Enlace copiado",
+        description: "El enlace al tour ha sido copiado al portapapeles.",
+      });
+    }
+  };
 
   if (isTourLoading || (tour && isScenesLoading)) {
     return (
@@ -79,12 +92,19 @@ export default function PublicTourViewer() {
         </div>
         
         <div className="flex gap-2 pointer-events-auto">
-          <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20">
+          <Button 
+            variant="secondary" 
+            size="icon" 
+            className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20"
+            onClick={handleShare}
+          >
             <Share2 className="w-4 h-4" />
           </Button>
-          <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20">
-             <Globe className="w-4 h-4" />
-          </Button>
+          <Link href="/">
+            <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20">
+               <Globe className="w-4 h-4" />
+            </Button>
+          </Link>
         </div>
       </div>
 
