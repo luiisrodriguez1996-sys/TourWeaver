@@ -58,6 +58,7 @@ export default function TourEditor() {
   const { data: serverScenes, isLoading: isScenesLoading } = useCollection(scenesRef);
   
   const [localScenes, setLocalScenes] = useState<Scene[]>([]);
+  const [deletedSceneIds, setDeletedSceneIds] = useState<string[]>([]);
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -196,17 +197,26 @@ export default function TourEditor() {
     try {
       const batch = writeBatch(firestore);
       
+      // 1. Guardar o actualizar estancias actuales
       for (const scene of localScenes) {
         const sceneDocRef = doc(firestore, 'tours', id as string, 'scenes', scene.id);
         batch.set(sceneDocRef, scene, { merge: true });
       }
 
+      // 2. Eliminar estancias marcadas
+      for (const sceneIdToDelete of deletedSceneIds) {
+        const sceneDocRef = doc(firestore, 'tours', id as string, 'scenes', sceneIdToDelete);
+        batch.delete(sceneDocRef);
+      }
+
+      // 3. Actualizar miniatura del tour si hay estancias
       if (localScenes.length > 0 && tourRef) {
         batch.set(tourRef, { thumbnailUrl: localScenes[0].imageUrl, updatedAt: Date.now() }, { merge: true });
       }
 
       await batch.commit();
 
+      setDeletedSceneIds([]); // Limpiar cola de eliminación
       setHasUnsavedChanges(false);
       setIsSaving(false);
       toast({ 
@@ -224,11 +234,19 @@ export default function TourEditor() {
        toast({ variant: "destructive", title: "Error", description: "Un tour debe tener al menos una estancia." });
        return;
     }
-    const filtered = localScenes.filter(s => s.id !== activeSceneId);
-    setLocalScenes(filtered);
-    setActiveSceneId(filtered[0]?.id || null);
-    setHasUnsavedChanges(true);
-    toast({ title: "Estancia eliminada localmente" });
+    
+    if (activeSceneId) {
+      // Si la escena ya existía en el servidor, añadirla a la cola de eliminación física
+      if (serverScenes?.some(s => s.id === activeSceneId)) {
+        setDeletedSceneIds(prev => [...prev, activeSceneId]);
+      }
+      
+      const filtered = localScenes.filter(s => s.id !== activeSceneId);
+      setLocalScenes(filtered);
+      setActiveSceneId(filtered[0]?.id || null);
+      setHasUnsavedChanges(true);
+      toast({ title: "Estancia removida de la lista", description: "Presiona Guardar Todo para aplicar el borrado permanente." });
+    }
   };
 
   if (isTourLoading || isScenesLoading) {
