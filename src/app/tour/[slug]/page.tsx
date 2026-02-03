@@ -7,7 +7,7 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, limit } from 'firebase/firestore';
 import { ThreeSixtyViewer } from '@/components/ThreeSixtyViewer';
 import { Button } from '@/components/ui/button';
-import { Globe, Map, ChevronUp, Share2, Info, Loader2, Check } from 'lucide-react';
+import { Globe, Map, ChevronUp, Share2, Info, Loader2, Check, MapPin } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -191,16 +191,34 @@ export default function PublicTourViewer() {
                 ✕
               </Button>
               <h2 className="text-2xl font-bold font-headline mb-4 text-primary">Mapa de Navegación</h2>
-              <div className="aspect-video bg-muted rounded-xl overflow-hidden relative">
+              <div className="aspect-video bg-muted rounded-xl overflow-hidden relative border">
                  <img 
                    src={tour.floorPlanUrl || "https://picsum.photos/seed/plan1/800/600"} 
                    alt="Plano" 
                    className="w-full h-full object-contain"
                    data-ai-hint="house floorplan"
                  />
-                 <div className="absolute top-1/2 left-1/2 w-6 h-6 bg-primary rounded-full border-4 border-white shadow-lg animate-bounce"></div>
+                 {/* Interactive Markers for all scenes */}
+                 {scenes?.map((s: any) => s.floorPlanX !== undefined && (
+                   <button
+                     key={s.id}
+                     onClick={() => {
+                       setActiveSceneId(s.id);
+                       setShowFloorPlan(false);
+                     }}
+                     className={`absolute w-5 h-5 rounded-full border-2 border-white shadow-xl -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 flex items-center justify-center ${
+                       s.id === activeSceneId 
+                        ? 'bg-primary z-20 animate-pulse ring-4 ring-primary/30' 
+                        : 'bg-muted-foreground/80 z-10 hover:bg-primary'
+                     }`}
+                     style={{ left: `${s.floorPlanX}%`, top: `${s.floorPlanY}%` }}
+                     title={s.name}
+                   >
+                     <MapPin className={`w-3 h-3 text-white ${s.id === activeSceneId ? 'block' : 'hidden group-hover:block'}`} />
+                   </button>
+                 ))}
               </div>
-              <p className="mt-4 text-sm text-muted-foreground text-center">Referencia visual de la propiedad.</p>
+              <p className="mt-4 text-sm text-muted-foreground text-center">Toca los puntos en el mapa para navegar por la propiedad.</p>
            </div>
         </div>
       )}
@@ -212,3 +230,4 @@ export default function PublicTourViewer() {
     </div>
   );
 }
+
