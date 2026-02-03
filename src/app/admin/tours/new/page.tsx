@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Globe, ArrowLeft, Upload, Camera } from 'lucide-react';
+import { Globe, ArrowLeft, Upload, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { useFirestore, addDocumentNonBlocking } from '@/firebase';
@@ -21,7 +21,6 @@ export default function NewTour() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -51,7 +50,6 @@ export default function NewTour() {
       }
     } catch (error) {
       console.error(error);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -112,7 +110,7 @@ export default function NewTour() {
 
             <div className="space-y-4">
               <Label>Añadir Escena Inicial</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -120,42 +118,29 @@ export default function NewTour() {
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Upload className="w-6 h-6 text-primary" />
-                  <span>Subir Panorámica</span>
+                  <span>Subir Panorámica 360°</span>
                 </Button>
                 
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="h-24 flex flex-col gap-2 border-dashed border-2 hover:bg-accent/5 hover:border-accent/50"
-                  onClick={() => cameraInputRef.current?.click()}
-                >
-                  <Camera className="w-6 h-6 text-accent" />
-                  <span>Tomar con Cámara</span>
-                </Button>
-
-                {/* Hidden Inputs for File/Camera */}
                 <input 
                   type="file" 
                   ref={fileInputRef} 
                   className="hidden" 
                   accept="image/*" 
                 />
-                <input 
-                  type="file" 
-                  ref={cameraInputRef} 
-                  className="hidden" 
-                  accept="image/*" 
-                  capture="environment" 
-                />
               </div>
               <p className="text-xs text-muted-foreground text-center">
-                Desde el móvil, puedes usar la cámara para capturar detalles rápidamente.
+                Te recomendamos usar fotos panorámicas 2:1 para la mejor experiencia inmersiva.
               </p>
             </div>
           </CardContent>
           <CardFooter>
             <Button className="w-full bg-primary hover:bg-primary/90 text-lg py-6" disabled={isLoading} type="submit">
-              {isLoading ? 'Inicializando...' : 'Crear Proyecto y Empezar'}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Inicializando...
+                </>
+              ) : 'Crear Proyecto y Empezar'}
             </Button>
           </CardFooter>
         </form>

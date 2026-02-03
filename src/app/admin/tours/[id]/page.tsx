@@ -21,8 +21,8 @@ import {
   PlusCircle,
   Map as MapIcon,
   Sparkles,
-  Camera,
-  Upload
+  Upload,
+  Loader2
 } from 'lucide-react';
 import { suggestSceneLinks } from '@/ai/flows/ai-suggest-scene-links';
 import { useToast } from '@/hooks/use-toast';
@@ -35,7 +35,6 @@ export default function TourEditor() {
   const router = useRouter();
   const { toast } = useToast();
   const firestore = useFirestore();
-  const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const tourRef = useMemoFirebase(() => {
@@ -47,6 +46,7 @@ export default function TourEditor() {
   
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (tour?.scenes?.length > 0 && !activeSceneId) {
@@ -56,15 +56,19 @@ export default function TourEditor() {
 
   const activeScene = tour?.scenes?.find((s: any) => s.id === activeSceneId);
 
-  const handleCapture = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      toast({ title: "Foto capturada", description: "Procesando imagen para la nueva escena..." });
-      // Aquí iría la lógica de subida a Storage si fuera necesaria, 
-      // por ahora simulamos que se añade una nueva escena
+      setIsUploading(true);
       const reader = new FileReader();
       reader.onloadend = () => {
-        addNewScene('Nueva Escena (Cámara)', reader.result as string);
+        addNewScene('Nueva Estancia', reader.result as string);
+        setIsUploading(false);
+        toast({ title: "Imagen subida", description: "La escena ha sido añadida correctamente." });
+      };
+      reader.onerror = () => {
+        setIsUploading(false);
+        toast({ variant: "destructive", title: "Error", description: "No se pudo cargar la imagen." });
       };
       reader.readAsDataURL(file);
     }
@@ -161,7 +165,17 @@ export default function TourEditor() {
     }
   };
 
-  if (isLoading) return <div className="p-8">Cargando editor profesional...</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="text-muted-foreground">Cargando editor profesional...</p>
+        </div>
+      </div>
+    );
+  }
+  
   if (!tour) return <div className="p-8">Tour no encontrado.</div>;
 
   return (
@@ -178,7 +192,11 @@ export default function TourEditor() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" className="hidden sm:flex gap-2" onClick={handleAiSuggest} disabled={isAiLoading}>
-            <Sparkles className={`w-4 h-4 text-accent ${isAiLoading ? 'animate-spin' : ''}`} />
+            {isAiLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4 text-accent" />
+            )}
             {isAiLoading ? 'IA Pensando...' : 'Auto-Enlazar IA'}
           </Button>
           <Button className="bg-primary hover:bg-primary/90 gap-2">
@@ -188,7 +206,7 @@ export default function TourEditor() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto lg:h-[calc(100vh-180px)]">
-        {/* Left Sidebar: Scene List & Camera Options */}
+        {/* Left Sidebar: Scene List */}
         <div className="lg:col-span-3 space-y-4 overflow-y-auto pr-0 lg:pr-2">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-2">
@@ -196,15 +214,24 @@ export default function TourEditor() {
             </h3>
           </div>
           
-          <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 mb-4">
-             <Button variant="outline" size="sm" className="gap-2" onClick={() => fileInputRef.current?.click()}>
-                <Upload className="w-3 h-3" /> Subir
+          <div className="grid grid-cols-1 gap-2 mb-4">
+             <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2" 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+             >
+                {isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                {isUploading ? 'Subiendo...' : 'Subir Panorámica'}
              </Button>
-             <Button variant="outline" size="sm" className="gap-2 text-accent border-accent/30" onClick={() => cameraInputRef.current?.click()}>
-                <Camera className="w-3 h-3" /> Cámara
-             </Button>
-             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" />
-             <input type="file" ref={cameraInputRef} className="hidden" accept="image/*" capture="environment" onChange={handleCapture} />
+             <input 
+               type="file" 
+               ref={fileInputRef} 
+               className="hidden" 
+               accept="image/*" 
+               onChange={handleFileChange}
+             />
           </div>
 
           <div className="space-y-2 max-h-[300px] lg:max-h-none overflow-y-auto">
@@ -256,6 +283,14 @@ export default function TourEditor() {
                 <p>Añade tu primera escena para empezar</p>
               </div>
             )}
+            {isUploading && (
+              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-2xl flex flex-col items-center gap-4">
+                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                   <p className="font-medium">Procesando imagen...</p>
+                </div>
+              </div>
+            )}
           </div>
           
           <Card className="bg-accent/5 border-accent/20">
@@ -288,7 +323,7 @@ export default function TourEditor() {
                 <Textarea value={activeScene?.description || ''} placeholder="Info extra para el cliente..." readOnly className="resize-none h-24" />
               </div>
               <Separator />
-              <Button variant="destructive" variant="outline" className="w-full gap-2 text-destructive border-destructive/20 hover:bg-destructive/10">
+              <Button variant="outline" className="w-full gap-2 text-destructive border-destructive/20 hover:bg-destructive/10">
                 <Trash2 className="w-4 h-4" /> Eliminar Escena
               </Button>
             </TabsContent>
