@@ -57,6 +57,13 @@ export default function AdminDashboard() {
     if (savedView) setViewMode(savedView);
   }, []);
 
+  // Fail-safe para asegurar que pointer-events se restaure siempre al cerrar el modal
+  useEffect(() => {
+    if (tourToDeleteId === null) {
+      document.body.style.pointerEvents = 'auto';
+    }
+  }, [tourToDeleteId]);
+
   const handleViewChange = (val: string) => {
     const mode = val as 'all' | 'clients';
     setViewMode(mode);
@@ -163,7 +170,10 @@ export default function AdminDashboard() {
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className="text-destructive cursor-pointer focus:bg-destructive/10 focus:text-destructive" 
-                onClick={() => setTourToDeleteId(tour.id)}
+                onClick={() => {
+                  // Pequeño delay para permitir que el dropdown limpie sus estilos antes de abrir el AlertDialog
+                  setTimeout(() => setTourToDeleteId(tour.id), 100);
+                }}
               >
                 <Trash2 className="mr-2 h-4 w-4" /> {isSpanish ? 'Eliminar Proyecto' : 'Delete Project'}
               </DropdownMenuItem>
@@ -299,7 +309,13 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <AlertDialog open={tourToDeleteId !== null} onOpenChange={(open) => !open && setTourToDeleteId(null)}>
+      <AlertDialog open={tourToDeleteId !== null} onOpenChange={(open) => {
+        if (!open) {
+          setTourToDeleteId(null);
+          // Forzar la limpieza de estilos de Radix UI si es necesario
+          document.body.style.pointerEvents = 'auto';
+        }
+      }}>
         <AlertDialogContent className="rounded-[2rem]">
           <AlertDialogHeader>
             <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mb-2">
