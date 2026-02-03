@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -45,6 +46,14 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     const width = canvasHolderRef.current.clientWidth || 800;
     const height = canvasHolderRef.current.clientHeight || 600;
 
+    // Dispose old renderer if exists
+    if (rendererRef.current) {
+      if (canvasHolderRef.current.contains(rendererRef.current.domElement)) {
+        canvasHolderRef.current.removeChild(rendererRef.current.domElement);
+      }
+      rendererRef.current.dispose();
+    }
+
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
@@ -59,6 +68,10 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
       imageUrl,
       () => {
         setIsLoadingTexture(false);
+        // Initial render to avoid black flicker
+        if (rendererRef.current && sceneRef.current && cameraRef.current) {
+          rendererRef.current.render(sceneRef.current, cameraRef.current);
+        }
       },
       undefined,
       (err) => {
@@ -76,8 +89,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     
-    const currentHolder = canvasHolderRef.current;
-    currentHolder.appendChild(renderer.domElement);
+    canvasHolderRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
     const handleResize = () => {
@@ -113,12 +125,11 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     return () => {
       window.removeEventListener('resize', handleResize);
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
-      if (rendererRef.current) {
-        if (currentHolder.contains(renderer.domElement)) {
-          currentHolder.removeChild(renderer.domElement);
+      if (rendererRef.current && canvasHolderRef.current) {
+        if (canvasHolderRef.current.contains(rendererRef.current.domElement)) {
+          canvasHolderRef.current.removeChild(rendererRef.current.domElement);
         }
         rendererRef.current.dispose();
-        rendererRef.current = null;
       }
       if (sphereRef.current) {
         sphereRef.current.geometry.dispose();
@@ -193,7 +204,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
   return (
     <div 
       ref={containerRef} 
-      className="relative w-full h-full panoramic-viewer overflow-hidden bg-black rounded-xl shadow-2xl"
+      className="relative w-full h-full panoramic-viewer overflow-hidden bg-black rounded-xl"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -202,7 +213,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
       <div ref={canvasHolderRef} className="absolute inset-0" />
 
       {isLoadingTexture && (
-        <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center z-50">
+        <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-50">
            <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
            <p className="text-white text-sm font-medium animate-pulse">Iniciando vista inmersiva...</p>
         </div>
@@ -228,7 +239,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
                 <span className="max-w-0 overflow-hidden group-hover:max-w-[200px] transition-all duration-300 font-medium">
                   {h.label}
                 </span>
-                <ChevronRight className="w-5 h-5 text-white animate-pulse" />
+                <ChevronRight className="w-5 h-5 text-white" />
               </Button>
             </div>
           ))}
@@ -237,14 +248,8 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
 
       <div className="absolute top-4 left-4 flex gap-2">
         <div className="bg-black/40 backdrop-blur-md px-3 py-1 rounded-full text-xs text-white/80 border border-white/10">
-          {isEditing ? 'Modo Editor: Haz clic para enlazar estancias' : 'Vista Panorámica'}
+          {isEditing ? 'Haz clic para enlazar estancias' : 'Vista Panorámica'}
         </div>
-      </div>
-
-      <div className="absolute bottom-4 right-4 flex gap-2">
-         <Button size="icon" variant="secondary" className="bg-white/10 backdrop-blur-md border-white/10 hover:bg-white/20">
-            <Maximize className="w-4 h-4 text-white" />
-         </Button>
       </div>
     </div>
   );
