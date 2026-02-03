@@ -22,6 +22,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
   isEditing = false
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const canvasHolderRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -37,28 +38,23 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
   const latRef = useRef(0);
 
   useEffect(() => {
-    if (!containerRef.current || !imageUrl) return;
+    if (!canvasHolderRef.current || !imageUrl) return;
 
     setIsLoadingTexture(true);
 
-    const width = containerRef.current.clientWidth || 800;
-    const height = containerRef.current.clientHeight || 600;
+    const width = canvasHolderRef.current.clientWidth || 800;
+    const height = canvasHolderRef.current.clientHeight || 600;
 
-    // Initialize Scene
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    // Initialize Camera
     const camera = new THREE.PerspectiveCamera(75, width / height, 1, 1100);
     cameraRef.current = camera;
 
-    // Initialize Geometry
     const geometry = new THREE.SphereGeometry(500, 60, 40);
     geometry.scale(-1, 1, 1);
 
     const textureLoader = new THREE.TextureLoader();
-    
-    // Texture Loading
     const texture = textureLoader.load(
       imageUrl,
       () => {
@@ -76,22 +72,18 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     scene.add(sphere);
     sphereRef.current = sphere;
 
-    // Initialize Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     
-    // Cleanup container
-    while (containerRef.current.firstChild) {
-      containerRef.current.removeChild(containerRef.current.firstChild);
-    }
-    containerRef.current.appendChild(renderer.domElement);
+    const currentHolder = canvasHolderRef.current;
+    currentHolder.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
     const handleResize = () => {
-      if (!containerRef.current || !cameraRef.current || !rendererRef.current) return;
-      const w = containerRef.current.clientWidth;
-      const h = containerRef.current.clientHeight;
+      if (!canvasHolderRef.current || !cameraRef.current || !rendererRef.current) return;
+      const w = canvasHolderRef.current.clientWidth;
+      const h = canvasHolderRef.current.clientHeight;
       cameraRef.current.aspect = w / h;
       cameraRef.current.updateProjectionMatrix();
       rendererRef.current.setSize(w, h);
@@ -101,15 +93,12 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
 
     const update = () => {
       if (!cameraRef.current || !rendererRef.current || !sceneRef.current) return;
-
       latRef.current = Math.max(-85, Math.min(85, latRef.current));
       const phi = THREE.MathUtils.degToRad(90 - latRef.current);
       const theta = THREE.MathUtils.degToRad(lonRef.current);
-
       const x = 500 * Math.sin(phi) * Math.cos(theta);
       const y = 500 * Math.cos(phi);
       const z = 500 * Math.sin(phi) * Math.sin(theta);
-
       cameraRef.current.lookAt(x, y, z);
       rendererRef.current.render(sceneRef.current, cameraRef.current);
     };
@@ -125,6 +114,9 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
       window.removeEventListener('resize', handleResize);
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
       if (rendererRef.current) {
+        if (currentHolder.contains(renderer.domElement)) {
+          currentHolder.removeChild(renderer.domElement);
+        }
         rendererRef.current.dispose();
         rendererRef.current = null;
       }
@@ -166,28 +158,21 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
   };
 
   const getHotspotPosition = (hLon: number, hLat: number) => {
-    if (!cameraRef.current || !containerRef.current || isLoadingTexture) return null;
-    
+    if (!cameraRef.current || !canvasHolderRef.current || isLoadingTexture) return null;
     const phi = THREE.MathUtils.degToRad(90 - hLat);
     const theta = THREE.MathUtils.degToRad(hLon);
-    
     const vector = new THREE.Vector3(
       500 * Math.sin(phi) * Math.cos(theta),
       500 * Math.cos(phi),
       500 * Math.sin(phi) * Math.sin(theta)
     );
-    
     vector.project(cameraRef.current);
-    
     const camDir = new THREE.Vector3();
     cameraRef.current.getWorldDirection(camDir);
     const dot = camDir.dot(vector.clone().normalize());
-    
     if (dot < 0) return null;
-
-    const x = (vector.x * 0.5 + 0.5) * containerRef.current.clientWidth;
-    const y = (-(vector.y * 0.5) + 0.5) * containerRef.current.clientHeight;
-    
+    const x = (vector.x * 0.5 + 0.5) * canvasHolderRef.current.clientWidth;
+    const y = (-(vector.y * 0.5) + 0.5) * canvasHolderRef.current.clientHeight;
     return { x, y };
   };
 
@@ -214,7 +199,8 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
       onPointerUp={onPointerUp}
       onClick={onContainerClick}
     >
-      {/* Loading Overlay */}
+      <div ref={canvasHolderRef} className="absolute inset-0" />
+
       {isLoadingTexture && (
         <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center z-50">
            <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
@@ -222,7 +208,6 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
         </div>
       )}
 
-      {/* Hotspots Overlay */}
       {!isLoadingTexture && (
         <div className="absolute inset-0 pointer-events-none">
           {visibleHotspots.map(({h, x, y}) => (

@@ -243,7 +243,7 @@ export default function TourEditor() {
         updateDocumentNonBlocking(tourRef, { scenes: updatedScenes });
         toast({ 
           title: "Análisis de IA Completo", 
-          description: `Se sugirieron ${suggestions.length} conexiones inteligentes.` 
+          description: `Se sugeririeron ${suggestions.length} conexiones inteligentes.` 
         });
       }
     } catch (error) {
