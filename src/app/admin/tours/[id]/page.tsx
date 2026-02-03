@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -24,7 +23,8 @@ import {
   Upload,
   Loader2,
   Check,
-  AlertCircle
+  AlertCircle,
+  MapPin
 } from 'lucide-react';
 import {
   Select,
@@ -344,7 +344,7 @@ export default function TourEditor() {
                 {isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
                 {isUploading ? 'Procesando...' : 'Añadir Panorámica'}
              </Button>
-             <input type="file" hide="true" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
           </div>
 
           <div className="space-y-2 max-h-[300px] lg:max-h-none overflow-y-auto">
@@ -486,6 +486,14 @@ export default function TourEditor() {
                               ))}
                             </SelectContent>
                           </Select>
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-1">
+                          <MapPin className="w-3 h-3 text-muted-foreground" />
+                          <p className="text-[9px] text-muted-foreground font-mono flex gap-3 opacity-70">
+                            <span>YAW: {Math.round(h.yaw)}°</span>
+                            <span>PITCH: {Math.round(h.pitch)}°</span>
+                          </p>
                         </div>
                       </div>
                     </Card>
