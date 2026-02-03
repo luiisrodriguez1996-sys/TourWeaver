@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/tabs';
 import { Separator } from '@/components/ui/separator';
 import { ThreeSixtyViewer } from '@/components/ThreeSixtyViewer';
 import { 
@@ -56,30 +56,74 @@ export default function TourEditor() {
 
   const activeScene = tour?.scenes?.find((s: any) => s.id === activeSceneId);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Función para comprimir la imagen si es necesario
+  const compressImage = (dataUrl: string, maxWidth = 4096, quality = 0.8): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = dataUrl;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Redimensionar si es extremadamente grande para ahorrar memoria
+        if (width > maxWidth) {
+          height = (maxWidth / width) * height;
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        // Intentar compresión inicial
+        let compressed = canvas.toDataURL('image/jpeg', quality);
+        
+        // Si sigue siendo mayor a ~900KB (en base64), reducir calidad agresivamente
+        // 1.2 millones de caracteres en base64 es aprox 900KB-1MB
+        if (compressed.length > 900000) {
+          compressed = canvas.toDataURL('image/jpeg', 0.5);
+        }
+        
+        // Si aún es grande, reducir resolución a la mitad
+        if (compressed.length > 900000) {
+          canvas.width = width / 2;
+          canvas.height = height / 2;
+          ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+          compressed = canvas.toDataURL('image/jpeg', 0.4);
+        }
+
+        resolve(compressed);
+      };
+    });
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validación de tamaño (Firestore limit is 1MB per doc, base64 adds overhead)
-      if (file.size > 700000) { // ~700KB limit to be safe with base64 overhead
-        toast({ 
-          variant: "destructive", 
-          title: "Archivo demasiado grande", 
-          description: "Por favor, sube una imagen de menos de 700KB para asegurar la compatibilidad." 
-        });
-        return;
-      }
-
       setIsUploading(true);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        addNewScene('Nueva Estancia', reader.result as string);
-        setIsUploading(false);
-        toast({ title: "Imagen subida", description: "La escena ha sido añadida correctamente." });
+      
+      reader.onloadend = async () => {
+        try {
+          let imageUrl = reader.result as string;
+          
+          // Si el archivo original es grande, lo comprimimos
+          if (file.size > 700000) {
+            toast({ title: "Optimizando imagen", description: "Ajustando resolución para el servidor..." });
+            imageUrl = await compressImage(imageUrl);
+          }
+
+          addNewScene('Nueva Estancia', imageUrl);
+          setIsUploading(false);
+          toast({ title: "Imagen lista", description: "La escena ha sido procesada y añadida." });
+        } catch (error) {
+          setIsUploading(false);
+          toast({ variant: "destructive", title: "Error", description: "No se pudo procesar la imagen." });
+        }
       };
-      reader.onerror = () => {
-        setIsUploading(false);
-        toast({ variant: "destructive", title: "Error", description: "No se pudo cargar la imagen." });
-      };
+      
       reader.readAsDataURL(file);
     }
   };
@@ -139,7 +183,7 @@ export default function TourEditor() {
       const inputScenes = tour.scenes.map((s: any) => ({
         id: s.id,
         description: s.description || s.name,
-        imageDataUri: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElUWFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqGhc4SFxlNWVlsZ2iPj50mJqpGSk5SFxwdJhoc4iJipjKlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9o-8QAsREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElUWFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqGhc4SFxlNWVlsZ2iPj50mJqpGSk5SFxwdJhoc4iJipjKlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD/AD/AP/Z'
+        imageDataUri: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElUWFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqGhc4SFxlNWVlsZ2iPj50mJqpGSk5SFxwdJhoc4iJipjKlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9o-8QAsREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElUWFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqGhc4SFxlNWVlsZ2iPj50mJqpGSk5SFxwdJhoc4iJipjKlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oAAAIRAxEAPwD/AD/AP/Z'
       }));
 
       const suggestions = await suggestSceneLinks({ scenes: inputScenes });
@@ -233,7 +277,7 @@ export default function TourEditor() {
                 disabled={isUploading}
              >
                 {isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
-                {isUploading ? 'Subiendo...' : 'Subir Panorámica'}
+                {isUploading ? 'Procesando...' : 'Subir Panorámica'}
              </Button>
              <input 
                type="file" 
@@ -297,7 +341,7 @@ export default function TourEditor() {
               <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
                 <div className="bg-white p-6 rounded-2xl flex flex-col items-center gap-4">
                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                   <p className="font-medium text-center px-4">Subiendo imagen de alta resolución...<br/><span className="text-xs text-muted-foreground">Esto puede tardar unos segundos</span></p>
+                   <p className="font-medium text-center px-4">Optimizando imagen de alta resolución...<br/><span className="text-xs text-muted-foreground">Esto asegura que el tour cargue rápido para tus clientes</span></p>
                 </div>
               </div>
             )}
