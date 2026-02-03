@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-tour",
+      "description": "Virtual tour immersive experience",
+      "imageUrl": "https://images.unsplash.com/photo-1723705027411-9bfc3c99c2e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx2aXJ0dWFsJTIwdG91cnxlbnwwfHx8fDE3NzAwODkzNTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "virtual tour"
+    },
+    {
+      "id": "scene-living-room",
+      "description": "360 Living Room Scene",
+      "imageUrl": "https://images.unsplash.com/photo-1764476751156-9aa306a99516?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxpbnRlcmlvciUyMHBhbm9yYW1pY3xlbnwwfHx8fDE3NzAwODkzNTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "interior panoramic"
+    },
+    {
+      "id": "scene-kitchen",
+      "description": "360 Kitchen Scene",
+      "imageUrl": "https://images.unsplash.com/photo-1659300243832-98f385f290ac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxraXRjaGVuJTIwcGFub3JhbWljfGVufDB8fHx8MTc3MDA4OTM1NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "kitchen panoramic"
+    },
+    {
+      "id": "floorplan-sample",
+      "description": "Sample house floor plan",
+      "imageUrl": "https://images.unsplash.com/photo-1649083048544-a6726e9c8ea3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxob3VzZSUyMGZsb29ycGxhbnxlbnwwfHx8fDE3NzAwODkzNTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "house floorplan"
+    }
+  ]
 }
