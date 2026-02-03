@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Hotspot } from '@/lib/types';
 import { Button } from './ui/button';
-import { ChevronRight, Maximize, MousePointer2 } from 'lucide-react';
+import { ChevronRight, Maximize, Loader2 } from 'lucide-react';
 
 interface ThreeSixtyViewerProps {
   imageUrl: string;
@@ -27,19 +27,18 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const sphereRef = useRef<THREE.Mesh | null>(null);
   
+  const [isLoadingTexture, setIsLoadingTexture] = useState(true);
   const [isUserInteracting, setIsUserInteracting] = useState(false);
   const [onPointerDownMouseX, setOnPointerDownMouseX] = useState(0);
   const [onPointerDownMouseY, setOnPointerDownMouseY] = useState(0);
-  const [lon, setLon] = useState(0);
-  const [lat, setLat] = useState(0);
-  const [phi, setPhi] = useState(0);
-  const [theta, setTheta] = useState(0);
   
   const lonRef = useRef(0);
   const latRef = useRef(0);
 
   useEffect(() => {
     if (!containerRef.current) return;
+
+    setIsLoadingTexture(true);
 
     const width = containerRef.current.clientWidth;
     const height = containerRef.current.clientHeight;
@@ -54,9 +53,22 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     geometry.scale(-1, 1, 1);
 
     const textureLoader = new THREE.TextureLoader();
-    const texture = textureLoader.load(imageUrl);
-    const material = new THREE.MeshBasicMaterial({ map: texture });
     
+    // Carga de la textura con callbacks de éxito y error
+    const texture = textureLoader.load(
+      imageUrl,
+      () => {
+        // Éxito: La textura está lista
+        setIsLoadingTexture(false);
+      },
+      undefined,
+      () => {
+        // Error: Fallo en la carga
+        setIsLoadingTexture(false);
+      }
+    );
+
+    const material = new THREE.MeshBasicMaterial({ map: texture });
     const sphere = new THREE.Mesh(geometry, material);
     scene.add(sphere);
     sphereRef.current = sphere;
@@ -64,6 +76,11 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
+    
+    // Limpiamos el contenedor antes de añadir el nuevo canvas
+    if (containerRef.current.firstChild && containerRef.current.firstChild instanceof HTMLCanvasElement) {
+        containerRef.current.removeChild(containerRef.current.firstChild);
+    }
     containerRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
@@ -79,6 +96,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     window.addEventListener('resize', handleResize);
 
     const animate = () => {
+      if (!rendererRef.current) return;
       requestAnimationFrame(animate);
       update();
     };
@@ -102,8 +120,9 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      if (containerRef.current && renderer.domElement) {
-        containerRef.current.removeChild(renderer.domElement);
+      if (rendererRef.current) {
+        rendererRef.current.dispose();
+        rendererRef.current = null;
       }
     };
   }, [imageUrl]);
@@ -129,16 +148,13 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
   };
 
   const onContainerClick = (event: React.MouseEvent) => {
-    if (isEditing && onSceneClick) {
-      // Calculate lon/lat from current view for placing hotspot
-      // Simplified: use center of current view
+    if (isEditing && onSceneClick && !isLoadingTexture) {
       onSceneClick(lonRef.current % 360, latRef.current);
     }
   };
 
-  // Helper to project 3D hotspots to 2D UI overlay
   const getHotspotPosition = (hLon: number, hLat: number) => {
-    if (!cameraRef.current || !containerRef.current) return null;
+    if (!cameraRef.current || !containerRef.current || isLoadingTexture) return null;
     
     const phi = THREE.MathUtils.degToRad(90 - hLat);
     const theta = THREE.MathUtils.degToRad(hLon);
@@ -151,12 +167,11 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     
     vector.project(cameraRef.current);
     
-    // Check if hotspot is in front of camera
     const camDir = new THREE.Vector3();
     cameraRef.current.getWorldDirection(camDir);
     const dot = camDir.dot(vector.clone().normalize());
     
-    if (dot < 0) return null; // Behind camera
+    if (dot < 0) return null;
 
     const x = (vector.x * 0.5 + 0.5) * containerRef.current.clientWidth;
     const y = (-(vector.y * 0.5) + 0.5) * containerRef.current.clientHeight;
@@ -168,6 +183,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
 
   useEffect(() => {
     const interval = setInterval(() => {
+      if (isLoadingTexture) return;
       const projected = hotspots.map(h => {
         const pos = getHotspotPosition(h.yaw, h.pitch);
         return pos ? { h, x: pos.x, y: pos.y } : null;
@@ -175,7 +191,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
       setVisibleHotspots(projected);
     }, 16);
     return () => clearInterval(interval);
-  }, [hotspots, lon, lat]);
+  }, [hotspots, isLoadingTexture]);
 
   return (
     <div 
@@ -186,35 +202,45 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
       onPointerUp={onPointerUp}
       onClick={onContainerClick}
     >
+      {/* Overlay de Carga Interno */}
+      {isLoadingTexture && (
+        <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-50 transition-opacity">
+           <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+           <p className="text-white text-sm font-medium animate-pulse">Iniciando vista inmersiva...</p>
+        </div>
+      )}
+
       {/* Hotspots Overlay */}
-      <div className="absolute inset-0 pointer-events-none">
-        {visibleHotspots.map(({h, x, y}) => (
-          <div 
-            key={h.id}
-            className="absolute pointer-events-auto transition-transform hover:scale-110 active:scale-95"
-            style={{ left: x, top: y, transform: 'translate(-50%, -50%)' }}
-          >
-            <Button
-              variant="default"
-              size="sm"
-              className="rounded-full bg-primary/90 border-2 border-white/20 shadow-lg px-4 py-2 flex items-center gap-2 group whitespace-nowrap"
-              onClick={(e) => {
-                e.stopPropagation();
-                onHotspotClick?.(h.targetSceneId);
-              }}
+      {!isLoadingTexture && (
+        <div className="absolute inset-0 pointer-events-none">
+          {visibleHotspots.map(({h, x, y}) => (
+            <div 
+              key={h.id}
+              className="absolute pointer-events-auto transition-transform hover:scale-110 active:scale-95"
+              style={{ left: x, top: y, transform: 'translate(-50%, -50%)' }}
             >
-              <span className="max-w-0 overflow-hidden group-hover:max-w-[200px] transition-all duration-300 font-medium">
-                {h.label}
-              </span>
-              <ChevronRight className="w-5 h-5 text-white animate-pulse" />
-            </Button>
-          </div>
-        ))}
-      </div>
+              <Button
+                variant="default"
+                size="sm"
+                className="rounded-full bg-primary/90 border-2 border-white/20 shadow-lg px-4 py-2 flex items-center gap-2 group whitespace-nowrap"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onHotspotClick?.(h.targetSceneId);
+                }}
+              >
+                <span className="max-w-0 overflow-hidden group-hover:max-w-[200px] transition-all duration-300 font-medium">
+                  {h.label}
+                </span>
+                <ChevronRight className="w-5 h-5 text-white animate-pulse" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="absolute top-4 left-4 flex gap-2">
         <div className="bg-black/40 backdrop-blur-md px-3 py-1 rounded-full text-xs text-white/80 border border-white/10">
-          {isEditing ? 'Editing Mode: Click to place hotspots' : 'Panoramic View'}
+          {isEditing ? 'Modo Editor: Haz clic para enlazar estancias' : 'Vista Panorámica'}
         </div>
       </div>
 
