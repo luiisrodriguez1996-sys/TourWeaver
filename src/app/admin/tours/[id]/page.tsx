@@ -509,9 +509,7 @@ export default function TourEditor() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold flex items-center gap-2">
-                    <AlignLeft className="w-3.5 h-3.5" /> Descripción (Opcional)
-                  </Label>
+                  <Label className="text-xs font-bold">Descripción</Label>
                   <Textarea 
                     value={activeScene?.description || ''} 
                     onChange={e => updateLocalScene({ description: e.target.value })} 
