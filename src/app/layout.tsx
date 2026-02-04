@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { VersionIndicator } from '@/components/VersionIndicator';
 
 export const metadata: Metadata = {
   title: 'Tour Weaver | Immersive Virtual Tours',
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className="font-body antialiased selection:bg-primary selection:text-white">
         <FirebaseClientProvider>
           {children}
+          <VersionIndicator />
           <Toaster />
         </FirebaseClientProvider>
       </body>
