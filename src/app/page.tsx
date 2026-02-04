@@ -94,14 +94,14 @@ const translations = {
     serv2Title: "Navegação Fluida",
     serv2Desc: "Desenhamos uma interface personalizada e intuitiva para que seus clientes naveguem pela propriedade de forma natural.",
     serv3Title: "Foco Comercial",
-    serv3Desc: "Tours desenhados especificamente para corretores, incluindo informações relevantes e pontos de contato diretos.",
+    serv3Desc: "Tours desenhados especificamente para corretores, incluyendo informações relevantes e pontos de contato diretos.",
     ctaTitle: "Interessado em impulsionar seus anúncios?",
-    ctaDesc: "Oferecemos pacotes personalizados para agências e corretores individuais. Melhore o engajamento dos seus anúncios hoje mesmo.",
+    ctaDesc: "Oferecemos pacotes personalizados para agências e corretores individuales. Melhore o engajamento dos seus anúncios hoje mesmo.",
     ctaWa: "Contato via WhatsApp",
     ctaRates: "Ver Tarifas",
     ctaGuarantee: "Serviço Garantizado",
     ctaQuality: "Qualidade Profissional",
-    footerCopy: "© 2026 Tour Weaver - Serviços de Visualização 360°. Todos los derechos reservados.",
+    footerCopy: "© 2026 Tour Weaver - Servicios de Visualización 360°. Todos los derechos reservados.",
     footerTerms: "Termos de Uso",
     footerPrivacy: "Privacidade"
   }
@@ -161,7 +161,9 @@ export default function Home() {
                 <DropdownMenuItem onClick={() => changeLang('pt')}>Português</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button className="hidden sm:flex">{t.btnPresupuesto}</Button>
+            <Link href="#contacto" className="hidden sm:flex">
+              <Button size="sm">{t.btnPresupuesto}</Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -243,7 +245,6 @@ export default function Home() {
                 <p className="text-lg md:text-xl text-white/80 mb-8">{t.ctaDesc}</p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <Button size="lg" className="bg-white text-primary hover:bg-white/90 w-full sm:w-auto">{t.ctaWa}</Button>
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 w-full sm:w-auto">{t.ctaRates}</Button>
                 </div>
               </div>
               <div className="flex-1 relative aspect-square w-full max-w-[260px] sm:max-w-sm bg-white/10 rounded-full flex items-center justify-center border border-white/20">
