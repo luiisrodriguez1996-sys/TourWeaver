@@ -3,37 +3,37 @@
 import { useState, useEffect } from 'react';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { usePathname } from 'next/navigation';
 
 /**
  * An invisible component that listens for globally emitted 'permission-error' events.
- * It throws any received error to be caught by Next.js's global-error.tsx.
+ * It throws any received error to be caught by Next.js's global-error.tsx,
+ * except on public tour pages where we prefer local graceful handling.
  */
 export function FirebaseErrorListener() {
-  // Use the specific error type for the state for type safety.
   const [error, setError] = useState<FirestorePermissionError | null>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
-    // The callback now expects a strongly-typed error, matching the event payload.
     const handleError = (error: FirestorePermissionError) => {
-      // Set error in state to trigger a re-render.
+      // Si estamos en la vista pública del tour, dejamos que el componente local maneje el error
+      // para mostrar un mensaje de "Acceso denegado" en lugar de crashear la app.
+      if (pathname?.startsWith('/tour/')) {
+        return;
+      }
       setError(error);
     };
 
-    // The typed emitter will enforce that the callback for 'permission-error'
-    // matches the expected payload type (FirestorePermissionError).
     errorEmitter.on('permission-error', handleError);
 
-    // Unsubscribe on unmount to prevent memory leaks.
     return () => {
       errorEmitter.off('permission-error', handleError);
     };
-  }, []);
+  }, [pathname]);
 
-  // On re-render, if an error exists in state, throw it.
   if (error) {
     throw error;
   }
 
-  // This component renders nothing.
   return null;
 }

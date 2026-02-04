@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -7,7 +6,7 @@ import { useCollection, useFirestore, useMemoFirebase, useUser, useDoc } from '@
 import { collection, query, where, limit, doc } from 'firebase/firestore';
 import { ThreeSixtyViewer } from '@/components/ThreeSixtyViewer';
 import { Button } from '@/components/ui/button';
-import { Globe, Map, ChevronUp, ChevronDown, Share2, Info, Loader2, Check, MapPin, ArrowLeft, Shield, Layers, ImageOff, StickyNote, X } from 'lucide-react';
+import { Globe, Map, ChevronUp, ChevronDown, Share2, Info, Loader2, Check, MapPin, ArrowLeft, Shield, Layers, ImageOff, StickyNote, X, Lock } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -45,13 +44,10 @@ export default function PublicTourViewer() {
     if (!firestore || !slug) return null;
     const toursCol = collection(firestore, 'tours');
     
-    // Si somos admin, podemos ver cualquier tour por su slug para previsualizar
     if (isAdmin) {
       return query(toursCol, where('slug', '==', slug), limit(1));
     }
     
-    // Para el público, las reglas de seguridad exigen filtrar por 'published'
-    // para que la operación 'list' (query) sea permitida.
     return query(toursCol, 
       where('slug', '==', slug), 
       where('published', '==', true), 
@@ -59,7 +55,7 @@ export default function PublicTourViewer() {
     );
   }, [firestore, slug, isAdmin]);
 
-  const { data: tours, isLoading: isTourLoading } = useCollection(tourQuery);
+  const { data: tours, isLoading: isTourLoading, error: tourError } = useCollection(tourQuery);
   const tour = tours?.[0];
 
   const scenesRef = useMemoFirebase(() => {
@@ -67,7 +63,7 @@ export default function PublicTourViewer() {
     return collection(firestore, 'tours', tour.id, 'scenes');
   }, [firestore, tour]);
 
-  const { data: serverScenes, isLoading: isScenesLoading } = useCollection(scenesRef);
+  const { data: serverScenes, isLoading: isScenesLoading, error: scenesError } = useCollection(scenesRef);
 
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null);
   const [showFloorPlan, setShowFloorPlan] = useState(false);
@@ -119,7 +115,7 @@ export default function PublicTourViewer() {
 
   const canView = tour ? (tour.published || isAdmin) : false;
 
-  if (isTourLoading || (tours === null) || (tour && isScenesLoading) || (tour && !tour.published && isAdminLoading)) {
+  if (isTourLoading || (tours === null && !tourError) || (tour && isScenesLoading && !scenesError)) {
     return (
       <div className="h-[100dvh] bg-black flex flex-col items-center justify-center text-white gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
@@ -128,13 +124,23 @@ export default function PublicTourViewer() {
     );
   }
 
-  if (!tour || !canView) {
+  // Si hay error de permisos (porque pasó a privado) o el tour no existe/no es público
+  if (!tour || !canView || scenesError || tourError) {
     return (
       <div className="h-[100dvh] bg-black flex items-center justify-center text-white p-6">
-        <div className="text-center p-12 bg-white/5 backdrop-blur-lg rounded-[2.5rem] border border-white/10 max-w-md shadow-2xl">
-          <div className="w-20 h-20 bg-destructive/20 rounded-full flex items-center justify-center mx-auto mb-6"><Globe className="text-destructive w-10 h-10" /></div>
-          <h2 className="text-3xl font-bold font-headline mb-4">Tour no encontrado</h2>
-          <Link href="/"><Button size="lg" className="w-full gap-2 rounded-2xl h-14 text-lg"><ArrowLeft className="w-5 h-5" /> Volver al Inicio</Button></Link>
+        <div className="text-center p-12 bg-white/5 backdrop-blur-lg rounded-[2.5rem] border border-white/10 max-w-md shadow-2xl animate-in fade-in zoom-in duration-500">
+          <div className="w-20 h-20 bg-destructive/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Lock className="text-destructive w-10 h-10" />
+          </div>
+          <h2 className="text-2xl font-bold font-headline mb-2">Tour no disponible</h2>
+          <p className="text-white/60 text-sm mb-8 text-balance">
+            Esta propiedad ha sido marcada como privada o ya no está disponible públicamente.
+          </p>
+          <Link href="/">
+            <Button size="lg" className="w-full gap-2 rounded-2xl h-14 text-lg">
+              <ArrowLeft className="w-5 h-5" /> Volver al Inicio
+            </Button>
+          </Link>
         </div>
       </div>
     );
@@ -203,7 +209,6 @@ export default function PublicTourViewer() {
           />
         )}
 
-        {/* Annotation Overlay */}
         {activeAnnotation && (
           <div className="absolute inset-0 z-50 flex items-center justify-center p-6 bg-black/20 backdrop-blur-[2px] pointer-events-none">
             <Card className="w-full max-w-sm pointer-events-auto animate-in zoom-in-95 duration-300 rounded-[2rem] border-white/10 bg-black/60 text-white backdrop-blur-xl shadow-2xl overflow-hidden">
