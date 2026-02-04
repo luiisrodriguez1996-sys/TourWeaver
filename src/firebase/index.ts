@@ -11,32 +11,30 @@ export function initializeFirebase() {
   if (!getApps().length) {
     let firebaseApp;
     try {
-      // Attempt to initialize via Firebase App Hosting environment variables
-      firebaseApp = initializeApp();
+      // Initialize with config object for consistency across environments
+      firebaseApp = initializeApp(firebaseConfig);
     } catch (e) {
-      if (process.env.NODE_ENV === "production") {
-        console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
-      }
+      console.warn('Firebase initialization fallback triggered.', e);
       firebaseApp = initializeApp(firebaseConfig);
     }
 
-    // Initialize App Check only on the client side for Production
+    // Initialize App Check only on the client side
     if (typeof window !== 'undefined') {
       const appCheckSiteKey = process.env.NEXT_PUBLIC_FIREBASE_APP_CHECK_SITE_KEY;
       
       if (appCheckSiteKey) {
         try {
+          // Explicit initialization of reCAPTCHA Enterprise
           initializeAppCheck(firebaseApp, {
             provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey),
             isTokenAutoRefreshEnabled: true,
           });
         } catch (err) {
-          // Failure to init App Check shouldn't crash the entire app load, 
-          // but will cause requests to fail if enforcement is on.
-          console.warn('Firebase App Check failed to initialize:', err);
+          // Failure to init App Check shouldn't crash the entire app load
+          console.error('Firebase App Check failed to initialize:', err);
         }
       } else {
-        console.warn('App Check Site Key is missing. Please set NEXT_PUBLIC_FIREBASE_APP_CHECK_SITE_KEY.');
+        console.warn('App Check Site Key is missing. Please set NEXT_PUBLIC_FIREBASE_APP_CHECK_SITE_KEY in your environment variables.');
       }
     }
 
