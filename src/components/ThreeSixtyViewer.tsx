@@ -44,6 +44,14 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
   const pointerDownPos = useRef({ x: 0, y: 0 });
   const pointerDownTime = useRef(0);
 
+  const [visibleHotspots, setVisibleHotspots] = useState<{h: Hotspot, x: number, y: number}[]>([]);
+  const hotspotsRef = useRef(hotspots);
+
+  // Mantener hotspots actualizados en una ref para el bucle de animación
+  useEffect(() => {
+    hotspotsRef.current = hotspots;
+  }, [hotspots]);
+
   // Transition logic
   useEffect(() => {
     if (imageUrl !== internalImageUrl) {
@@ -116,6 +124,34 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
 
     window.addEventListener('resize', handleResize);
 
+    const updateHotspotPositions = () => {
+      if (isLoadingTexture || !cameraRef.current || !canvasHolderRef.current) return;
+      
+      const projected = hotspotsRef.current.map(h => {
+        const phi = THREE_REAL.MathUtils.degToRad(h.pitch);
+        const theta = THREE_REAL.MathUtils.degToRad(h.yaw);
+        
+        const vector = new THREE_REAL.Vector3();
+        vector.x = -Math.sin(theta) * Math.cos(phi);
+        vector.y = Math.sin(phi);
+        vector.z = -Math.cos(theta) * Math.cos(phi);
+        vector.multiplyScalar(500);
+        
+        const camDir = new THREE_REAL.Vector3();
+        cameraRef.current!.getWorldDirection(camDir);
+        const dot = camDir.dot(vector.clone().normalize());
+        
+        if (dot < 0) return null;
+        
+        vector.project(cameraRef.current!);
+        const x = (vector.x * 0.5 + 0.5) * canvasHolderRef.current!.clientWidth;
+        const y = (-(vector.y * 0.5) + 0.5) * canvasHolderRef.current!.clientHeight;
+        return { h, x, y };
+      }).filter(p => p !== null) as {h: Hotspot, x: number, y: number}[];
+      
+      setVisibleHotspots(projected);
+    };
+
     const update = () => {
       if (!cameraRef.current || !rendererRef.current || !sceneRef.current) return;
       
@@ -132,6 +168,9 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
       
       cameraRef.current.lookAt(target);
       rendererRef.current.render(sceneRef.current, cameraRef.current);
+      
+      // Actualizar hotspots en cada frame de animación para suavidad
+      updateHotspotPositions();
     };
 
     const animate = () => {
@@ -205,39 +244,6 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     }
   };
 
-  const [visibleHotspots, setVisibleHotspots] = useState<{h: Hotspot, x: number, y: number}[]>([]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (isLoadingTexture || !cameraRef.current || !canvasHolderRef.current) return;
-      
-      const projected = hotspots.map(h => {
-        const phi = THREE_REAL.MathUtils.degToRad(h.pitch);
-        const theta = THREE_REAL.MathUtils.degToRad(h.yaw);
-        
-        const vector = new THREE_REAL.Vector3();
-        vector.x = -Math.sin(theta) * Math.cos(phi);
-        vector.y = Math.sin(phi);
-        vector.z = -Math.cos(theta) * Math.cos(phi);
-        vector.multiplyScalar(500);
-        
-        const camDir = new THREE_REAL.Vector3();
-        cameraRef.current!.getWorldDirection(camDir);
-        const dot = camDir.dot(vector.clone().normalize());
-        
-        if (dot < 0) return null;
-        
-        vector.project(cameraRef.current!);
-        const x = (vector.x * 0.5 + 0.5) * canvasHolderRef.current!.clientWidth;
-        const y = (-(vector.y * 0.5) + 0.5) * canvasHolderRef.current!.clientHeight;
-        return { h, x, y };
-      }).filter(p => p !== null) as {h: Hotspot, x: number, y: number}[];
-      
-      setVisibleHotspots(projected);
-    }, 16);
-    return () => clearInterval(interval);
-  }, [hotspots, isLoadingTexture]);
-
   return (
     <div 
       ref={containerRef} 
@@ -273,6 +279,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
               onPointerUp={(e) => e.stopPropagation()}
             >
               <Button
+                type="button"
                 variant="default"
                 size="sm"
                 className={cn(

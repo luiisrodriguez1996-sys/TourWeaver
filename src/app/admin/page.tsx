@@ -152,7 +152,7 @@ export default function AdminDashboard() {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button type="button" variant="ghost" size="icon" className="h-8 w-8">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -170,9 +170,7 @@ export default function AdminDashboard() {
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className="text-destructive cursor-pointer focus:bg-destructive/10 focus:text-destructive" 
-                onClick={() => {
-                  setTimeout(() => setTourToDeleteId(tour.id), 100);
-                }}
+                onClick={() => setTourToDeleteId(tour.id)}
               >
                 <Trash2 className="mr-2 h-4 w-4" /> {isSpanish ? 'Eliminar Propiedad' : 'Delete Property'}
               </DropdownMenuItem>
@@ -187,12 +185,12 @@ export default function AdminDashboard() {
       </CardContent>
       <CardFooter className="gap-2 border-t pt-4 bg-gray-50/50">
         <Link href={`/admin/tours/${tour.id}`} className="flex-1">
-          <Button variant="outline" className="w-full gap-2 text-primary border-primary hover:bg-primary hover:text-white">
+          <Button type="button" variant="outline" className="w-full gap-2 text-primary border-primary hover:bg-primary hover:text-white">
             <Edit3 className="w-4 h-4" /> {isSpanish ? 'Gestionar' : 'Manage'}
           </Button>
         </Link>
         <Link href={`/tour/${tour.slug}`} target="_blank" rel="noopener noreferrer">
-          <Button variant="ghost" size="icon" className="text-accent hover:text-accent/80 transition-colors">
+          <Button type="button" variant="ghost" size="icon" className="text-accent hover:text-accent/80 transition-colors">
             <ExternalLink className="w-4 h-4" />
           </Button>
         </Link>
@@ -203,29 +201,29 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold font-headline">
+        <div className="max-w-full">
+          <h1 className="text-2xl md:text-3xl font-bold font-headline truncate">
             {isSpanish ? 'Gestión de Propiedades' : 'Property Management'}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm md:text-base text-muted-foreground">
             {isSpanish ? 'Organiza y publica tus tours virtuales profesionales' : 'Organize and publish your professional virtual tours'}
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <Tabs value={viewMode} onValueChange={handleViewChange} className="bg-white p-1 rounded-xl shadow-sm border">
+        <div className="flex items-center gap-2 md:gap-4 overflow-x-auto pb-1 max-w-full">
+          <Tabs value={viewMode} onValueChange={handleViewChange} className="bg-white p-1 rounded-xl shadow-sm border flex-shrink-0">
             <TabsList className="bg-transparent border-none">
               <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white">
-                <LayoutGrid className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">{isSpanish ? 'Todos' : 'All'}</span>
+                <LayoutGrid className="w-4 h-4" />
+                <span className="hidden sm:inline ml-2">{isSpanish ? 'Todos' : 'All'}</span>
               </TabsTrigger>
               <TabsTrigger value="clients" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white">
-                <Folder className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">{isSpanish ? 'Por Clientes' : 'By Clients'}</span>
+                <Folder className="w-4 h-4" />
+                <span className="hidden sm:inline ml-2">{isSpanish ? 'Por Clientes' : 'By Clients'}</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          <Link href="/admin/tours/new">
-            <Button className="bg-primary hover:bg-primary/90 rounded-xl px-6">
+          <Link href="/admin/tours/new" className="flex-shrink-0">
+            <Button type="button" className="bg-primary hover:bg-primary/90 rounded-xl px-4 md:px-6">
               {isSpanish ? 'Nueva Propiedad' : 'New Property'}
             </Button>
           </Link>
@@ -234,7 +232,7 @@ export default function AdminDashboard() {
 
       {viewMode === 'clients' && selectedClient && (
         <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
-          <Button variant="ghost" onClick={() => setSelectedClient(null)} className="gap-2 text-muted-foreground hover:text-primary">
+          <Button type="button" variant="ghost" onClick={() => setSelectedClient(null)} className="gap-2 text-muted-foreground hover:text-primary">
             <ArrowLeft className="w-4 h-4" /> {isSpanish ? 'Volver a Clientes' : 'Back to Clients'}
           </Button>
           <div className="flex items-center gap-3 mb-2">
@@ -300,16 +298,13 @@ export default function AdminDashboard() {
             {isSpanish ? 'Comienza a crear tu primer encargo profesional.' : 'Start creating your first professional assignment.'}
           </p>
           <Link href="/admin/tours/new">
-            <Button className="rounded-xl px-8">{isSpanish ? 'Registrar Propiedad' : 'Register Property'}</Button>
+            <Button type="button" className="rounded-xl px-8">{isSpanish ? 'Registrar Propiedad' : 'Register Property'}</Button>
           </Link>
         </div>
       )}
 
       <AlertDialog open={tourToDeleteId !== null} onOpenChange={(open) => {
-        if (!open) {
-          setTourToDeleteId(null);
-          document.body.style.pointerEvents = 'auto';
-        }
+        if (!open) setTourToDeleteId(null);
       }}>
         <AlertDialogContent className="rounded-[2rem]">
           <AlertDialogHeader>
