@@ -362,9 +362,14 @@ export default function TourEditor() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold truncate">{scene.name}</p>
-                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                      {scene.floorId && <Layers className="w-2.5 h-2.5" />}
-                      {scene.floorPlanX !== undefined && <MapPin className="w-2.5 h-2.5 text-primary" />}
+                    <div className="flex items-center justify-between text-[9px] text-muted-foreground mt-0.5 leading-tight">
+                      <span className="truncate flex-1 pr-1 font-medium italic">
+                        {localTourInfo.floors.find(f => f.id === scene.floorId)?.name || ''}
+                      </span>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {scene.floorId && <Layers className="w-2.5 h-2.5" />}
+                        {scene.floorPlanX !== undefined && <MapPin className="w-2.5 h-2.5 text-primary" />}
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-col gap-0.5" onClick={(e) => e.stopPropagation()}>
