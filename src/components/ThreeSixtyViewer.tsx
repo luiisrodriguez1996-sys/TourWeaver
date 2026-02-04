@@ -269,6 +269,8 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
               key={h.id}
               className="absolute pointer-events-auto transition-transform hover:scale-110 active:scale-95 animate-in fade-in zoom-in duration-300"
               style={{ left: x, top: y, transform: 'translate(-50%, -50%)' }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onPointerUp={(e) => e.stopPropagation()}
             >
               <Button
                 variant="default"
@@ -283,6 +285,8 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
                   e.stopPropagation();
                   onHotspotClick?.(h.targetSceneId, h.id);
                 }}
+                onPointerDown={(e) => e.stopPropagation()}
+                onPointerUp={(e) => e.stopPropagation()}
               >
                 {isEditing && <Settings2 className="w-4 h-4 text-white" />}
                 <span className={cn(
