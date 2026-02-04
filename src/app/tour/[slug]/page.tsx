@@ -121,7 +121,7 @@ export default function PublicTourViewer() {
     <div className="h-[100dvh] w-full relative overflow-hidden bg-black flex flex-col touch-none">
       <div className="absolute top-0 left-0 right-0 p-4 md:p-6 z-20 pointer-events-none flex flex-col md:flex-row justify-between items-start gap-4">
         <div className="pointer-events-auto w-full md:w-auto">
-          <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 text-white max-w-sm shadow-2xl overflow-hidden">
+          <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 text-white max-w-full md:max-w-sm shadow-2xl overflow-hidden">
             <div 
               className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors"
               onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
@@ -181,7 +181,7 @@ export default function PublicTourViewer() {
           </div>
         </div>
         
-        <div className="flex gap-2 pointer-events-auto">
+        <div className="flex gap-2 pointer-events-auto w-full md:w-auto justify-end">
           {(tour.address || tour.googleMapsUrl) && (
             <Button 
               variant="secondary" 
@@ -219,18 +219,17 @@ export default function PublicTourViewer() {
         )}
       </div>
 
-      <div className="absolute bottom-16 md:bottom-20 left-1/2 -translate-x-1/2 z-20 flex items-center gap-4">
-        <div className="bg-black/40 backdrop-blur-md px-6 py-1 rounded-full border border-white/10 flex items-center gap-2 text-white shadow-2xl pointer-events-auto">
-           
+      <div className="absolute bottom-16 md:bottom-20 left-1/2 -translate-x-1/2 z-20 flex items-center gap-4 w-full px-4 justify-center">
+        <div className="bg-black/40 backdrop-blur-md px-2 md:px-6 py-1 rounded-full border border-white/10 flex items-center gap-1 md:gap-2 text-white shadow-2xl pointer-events-auto max-w-full">
            <Dialog>
              <DialogTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-10 px-4">
+                <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-10 px-3 md:px-4">
                   <ChevronUp className="w-4 h-4" />
-                  <span className="text-sm font-medium">Estancias ({scenes?.length || 0})</span>
+                  <span className="text-xs md:text-sm font-medium">Estancias ({scenes?.length || 0})</span>
                 </Button>
              </DialogTrigger>
-             <DialogContent className="sm:max-w-[425px] bg-black/80 backdrop-blur-xl border-white/10 text-white p-0 rounded-[2.5rem] overflow-hidden shadow-2xl">
-                <DialogHeader className="p-6 border-b border-white/10">
+             <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[425px] bg-black/80 backdrop-blur-xl border-white/10 text-white p-0 rounded-[2.5rem] overflow-hidden shadow-2xl">
+                <DialogHeader className="p-6 border-b border-white/10 text-left">
                   <DialogTitle className="font-bold text-lg">Explorar Estancias</DialogTitle>
                 </DialogHeader>
                 <ScrollArea className="max-h-[60vh] p-4">
@@ -246,7 +245,7 @@ export default function PublicTourViewer() {
                               : 'hover:bg-white/10 text-white/70 hover:text-white border-transparent'
                           )}
                         >
-                          <div className="relative w-24 h-16 rounded-xl overflow-hidden flex-shrink-0">
+                          <div className="relative w-20 md:w-24 h-14 md:h-16 rounded-xl overflow-hidden flex-shrink-0">
                             <img src={scene.imageUrl} className="w-full h-full object-cover" alt={scene.name} />
                             {activeSceneId === scene.id && (
                               <div className="absolute inset-0 bg-primary/40 flex items-center justify-center">
@@ -254,7 +253,7 @@ export default function PublicTourViewer() {
                               </div>
                             )}
                           </div>
-                          <span className="text-sm font-semibold truncate flex-1 text-left">{scene.name}</span>
+                          <span className="text-xs md:text-sm font-semibold truncate flex-1 text-left">{scene.name}</span>
                         </button>
                       </DialogClose>
                     ))}
@@ -265,14 +264,14 @@ export default function PublicTourViewer() {
 
            {tour.showFloorPlan && (
              <>
-               <div className="h-4 w-px bg-white/20 mx-2" />
+               <div className="h-4 w-px bg-white/20 mx-1 md:mx-2" />
                <Button 
                  variant="ghost" 
                  onClick={() => setShowFloorPlan(!showFloorPlan)}
-                 className={`flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-10 px-4 ${showFloorPlan ? 'text-primary bg-primary/10' : ''}`}
+                 className={`flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-10 px-3 md:px-4 ${showFloorPlan ? 'text-primary bg-primary/10' : ''}`}
                >
                   <Map className="w-4 h-4" />
-                  <span className="text-sm font-medium">Plano</span>
+                  <span className="text-xs md:text-sm font-medium">Plano</span>
                </Button>
              </>
            )}
@@ -280,20 +279,20 @@ export default function PublicTourViewer() {
       </div>
 
       {(showFloorPlan && tour.showFloorPlan) && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-30 flex items-center justify-center p-8 animate-in fade-in duration-300">
-           <div className="bg-white rounded-[2.5rem] p-8 max-w-3xl w-full relative shadow-2xl">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-30 flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300">
+           <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 max-w-full md:max-w-3xl w-full relative shadow-2xl overflow-hidden">
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="absolute top-6 right-6 h-10 w-10 rounded-full hover:bg-muted"
+                className="absolute top-4 right-4 h-10 w-10 rounded-full hover:bg-muted"
                 onClick={() => setShowFloorPlan(false)}
               >
                 ✕
               </Button>
-              <h2 className="text-2xl font-bold font-headline mb-6 text-primary flex items-center gap-2">
-                <Map className="w-6 h-6" /> Mapa de Navegación
+              <h2 className="text-xl md:text-2xl font-bold font-headline mb-4 md:mb-6 text-primary flex items-center gap-2">
+                <Map className="w-5 h-5 md:w-6 md:h-6" /> Mapa de Navegación
               </h2>
-              <div className="aspect-video bg-muted rounded-3xl overflow-hidden relative border shadow-inner">
+              <div className="aspect-video bg-muted rounded-2xl md:rounded-3xl overflow-hidden relative border shadow-inner">
                  <img 
                    src={tour.floorPlanUrl || "https://picsum.photos/seed/plan1/800/600"} 
                    alt="Plano" 
@@ -307,7 +306,7 @@ export default function PublicTourViewer() {
                        setActiveSceneId(s.id);
                        setShowFloorPlan(false);
                      }}
-                     className={`absolute w-6 h-6 rounded-full border-2 border-white shadow-xl -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 flex items-center justify-center ${
+                     className={`absolute w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-white shadow-xl -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 flex items-center justify-center ${
                        s.id === activeSceneId 
                         ? 'bg-primary z-20 animate-pulse ring-4 ring-primary/30 scale-125' 
                         : 'bg-muted-foreground/80 z-10 hover:bg-primary'
@@ -315,20 +314,20 @@ export default function PublicTourViewer() {
                      style={{ left: `${s.floorPlanX}%`, top: `${s.floorPlanY}%` }}
                      title={s.name}
                    >
-                     <MapPin className={`w-3.5 h-3.5 text-white ${s.id === activeSceneId ? 'block' : 'hidden group-hover:block'}`} />
+                     <MapPin className={`w-3 h-3 md:w-3.5 md:h-3.5 text-white ${s.id === activeSceneId ? 'block' : 'hidden group-hover:block'}`} />
                    </button>
                  ))}
               </div>
-              <p className="mt-6 text-sm text-muted-foreground text-center font-medium">
+              <p className="mt-4 md:mt-6 text-xs md:text-sm text-muted-foreground text-center font-medium">
                 Toca los puntos en el mapa para navegar por la propiedad de forma instantánea.
               </p>
            </div>
         </div>
       )}
 
-      <div className="absolute bottom-4 right-8 z-20 pointer-events-none flex items-center gap-3">
+      <div className="absolute bottom-4 right-4 md:right-8 z-20 pointer-events-none flex flex-col md:flex-row items-end md:items-center gap-2 md:gap-3">
         <VersionIndicator />
-        <span className="text-neutral-500/40 text-[10px] font-bold tracking-widest uppercase">Potenciado por Tour Weaver</span>
+        <span className="text-neutral-500/40 text-[8px] md:text-[10px] font-bold tracking-widest uppercase">Potenciado por Tour Weaver</span>
       </div>
     </div>
   );

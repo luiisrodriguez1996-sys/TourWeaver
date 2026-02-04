@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -71,7 +70,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user || !adminData || adminData.isAdmin !== true) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <div className="text-center p-8 bg-white rounded-3xl shadow-xl max-w-md">
+        <div className="text-center p-8 bg-white rounded-3xl shadow-xl max-w-md mx-4">
           <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <LogOut className="text-destructive w-8 h-8" />
           </div>
@@ -86,7 +85,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-y-auto">
       <div className="p-6">
         <Link href="/" className="flex items-center gap-2 group">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center transition-transform group-hover:scale-110">
@@ -128,7 +127,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <div className="p-4 border-t space-y-4">
         <div className="flex items-center gap-3 px-2 py-3">
-          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-primary uppercase">
+          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-primary uppercase flex-shrink-0">
             {user.email?.substring(0, 2) || 'AD'}
           </div>
           <div className="flex-1 min-w-0">
@@ -144,24 +143,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   );
 
   return (
-    <div className="min-h-screen flex bg-[#F8FAFC]">
+    <div className="min-h-screen flex bg-[#F8FAFC] max-w-full overflow-x-hidden">
       {/* Desktop Sidebar */}
-      <aside className="w-64 bg-white border-r hidden md:flex flex-col fixed inset-y-0">
+      <aside className="w-64 bg-white border-r hidden md:flex flex-col fixed inset-y-0 z-50">
         <SidebarContent />
       </aside>
 
-      <main className="flex-1 md:ml-64 min-h-screen">
-        <header className="h-16 border-b bg-white flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
-          <div className="flex items-center gap-4">
+      <main className="flex-1 md:ml-64 min-h-screen w-full overflow-x-hidden">
+        <header className="h-16 border-b bg-white flex items-center justify-between px-4 md:px-8 sticky top-0 z-40 w-full">
+          <div className="flex items-center gap-4 min-w-0">
             {/* Mobile Menu Trigger */}
-            <div className="md:hidden">
+            <div className="md:hidden flex-shrink-0">
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="text-muted-foreground">
                     <Menu className="w-6 h-6" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-64">
+                <SheetContent side="left" className="p-0 w-64 max-w-[80vw]">
                   <div className="sr-only">
                     <SheetHeader>
                       <SheetTitle>Menú de Administración</SheetTitle>
@@ -172,19 +171,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </SheetContent>
               </Sheet>
             </div>
-            <h2 className="text-lg font-semibold text-muted-foreground hidden sm:block">
+            <h2 className="text-base md:text-lg font-semibold text-muted-foreground truncate">
               {menuText.management}
             </h2>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-shrink-0">
              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                <Languages className="w-4 h-4" />
                <span className="uppercase">{currentLang}</span>
              </div>
           </div>
         </header>
-        <div className="p-4 md:p-8">
+        <div className="p-4 md:p-8 w-full max-w-full">
           {children}
         </div>
       </main>
