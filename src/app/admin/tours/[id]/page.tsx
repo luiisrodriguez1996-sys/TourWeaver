@@ -32,7 +32,8 @@ import {
   CheckCircle2,
   ChevronUp,
   ChevronDown,
-  Navigation
+  Navigation,
+  Info
 } from 'lucide-react';
 import {
   Select,
@@ -110,7 +111,6 @@ export default function TourEditor() {
 
   useEffect(() => {
     if (serverScenes && tour) {
-      // Sort scenes based on tour.sceneIds if it exists
       let sorted = [...serverScenes];
       if (tour.sceneIds && tour.sceneIds.length > 0) {
         sorted.sort((a, b) => {
@@ -294,19 +294,16 @@ export default function TourEditor() {
     try {
       const batch = writeBatch(firestore);
       
-      // Save scenes
       for (const scene of localScenes) {
         const sceneDocRef = doc(firestore, 'tours', id as string, 'scenes', scene.id);
         batch.set(sceneDocRef, scene, { merge: true });
       }
       
-      // Delete scenes
       for (const sceneIdToDelete of deletedSceneIds) {
         const sceneDocRef = doc(firestore, 'tours', id as string, 'scenes', sceneIdToDelete);
         batch.delete(sceneDocRef);
       }
       
-      // Update tour metadata including order of scenes
       if (tourRef && tour) {
         batch.set(tourRef, { 
           name: localTourInfo.name,
@@ -317,7 +314,7 @@ export default function TourEditor() {
           address: localTourInfo.address,
           googleMapsUrl: localTourInfo.googleMapsUrl,
           thumbnailUrl: localScenes.length > 0 ? localScenes[0].imageUrl : tour.thumbnailUrl || '',
-          sceneIds: localScenes.map(s => s.id), // Persist the order
+          sceneIds: localScenes.map(s => s.id),
           updatedAt: Date.now() 
         }, { merge: true });
       }
@@ -408,25 +405,23 @@ export default function TourEditor() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto lg:h-[calc(100vh-180px)]">
-        <div className="lg:col-span-3 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto lg:h-[calc(100vh-220px)]">
+        <div className="lg:col-span-3 space-y-6 overflow-y-auto pr-2 custom-scrollbar bg-white rounded-3xl p-4 border shadow-sm">
           <section className="space-y-4">
             <h3 className="font-semibold text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <ImageIcon className="w-4 h-4" /> Portafolio de Escenas
+              <ImageIcon className="w-4 h-4" /> Estancias
             </h3>
-            <div className="grid grid-cols-1 gap-2">
-               <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-2 border-dashed h-12" 
-                  onClick={() => sceneFileInputRef.current?.click()}
-                  disabled={isUploading}
-               >
-                  {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                  {isUploading ? 'Procesando...' : 'Añadir Estancia'}
-               </Button>
-               <input type="file" ref={sceneFileInputRef} className="hidden" accept="image/*" onChange={handleSceneFileChange} />
-            </div>
+            <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full gap-2 border-dashed h-12" 
+                onClick={() => sceneFileInputRef.current?.click()}
+                disabled={isUploading}
+            >
+                {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                {isUploading ? 'Procesando...' : 'Añadir Estancia'}
+            </Button>
+            <input type="file" ref={sceneFileInputRef} className="hidden" accept="image/*" onChange={handleSceneFileChange} />
             <div className="space-y-2">
               {localScenes.map((scene, index) => (
                 <Card 
@@ -458,167 +453,17 @@ export default function TourEditor() {
                       </div>
                     </div>
                     
-                    {/* Reordering Controls */}
                     <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-5 w-5" 
-                        disabled={index === 0}
-                        onClick={(e) => { e.stopPropagation(); moveScene(index, 'up'); }}
-                      >
+                      <Button size="icon" variant="ghost" className="h-5 w-5" disabled={index === 0} onClick={(e) => { e.stopPropagation(); moveScene(index, 'up'); }}>
                         <ChevronUp className="w-3 h-3" />
                       </Button>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-5 w-5" 
-                        disabled={index === localScenes.length - 1}
-                        onClick={(e) => { e.stopPropagation(); moveScene(index, 'down'); }}
-                      >
+                      <Button size="icon" variant="ghost" className="h-5 w-5" disabled={index === localScenes.length - 1} onClick={(e) => { e.stopPropagation(); moveScene(index, 'down'); }}>
                         <ChevronDown className="w-3 h-3" />
                       </Button>
                     </div>
                   </div>
                 </Card>
               ))}
-            </div>
-          </section>
-
-          <Separator />
-
-          <section className="space-y-4 pb-10">
-            <h3 className="font-semibold text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <Settings className="w-4 h-4" /> Configuración de la Propiedad
-            </h3>
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Cliente (Privado)</Label>
-                <div className="relative">
-                  <Input 
-                    list="edit-clients-list"
-                    value={localTourInfo.clientName} 
-                    className="h-8 text-xs pr-8"
-                    onChange={(e) => {
-                      setLocalTourInfo({ ...localTourInfo, clientName: e.target.value });
-                      setHasUnsavedChanges(true);
-                    }}
-                  />
-                  <Search className="w-3 h-3 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <datalist id="edit-clients-list">
-                    {existingClients.map((client: any) => (
-                      <option key={client} value={client} />
-                    ))}
-                  </datalist>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Nombre Público</Label>
-                <Input 
-                  value={localTourInfo.name} 
-                  className="h-8 text-xs"
-                  onChange={(e) => {
-                    setLocalTourInfo({ ...localTourInfo, name: e.target.value });
-                    setHasUnsavedChanges(true);
-                  }}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Descripción</Label>
-                <Textarea 
-                  value={localTourInfo.description} 
-                  className="h-20 text-xs resize-none"
-                  onChange={(e) => {
-                    setLocalTourInfo({ ...localTourInfo, description: e.target.value });
-                    setHasUnsavedChanges(true);
-                  }}
-                />
-              </div>
-              
-              <div className="space-y-4 pt-2">
-                <div className="space-y-1.5">
-                  <Label className="text-xs flex items-center gap-2">
-                    <MapPin className="w-3 h-3 text-primary" /> Dirección de la Propiedad (Texto)
-                  </Label>
-                  <div className="relative">
-                    <Input 
-                      value={localTourInfo.address} 
-                      placeholder="ej. Av. Corrientes 1234, CABA"
-                      className="h-8 text-xs pr-8"
-                      onChange={(e) => {
-                        setLocalTourInfo({ ...localTourInfo, address: e.target.value });
-                        setHasUnsavedChanges(true);
-                      }}
-                    />
-                    {localTourInfo.address && (
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="absolute right-0 top-0 h-8 w-8 text-primary"
-                        onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(localTourInfo.address)}`, '_blank')}
-                        title="Ver en Google Maps"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs flex items-center gap-2">
-                    <LinkIcon className="w-3 h-3 text-primary" /> Enlace Manual Google Maps
-                  </Label>
-                  <Input 
-                    value={localTourInfo.googleMapsUrl} 
-                    placeholder="Pega el enlace directo aquí..."
-                    className="h-8 text-xs"
-                    onChange={(e) => {
-                      setLocalTourInfo({ ...localTourInfo, googleMapsUrl: e.target.value });
-                      setHasUnsavedChanges(true);
-                    }}
-                  />
-                  {localTourInfo.googleMapsUrl && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-6 text-[10px] text-primary gap-1 px-1"
-                      onClick={() => window.open(localTourInfo.googleMapsUrl, '_blank')}
-                    >
-                      <ExternalLink className="w-2.5 h-2.5" /> Probar Enlace
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-2 bg-muted/40 rounded-lg">
-                <Label className="text-xs cursor-pointer" htmlFor="floorplan-toggle">Habilitar Plano</Label>
-                <Switch 
-                  id="floorplan-toggle"
-                  checked={localTourInfo.showFloorPlan} 
-                  onCheckedChange={(checked) => {
-                    setLocalTourInfo({ ...localTourInfo, showFloorPlan: checked });
-                    setHasUnsavedChanges(true);
-                  }}
-                />
-              </div>
-              {localTourInfo.showFloorPlan && (
-                <div className="space-y-2">
-                  <div 
-                    className="aspect-video bg-muted rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors overflow-hidden relative"
-                    onClick={() => floorPlanFileInputRef.current?.click()}
-                  >
-                    {localTourInfo.floorPlanUrl ? (
-                      <img src={localTourInfo.floorPlanUrl} className="w-full h-full object-contain" alt="Plano" />
-                    ) : (
-                      <div className="text-center p-4">
-                        <Upload className="w-5 h-5 text-muted-foreground mx-auto mb-1" />
-                        <span className="text-[10px] text-muted-foreground">Subir Plano</span>
-                      </div>
-                    )}
-                  </div>
-                  <input type="file" ref={floorPlanFileInputRef} className="hidden" accept="image/*" onChange={handleFloorPlanFileChange} />
-                </div>
-              )}
             </div>
           </section>
         </div>
@@ -643,13 +488,13 @@ export default function TourEditor() {
             <CardContent className="py-2.5 px-4 flex items-center gap-3">
               <PlusCircle className="w-4 h-4 text-primary" />
               <p className="text-[11px] text-primary-foreground/80">
-                <span className="font-bold">Modo Tejedor:</span> Toca en la vista 360 para enlazar con otra estancia. La primera estancia en la lista será la portada del tour.
+                <span className="font-bold">Modo Tejedor:</span> Toca en la vista 360 para enlazar. La primera estancia es la portada del tour.
               </p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="lg:col-span-3 space-y-4 overflow-y-auto pl-2 custom-scrollbar">
+        <div className="lg:col-span-3 space-y-4 overflow-y-auto pl-2 custom-scrollbar bg-white rounded-3xl p-4 border shadow-sm">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full grid grid-cols-2">
               <TabsTrigger value="details">Estancia</TabsTrigger>
@@ -660,21 +505,12 @@ export default function TourEditor() {
               <div className="space-y-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs">Nombre de la Estancia</Label>
-                  <Input 
-                    value={activeScene?.name || ''} 
-                    placeholder="ej. Cocina Americana" 
-                    onChange={(e) => updateLocalScene({ name: e.target.value })}
-                  />
+                  <Input value={activeScene?.name || ''} placeholder="ej. Cocina Americana" onChange={(e) => updateLocalScene({ name: e.target.value })} />
                 </div>
 
                 <div className="space-y-1.5">
                   <Label className="text-xs">Descripción de la Estancia</Label>
-                  <Textarea 
-                    value={activeScene?.description || ''} 
-                    placeholder="Describe acabados, detalles de iluminación o características..." 
-                    className="h-24 text-xs resize-none"
-                    onChange={(e) => updateLocalScene({ description: e.target.value })}
-                  />
+                  <Textarea value={activeScene?.description || ''} placeholder="Describe acabados, detalles..." className="h-24 text-xs resize-none" onChange={(e) => updateLocalScene({ description: e.target.value })} />
                 </div>
                 
                 {localTourInfo.showFloorPlan && localTourInfo.floorPlanUrl && (
@@ -682,33 +518,17 @@ export default function TourEditor() {
                     <Label className="text-xs flex items-center gap-2">
                       <Crosshair className="w-3 h-3 text-primary" /> Ubicación en el Plano
                     </Label>
-                    <div 
-                      className="relative aspect-video bg-muted rounded-xl border-2 border-primary/20 cursor-crosshair overflow-hidden group"
-                      onClick={handleFloorPlanClick}
-                    >
+                    <div className="relative aspect-video bg-muted rounded-xl border-2 border-primary/20 cursor-crosshair overflow-hidden group" onClick={handleFloorPlanClick}>
                       <img src={localTourInfo.floorPlanUrl} className="w-full h-full object-contain pointer-events-none" alt="Mini Plano" />
                       {localScenes.map(s => s.floorPlanX !== undefined && (
-                        <div 
-                          key={s.id}
-                          className={`absolute w-3 h-3 rounded-full border-2 border-white shadow-sm -translate-x-1/2 -translate-y-1/2 transition-all ${s.id === activeSceneId ? 'bg-primary scale-150 z-20' : 'bg-muted-foreground/60 z-10'}`}
-                          style={{ left: `${s.floorPlanX}%`, top: `${s.floorPlanY}%` }}
-                        />
+                        <div key={s.id} className={`absolute w-3 h-3 rounded-full border-2 border-white shadow-sm -translate-x-1/2 -translate-y-1/2 transition-all ${s.id === activeSceneId ? 'bg-primary scale-150 z-20' : 'bg-muted-foreground/60 z-10'}`} style={{ left: `${s.floorPlanX}%`, top: `${s.floorPlanY}%` }} />
                       ))}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity pointer-events-none">
-                         <p className="text-[10px] text-white font-bold">Haz clic para marcar posición</p>
-                      </div>
                     </div>
-                    <p className="text-[10px] text-muted-foreground text-center">Toca el mapa para situar esta estancia.</p>
                   </div>
                 )}
               </div>
-              
               <Separator />
-              <Button 
-                variant="outline" 
-                className="w-full gap-2 text-destructive border-destructive/10 hover:bg-destructive/10 h-9 text-xs"
-                onClick={deleteActiveScene}
-              >
+              <Button variant="outline" className="w-full gap-2 text-destructive border-destructive/10 hover:bg-destructive/10 h-9 text-xs" onClick={deleteActiveScene}>
                 <Trash2 className="w-4 h-4" /> Eliminar Estancia
               </Button>
             </TabsContent>
@@ -722,49 +542,24 @@ export default function TourEditor() {
               ) : (
                 <div className="space-y-3">
                   {activeScene?.hotspots.map((h) => (
-                    <Card 
-                      key={h.id} 
-                      id={`hotspot-card-${h.id}`}
-                      className={cn(
-                        "p-3 bg-white border-2 shadow-sm transition-all duration-300",
-                        highlightedHotspotId === h.id ? "border-accent ring-1 ring-accent/30" : "border-muted"
-                      )}
-                    >
+                    <Card key={h.id} id={`hotspot-card-${h.id}`} className={cn("p-3 bg-white border-2 shadow-sm transition-all duration-300", highlightedHotspotId === h.id ? "border-accent ring-1 ring-accent/30" : "border-muted")}>
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5">
-                            <p className="text-[9px] font-black uppercase text-primary">Navegación</p>
-                            {highlightedHotspotId === h.id && <CheckCircle2 className="w-3 h-3 text-accent animate-in fade-in zoom-in" />}
-                          </div>
-                          <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            className="text-destructive h-6 w-6" 
-                            onClick={() => removeHotspot(h.id)}
-                          >
+                          <p className="text-[9px] font-black uppercase text-primary">Navegación</p>
+                          <Button size="icon" variant="ghost" className="text-destructive h-6 w-6" onClick={() => removeHotspot(h.id)}>
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </div>
                         <div className="space-y-1">
                           <Label className="text-[10px] text-muted-foreground font-bold">Etiqueta</Label>
-                          <Input 
-                            value={h.label} 
-                            className="h-7 text-xs"
-                            onChange={(e) => updateHotspot(h.id, { label: e.target.value })}
-                          />
+                          <Input value={h.label} className="h-7 text-xs" onChange={(e) => updateHotspot(h.id, { label: e.target.value })} />
                         </div>
                         <div className="space-y-1">
                           <Label className="text-[10px] text-muted-foreground font-bold">Destino</Label>
-                          <Select 
-                            value={h.targetSceneId} 
-                            onValueChange={(val) => {
-                              const target = localScenes.find(s => s.id === val);
-                              updateHotspot(h.id, { 
-                                targetSceneId: val,
-                                label: h.label.startsWith('Ir a') ? `Ir a ${target?.name}` : h.label 
-                              });
-                            }}
-                          >
+                          <Select value={h.targetSceneId} onValueChange={(val) => {
+                            const target = localScenes.find(s => s.id === val);
+                            updateHotspot(h.id, { targetSceneId: val, label: h.label.startsWith('Ir a') ? `Ir a ${target?.name}` : h.label });
+                          }}>
                             <SelectTrigger className="h-7 text-xs">
                               <SelectValue placeholder="Elegir..." />
                             </SelectTrigger>
@@ -775,36 +570,16 @@ export default function TourEditor() {
                             </SelectContent>
                           </Select>
                         </div>
-                        
                         <Separator className="my-1 opacity-50" />
-                        
-                        {/* Manual Position Editing */}
-                        <div className="space-y-2">
-                           <Label className="text-[10px] text-muted-foreground font-bold flex items-center gap-1">
-                             <Navigation className="w-2.5 h-2.5" /> Ajuste de Posición (Grados)
-                           </Label>
-                           <div className="grid grid-cols-2 gap-2">
-                              <div className="space-y-1">
-                                <Label className="text-[8px] uppercase opacity-60">Yaw</Label>
-                                <Input 
-                                  type="number"
-                                  step="0.1"
-                                  value={Math.round(h.yaw * 10) / 10} 
-                                  className="h-7 text-[10px] font-mono"
-                                  onChange={(e) => updateHotspot(h.id, { yaw: parseFloat(e.target.value) || 0 })}
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-[8px] uppercase opacity-60">Pitch</Label>
-                                <Input 
-                                  type="number"
-                                  step="0.1"
-                                  value={Math.round(h.pitch * 10) / 10} 
-                                  className="h-7 text-[10px] font-mono"
-                                  onChange={(e) => updateHotspot(h.id, { pitch: parseFloat(e.target.value) || 0 })}
-                                />
-                              </div>
-                           </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-1">
+                            <Label className="text-[8px] uppercase opacity-60">Yaw</Label>
+                            <Input type="number" step="0.1" value={Math.round(h.yaw * 10) / 10} className="h-7 text-[10px] font-mono" onChange={(e) => updateHotspot(h.id, { yaw: parseFloat(e.target.value) || 0 })} />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[8px] uppercase opacity-60">Pitch</Label>
+                            <Input type="number" step="0.1" value={Math.round(h.pitch * 10) / 10} className="h-7 text-[10px] font-mono" onChange={(e) => updateHotspot(h.id, { pitch: parseFloat(e.target.value) || 0 })} />
+                          </div>
                         </div>
                       </div>
                     </Card>
@@ -813,6 +588,98 @@ export default function TourEditor() {
               )}
             </TabsContent>
           </Tabs>
+        </div>
+      </div>
+
+      <div className="mt-12 space-y-6">
+        <div className="flex items-center gap-2">
+          <Settings className="w-6 h-6 text-primary" />
+          <h2 className="text-xl font-bold font-headline">Configuración de la Propiedad</h2>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="rounded-3xl border shadow-md overflow-hidden">
+            <CardHeader className="bg-primary/5 pb-4">
+              <CardTitle className="text-sm flex items-center gap-2"><Info className="w-4 h-4 text-primary" /> Detalles Generales</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">Cliente (Uso Interno)</Label>
+                <div className="relative">
+                  <Input list="edit-clients-list" value={localTourInfo.clientName} className="h-10 rounded-xl" onChange={(e) => { setLocalTourInfo({ ...localTourInfo, clientName: e.target.value }); setHasUnsavedChanges(true); }} />
+                  <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <datalist id="edit-clients-list">
+                    {existingClients.map((client: any) => (<option key={client} value={client} />))}
+                  </datalist>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">Nombre Público</Label>
+                <Input value={localTourInfo.name} className="h-10 rounded-xl" onChange={(e) => { setLocalTourInfo({ ...localTourInfo, name: e.target.value }); setHasUnsavedChanges(true); }} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">Descripción</Label>
+                <Textarea value={localTourInfo.description} className="h-24 rounded-xl resize-none" onChange={(e) => { setLocalTourInfo({ ...localTourInfo, description: e.target.value }); setHasUnsavedChanges(true); }} />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-3xl border shadow-md overflow-hidden">
+            <CardHeader className="bg-primary/5 pb-4">
+              <CardTitle className="text-sm flex items-center gap-2"><MapPin className="w-4 h-4 text-primary" /> Ubicación Geográfica</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">Dirección Física</Label>
+                <div className="relative">
+                  <Input value={localTourInfo.address} placeholder="ej. Av. Corrientes 1234, CABA" className="h-10 rounded-xl pr-10" onChange={(e) => { setLocalTourInfo({ ...localTourInfo, address: e.target.value }); setHasUnsavedChanges(true); }} />
+                  {localTourInfo.address && (
+                    <Button variant="ghost" size="icon" className="absolute right-0 top-0 h-10 w-10 text-primary" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(localTourInfo.address)}`, '_blank')}>
+                      <ExternalLink className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">Enlace Manual Google Maps</Label>
+                <Input value={localTourInfo.googleMapsUrl} placeholder="Pega el enlace directo aquí..." className="h-10 rounded-xl" onChange={(e) => { setLocalTourInfo({ ...localTourInfo, googleMapsUrl: e.target.value }); setHasUnsavedChanges(true); }} />
+                {localTourInfo.googleMapsUrl && (
+                  <Button variant="ghost" size="sm" className="h-6 text-[10px] text-primary gap-1 px-1 mt-1" onClick={() => window.open(localTourInfo.googleMapsUrl, '_blank')}>
+                    <ExternalLink className="w-2.5 h-2.5" /> Probar Enlace
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-3xl border shadow-md overflow-hidden">
+            <CardHeader className="bg-primary/5 pb-4">
+              <CardTitle className="text-sm flex items-center gap-2"><Crosshair className="w-4 h-4 text-primary" /> Gestión de Plano</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex items-center justify-between p-3 bg-muted/40 rounded-2xl border">
+                <Label className="text-xs cursor-pointer font-bold" htmlFor="floorplan-toggle">Habilitar Plano de Navegación</Label>
+                <Switch id="floorplan-toggle" checked={localTourInfo.showFloorPlan} onCheckedChange={(checked) => { setLocalTourInfo({ ...localTourInfo, showFloorPlan: checked }); setHasUnsavedChanges(true); }} />
+              </div>
+              
+              {localTourInfo.showFloorPlan && (
+                <div className="space-y-3">
+                  <div className="aspect-video bg-muted rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors overflow-hidden relative" onClick={() => floorPlanFileInputRef.current?.click()}>
+                    {localTourInfo.floorPlanUrl ? (
+                      <img src={localTourInfo.floorPlanUrl} className="w-full h-full object-contain" alt="Plano" />
+                    ) : (
+                      <div className="text-center p-4">
+                        <Upload className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                        <span className="text-xs text-muted-foreground">Subir imagen del plano</span>
+                      </div>
+                    )}
+                  </div>
+                  <input type="file" ref={floorPlanFileInputRef} className="hidden" accept="image/*" onChange={handleFloorPlanFileChange} />
+                  <p className="text-[10px] text-muted-foreground italic text-center">Para posicionar estancias en el plano, selecciónalas arriba y toca el mapa en la pestaña "Estancia".</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
