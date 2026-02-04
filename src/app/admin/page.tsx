@@ -58,9 +58,13 @@ export default function AdminDashboard() {
   }, []);
 
   // Fail-safe para asegurar que pointer-events se restaure siempre al cerrar el modal
+  // y evitar el error de aria-hidden bloqueado
   useEffect(() => {
     if (tourToDeleteId === null) {
-      document.body.style.pointerEvents = 'auto';
+      const timer = setTimeout(() => {
+        document.body.style.pointerEvents = 'auto';
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [tourToDeleteId]);
 
@@ -170,7 +174,13 @@ export default function AdminDashboard() {
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className="text-destructive cursor-pointer focus:bg-destructive/10 focus:text-destructive" 
-                onClick={() => setTourToDeleteId(tour.id)}
+                onSelect={(e) => {
+                  e.preventDefault();
+                  // Usamos setTimeout para permitir que el dropdown se cierre y evitar conflictos de foco/aria-hidden
+                  setTimeout(() => {
+                    setTourToDeleteId(tour.id);
+                  }, 100);
+                }}
               >
                 <Trash2 className="mr-2 h-4 w-4" /> {isSpanish ? 'Eliminar Propiedad' : 'Delete Property'}
               </DropdownMenuItem>
