@@ -8,6 +8,7 @@ import { Shield } from 'lucide-react';
 /**
  * Indicador de versión del sitio.
  * Solo visible para usuarios con rol de administrador.
+ * Ahora diseñado para integrarse en footers o barras laterales.
  */
 export function VersionIndicator() {
   const { user, isUserLoading } = useUser();
@@ -20,17 +21,14 @@ export function VersionIndicator() {
 
   const { data: adminData } = useDoc(adminRef);
 
-  // Si no hay usuario, está cargando, o no es admin, no mostramos nada
   if (isUserLoading || !user || !adminData?.isAdmin) {
     return null;
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-[9999] pointer-events-none">
-      <div className="bg-primary/90 backdrop-blur-md text-white px-3 py-1.5 rounded-full shadow-2xl border border-white/20 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-500 pointer-events-auto hover:bg-primary transition-colors cursor-default">
-        <Shield className="w-3 h-3" />
-        <span className="text-[10px] font-bold tracking-wider uppercase">v1.1.0 Admin Mode</span>
-      </div>
+    <div className="inline-flex items-center gap-1.5 bg-primary/10 text-primary px-2 py-0.5 rounded-md border border-primary/20 transition-colors cursor-default select-none">
+      <Shield className="w-2.5 h-2.5" />
+      <span className="text-[9px] font-black tracking-wider uppercase">v1.1.1 Admin Mode</span>
     </div>
   );
 }

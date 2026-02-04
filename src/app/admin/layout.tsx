@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -10,6 +9,7 @@ import { useUser, useDoc, useFirestore, useMemoFirebase, useAuth } from '@/fireb
 import { doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
+import { VersionIndicator } from '@/components/VersionIndicator';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -118,7 +118,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Button>
         </nav>
 
-        <div className="p-4 border-t">
+        <div className="p-4 border-t space-y-4">
           <div className="flex items-center gap-3 px-2 py-3">
             <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-primary uppercase">
               {user.email?.substring(0, 2) || 'AD'}
@@ -127,6 +127,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <p className="text-sm font-medium truncate">{user.email}</p>
               <p className="text-xs text-muted-foreground truncate uppercase">{menuText.owner}</p>
             </div>
+          </div>
+          <div className="px-2 pb-2">
+            <VersionIndicator />
           </div>
         </div>
       </aside>

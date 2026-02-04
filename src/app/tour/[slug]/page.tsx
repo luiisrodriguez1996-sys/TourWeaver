@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -20,6 +19,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { VersionIndicator } from '@/components/VersionIndicator';
 
 export default function PublicTourViewer() {
   const { slug } = useParams();
@@ -29,7 +29,6 @@ export default function PublicTourViewer() {
   
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
-  // Verificación de administrador para permitir ver tours privados
   const adminRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return doc(firestore, 'roles_admin', user.uid);
@@ -85,10 +84,8 @@ export default function PublicTourViewer() {
     if (url) window.open(url, '_blank');
   };
 
-  // Determinamos si el usuario puede ver el tour
   const canView = tour ? (tour.published || isAdmin) : false;
 
-  // Estado de carga inicial
   if (isTourLoading || (tours === null) || (tour && isScenesLoading) || (tour && !tour.published && isAdminLoading)) {
     return (
       <div className="h-[100dvh] bg-black flex flex-col items-center justify-center text-white gap-4">
@@ -98,7 +95,6 @@ export default function PublicTourViewer() {
     );
   }
 
-  // Si no hay tour o es privado y no es admin
   if (!tour || !canView) {
     return (
       <div className="h-[100dvh] bg-black flex items-center justify-center text-white p-6">
@@ -330,7 +326,8 @@ export default function PublicTourViewer() {
         </div>
       )}
 
-      <div className="absolute bottom-4 right-8 z-20 pointer-events-none">
+      <div className="absolute bottom-4 right-8 z-20 pointer-events-none flex items-center gap-3">
+        <VersionIndicator />
         <span className="text-neutral-500/40 text-[10px] font-bold tracking-widest uppercase">Potenciado por Tour Weaver</span>
       </div>
     </div>

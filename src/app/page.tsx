@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -12,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { VersionIndicator } from '@/components/VersionIndicator';
 
 const translations = {
   es: {
@@ -87,7 +87,7 @@ const translations = {
     portafolio: "Portfólio",
     contacto: "Contato",
     servTitle: "Soluções de Visualização Imobiliária",
-    servDesc: "Oferecemos um serviço integral de captura e criação de tours virtuais otimizados para as suas listagens de imóveis.",
+    servDesc: "Oferecemos um servicio integral de captura e criação de tours virtuais otimizados para as suas listagens de imóveis.",
     serv1Title: "Captura de Alta Fidelidade",
     serv1Desc: "Fotografia panorâmica profesional com pós-processamento para que cada ambiente pareça impecável e luminoso.",
     serv2Title: "Navegação Fluida",
@@ -100,7 +100,7 @@ const translations = {
     ctaRates: "Ver Tarifas",
     ctaGuarantee: "Serviço Garantizado",
     ctaQuality: "Qualidade Profissional",
-    footerCopy: "© 2026 Tour Weaver - Serviços de Visualização 360°. Todos os direitos reservados.",
+    footerCopy: "© 2026 Tour Weaver - Serviços de Visualização 360°. Todos los derechos reservados.",
     footerTerms: "Termos de Uso",
     footerPrivacy: "Privacidade"
   }
@@ -116,7 +116,7 @@ export default function Home() {
     if (savedLang && translations[savedLang]) {
       setLang(savedLang);
     } else {
-      const browserLang = navigator.language.split('-')[0] as Language;
+      const browserLang = typeof navigator !== 'undefined' ? navigator.language.split('-')[0] as Language : 'es';
       if (translations[browserLang]) {
         setLang(browserLang);
       }
@@ -132,7 +132,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -167,7 +166,6 @@ export default function Home() {
       </header>
 
       <main className="flex-grow">
-        {/* Hero Section */}
         <section className="relative py-20 lg:py-32 overflow-hidden bg-gradient-to-b from-white to-background">
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-3xl">
@@ -180,7 +178,7 @@ export default function Home() {
               <p className="text-xl text-muted-foreground mb-10 leading-relaxed">
                 {t.heroDesc}
               </p>
-              <div className="flex flex-col sm:row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="#contacto">
                   <Button size="lg" className="px-8 text-lg bg-accent hover:bg-accent/90">{t.btnContratar}</Button>
                 </Link>
@@ -195,7 +193,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Services Section */}
         <section id="servicios" className="py-24 bg-white">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-2xl mx-auto mb-16">
@@ -237,7 +234,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* CTA Section */}
         <section id="contacto" className="py-24">
           <div className="container mx-auto px-4">
             <div className="bg-primary rounded-3xl p-12 lg:p-20 text-white flex flex-col lg:flex-row items-center gap-12">
@@ -278,8 +274,9 @@ export default function Home() {
               <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary">{t.footerPrivacy}</Link>
             </nav>
           </div>
-          <div className="border-t pt-8 text-center">
+          <div className="border-t pt-8 text-center flex flex-col items-center gap-4">
             <p className="text-sm text-muted-foreground">{t.footerCopy}</p>
+            <VersionIndicator />
           </div>
         </div>
       </footer>
