@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -8,9 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Briefcase, ArrowLeft, Loader2, User, Search, MapPin, Link as LinkIcon, AlertTriangle } from 'lucide-react';
+import { Briefcase, Loader2, User, Search, MapPin, Link as LinkIcon, AlertTriangle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import Link from 'next/link';
 import { useFirestore, addDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -94,10 +92,6 @@ export default function NewTour() {
 
   return (
     <div className="max-w-2xl mx-auto py-8">
-      <Link href="/admin" className="flex items-center gap-2 text-muted-foreground hover:text-primary mb-8 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Volver a Propiedades
-      </Link>
-
       <Card className="border-none shadow-xl rounded-3xl overflow-hidden">
         <CardHeader className="bg-primary/5 pb-8">
           <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">

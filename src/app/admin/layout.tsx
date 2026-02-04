@@ -1,14 +1,14 @@
 "use client";
 
 import React from 'react';
-import { Globe, LayoutDashboard, Settings, LogOut, PlusCircle, Languages, Menu, ShieldAlert } from 'lucide-react';
+import { Globe, LayoutDashboard, Settings, LogOut, PlusCircle, Languages, Menu, ShieldAlert, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { VersionIndicator } from '@/components/VersionIndicator';
 import {
   Sheet,
@@ -24,6 +24,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
+  const pathname = usePathname();
+
+  const isDashboard = pathname === '/admin';
 
   const adminRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -42,10 +45,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const currentLang = siteConfig?.defaultLanguage || 'es';
 
   const menuText = {
-    es: { properties: 'Propiedades', new: 'Nueva Propiedad', settings: 'Configuración', logout: 'Cerrar Sesión', owner: 'PROPIETARIO', viewSite: 'Ver Sitio Público', management: 'Gestión de Servicios' },
-    en: { properties: 'Properties', new: 'New Property', settings: 'Settings', logout: 'Logout', owner: 'OWNER', viewSite: 'View Public Site', management: 'Service Management' },
-    pt: { properties: 'Propriedades', new: 'Nova Propriedade', settings: 'Configurações', logout: 'Sair', owner: 'PROPRIETÁRIO', viewSite: 'Ver Site Público', management: 'Gestão de Servicios' }
-  }[currentLang as 'es' | 'en' | 'pt'] || { properties: 'Propiedades', new: 'Nueva Propiedad', settings: 'Configuración', logout: 'Cerrar Sesión', owner: 'PROPIETARIO', viewSite: 'Ver Sitio Público', management: 'Gestão de Servicios' };
+    es: { properties: 'Propiedades', new: 'Nueva Propiedad', settings: 'Configuración', logout: 'Cerrar Sesión', owner: 'PROPIETARIO', viewSite: 'Ver Sitio Público', management: 'Gestión de Servicios', back: 'Volver' },
+    en: { properties: 'Properties', new: 'New Property', settings: 'Settings', logout: 'Logout', owner: 'OWNER', viewSite: 'View Public Site', management: 'Service Management', back: 'Back' },
+    pt: { properties: 'Propriedades', new: 'Nova Propriedade', settings: 'Configurações', logout: 'Sair', owner: 'PROPRIETÁRIO', viewSite: 'Ver Site Público', management: 'Gestão de Servicios', back: 'Voltar' }
+  }[currentLang as 'es' | 'en' | 'pt'] || { properties: 'Propiedades', new: 'Nueva Propiedad', settings: 'Configuración', logout: 'Cerrar Sesión', owner: 'PROPIETARIO', viewSite: 'Ver Sitio Público', management: 'Gestão de Servicios', back: 'Volver' };
 
   const handleLogout = async () => {
     try {
@@ -200,10 +203,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           
           <div className="flex items-center gap-4 flex-shrink-0">
-             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-               <Languages className="w-4 h-4" />
-               <span className="uppercase">{currentLang}</span>
-             </div>
+             {!isDashboard && (
+               <Button 
+                 variant="ghost" 
+                 size="sm" 
+                 className="gap-2 text-muted-foreground hover:text-primary rounded-xl"
+                 onClick={() => router.push('/admin')}
+               >
+                 <ArrowLeft className="w-4 h-4" />
+                 <span className="hidden sm:inline font-bold uppercase tracking-wider text-[10px]">{menuText.back}</span>
+               </Button>
+             )}
           </div>
         </header>
         <div className="p-4 md:p-8 w-full max-w-full">

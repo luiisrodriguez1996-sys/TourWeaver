@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -16,7 +15,6 @@ import {
   Plus, 
   Save, 
   Trash2, 
-  ArrowLeft, 
   ImageIcon, 
   PlusCircle,
   MapPin,
@@ -52,7 +50,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { useDoc, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, collection, writeBatch } from 'firebase/firestore';
+import { doc, writeBatch } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 
 function sanitizeForFirestore(data: any): any {
@@ -404,7 +402,6 @@ export default function TourEditor() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-[64px] z-40 bg-background/80 backdrop-blur-sm pb-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/admin')}><ArrowLeft className="w-5 h-5" /></Button>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 text-primary text-[10px] font-bold uppercase"><User className="w-3 h-3" /> {localTourInfo.clientName}</div>
             <h1 className="text-xl md:text-2xl font-bold truncate">{localTourInfo.name}</h1>
@@ -792,7 +789,7 @@ export default function TourEditor() {
             <CardContent className="pt-8 space-y-8">
               <div className="bg-accent/5 border border-accent/10 rounded-2xl p-6 flex items-start gap-4">
                 <div className="w-10 h-10 bg-[#25D366] rounded-full flex items-center justify-center flex-shrink-0 text-white">
-                  <MessageCircle className="w-6 h-6" />
+                  <MessageCircleIcon className="w-6 h-6" />
                 </div>
                 <div className="space-y-2 flex-1">
                   <Label className="text-sm font-bold">WhatsApp Directo</Label>
@@ -845,7 +842,7 @@ function Map({ className }: { className?: string }) {
   );
 }
 
-function MessageCircle({ className }: { className?: string }) {
+function MessageCircleIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
       <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
