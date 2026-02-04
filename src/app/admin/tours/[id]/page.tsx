@@ -341,19 +341,26 @@ export default function TourEditor() {
           
           <div className="space-y-2">
             {localScenes.map((scene, index) => (
-              <Card key={scene.id} className={cn("p-2 transition-all cursor-pointer border-2", activeSceneId === scene.id ? 'border-primary bg-primary/5' : 'border-transparent')}>
+              <Card 
+                key={scene.id} 
+                className={cn(
+                  "p-2 transition-all cursor-pointer border-2 hover:bg-muted/50", 
+                  activeSceneId === scene.id ? 'border-primary bg-primary/5' : 'border-transparent'
+                )}
+                onClick={() => setActiveSceneId(scene.id)}
+              >
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-10 rounded bg-muted overflow-hidden flex-shrink-0" onClick={() => setActiveSceneId(scene.id)}>
+                  <div className="w-14 h-10 rounded bg-muted overflow-hidden flex-shrink-0">
                     <img src={scene.imageUrl} className="w-full h-full object-cover" alt={scene.name} />
                   </div>
-                  <div className="flex-1 min-w-0" onClick={() => setActiveSceneId(scene.id)}>
+                  <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold truncate">{scene.name}</p>
                     <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                       {scene.floorId && <Layers className="w-2.5 h-2.5" />}
                       {scene.floorPlanX !== undefined && <MapPin className="w-2.5 h-2.5 text-primary" />}
                     </div>
                   </div>
-                  <div className="flex flex-col gap-0.5">
+                  <div className="flex flex-col gap-0.5" onClick={(e) => e.stopPropagation()}>
                     <Button size="icon" variant="ghost" className="h-6 w-6" disabled={index === 0} onClick={() => moveScene(index, 'up')}><ChevronUp className="w-3 h-3" /></Button>
                     <Button size="icon" variant="ghost" className="h-6 w-6" disabled={index === localScenes.length - 1} onClick={() => moveScene(index, 'down')}><ChevronDown className="w-3 h-3" /></Button>
                   </div>
