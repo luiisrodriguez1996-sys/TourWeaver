@@ -262,8 +262,8 @@ export default function TourEditor() {
       sceneId: activeSceneId,
       targetSceneId: targetScene?.id || '',
       label: `Ir a ${targetScene?.name || 'Siguiente Estancia'}`,
-      yaw,
-      pitch
+      yaw: Math.round(yaw),
+      pitch: Math.round(pitch)
     };
     updateLocalScene({ hotspots: [...(activeScene?.hotspots || []), newHotspot] });
     setActiveTab('links');
@@ -430,20 +430,20 @@ export default function TourEditor() {
                       <Label className="text-[9px] uppercase font-bold text-muted-foreground">Yaw (H)</Label>
                       <Input 
                         type="number" 
-                        step="0.01" 
-                        value={h.yaw.toFixed(2)} 
+                        step="1" 
+                        value={Math.round(h.yaw)} 
                         className="h-7 text-[10px]" 
-                        onChange={e => updateHotspot(h.id, { yaw: parseFloat(e.target.value) || 0 })} 
+                        onChange={e => updateHotspot(h.id, { yaw: parseInt(e.target.value) || 0 })} 
                       />
                     </div>
                     <div className="space-y-1">
                       <Label className="text-[9px] uppercase font-bold text-muted-foreground">Pitch (V)</Label>
                       <Input 
                         type="number" 
-                        step="0.01" 
-                        value={h.pitch.toFixed(2)} 
+                        step="1" 
+                        value={Math.round(h.pitch)} 
                         className="h-7 text-[10px]" 
-                        onChange={e => updateHotspot(h.id, { pitch: parseFloat(e.target.value) || 0 })} 
+                        onChange={e => updateHotspot(h.id, { pitch: parseInt(e.target.value) || 0 })} 
                       />
                     </div>
                   </div>
