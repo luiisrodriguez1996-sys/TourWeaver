@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -124,7 +123,7 @@ const translations = {
     ctaRates: "Ver Tarifas",
     ctaGuarantee: "Serviço Garantizado",
     ctaQuality: "Qualidade Profissional",
-    footerCopy: "© 2026 Tour Weaver - Servicios de Visualización 360°. Todos os derechos reservados.",
+    footerCopy: "© 2026 Tour Weaver - Servicios de Visualización 360°. Todos los derechos reservados.",
     footerTerms: "Termos de Uso",
     footerPrivacy: "Privacidade",
     viewTour: "Ver Tour Virtual"
@@ -302,9 +301,9 @@ export default function Home() {
                 <LoaderIcon className="w-10 h-10 animate-spin text-primary" />
               </div>
             ) : portfolioTours && portfolioTours.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="flex flex-wrap justify-center gap-8">
                 {portfolioTours.map((tour: any) => (
-                  <Card key={tour.id} className="overflow-hidden group hover:shadow-xl transition-all duration-300 border-none shadow-md rounded-2xl">
+                  <Card key={tour.id} className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.35rem)] max-w-sm overflow-hidden group hover:shadow-xl transition-all duration-300 border-none shadow-md rounded-2xl flex flex-col">
                     <div className="relative aspect-video bg-muted overflow-hidden">
                       <img 
                         src={tour.thumbnailUrl || 'https://picsum.photos/seed/placeholder/600/400'} 
@@ -314,10 +313,9 @@ export default function Home() {
                       />
                     </div>
                     <CardHeader className="pb-2">
-                      <div className="text-primary text-[10px] font-bold uppercase mb-1">{tour.clientName}</div>
                       <CardTitle className="text-xl line-clamp-1">{tour.name}</CardTitle>
                     </CardHeader>
-                    <CardFooter className="pt-4 pb-6">
+                    <CardFooter className="mt-auto pt-4 pb-6">
                       <Link href={`/tour/${tour.slug}`} className="w-full">
                         <Button className="w-full gap-2 rounded-xl h-11">
                           {t.viewTour} <ArrowRight className="w-4 h-4" />
