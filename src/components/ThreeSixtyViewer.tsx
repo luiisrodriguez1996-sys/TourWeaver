@@ -34,6 +34,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
   
   const [internalImageUrl, setInternalImageUrl] = useState(imageUrl);
   const [isLoadingTexture, setIsLoadingTexture] = useState(true);
+  const isLoadingRef = useRef(true); // Ref para el bucle de animación
   const [isFading, setIsFading] = useState(false);
   const [isUserInteracting, setIsUserInteracting] = useState(false);
   
@@ -52,7 +53,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     hotspotsRef.current = hotspots;
   }, [hotspots]);
 
-  // Transition logic
+  // Transición de imagen
   useEffect(() => {
     if (imageUrl !== internalImageUrl) {
       setIsFading(true);
@@ -67,6 +68,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     if (!canvasHolderRef.current || !internalImageUrl) return;
 
     setIsLoadingTexture(true);
+    isLoadingRef.current = true;
 
     const width = canvasHolderRef.current.clientWidth || 800;
     const height = canvasHolderRef.current.clientHeight || 600;
@@ -92,11 +94,13 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
       internalImageUrl,
       () => {
         setIsLoadingTexture(false);
+        isLoadingRef.current = false;
         setTimeout(() => setIsFading(false), 50);
       },
       undefined,
       () => {
         setIsLoadingTexture(false);
+        isLoadingRef.current = false;
         setIsFading(false);
       }
     );
@@ -125,8 +129,13 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     window.addEventListener('resize', handleResize);
 
     const updateHotspotPositions = () => {
-      if (isLoadingTexture || !cameraRef.current || !canvasHolderRef.current) return;
+      // Usamos la ref para saltar la clausura del efecto
+      if (isLoadingRef.current || !cameraRef.current || !canvasHolderRef.current) return;
       
+      const width = canvasHolderRef.current.clientWidth;
+      const height = canvasHolderRef.current.clientHeight;
+      if (width === 0 || height === 0) return;
+
       const projected = hotspotsRef.current.map(h => {
         const phi = THREE_REAL.MathUtils.degToRad(h.pitch);
         const theta = THREE_REAL.MathUtils.degToRad(h.yaw);
@@ -143,9 +152,12 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
         
         if (dot < 0) return null;
         
-        vector.project(cameraRef.current!);
-        const x = (vector.x * 0.5 + 0.5) * canvasHolderRef.current!.clientWidth;
-        const y = (-(vector.y * 0.5) + 0.5) * canvasHolderRef.current!.clientHeight;
+        // Sincronizamos matrices antes de proyectar
+        cameraRef.current!.updateMatrixWorld();
+        const screenVector = vector.clone().project(cameraRef.current!);
+        
+        const x = (screenVector.x * 0.5 + 0.5) * width;
+        const y = (-(screenVector.y * 0.5) + 0.5) * height;
         return { h, x, y };
       }).filter(p => p !== null) as {h: Hotspot, x: number, y: number}[];
       
@@ -169,7 +181,6 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
       cameraRef.current.lookAt(target);
       rendererRef.current.render(sceneRef.current, cameraRef.current);
       
-      // Actualizar hotspots en cada frame de animación para suavidad
       updateHotspotPositions();
     };
 
