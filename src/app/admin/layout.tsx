@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Globe, LayoutDashboard, Settings, LogOut, PlusCircle, Languages, Menu } from 'lucide-react';
+import { Globe, LayoutDashboard, Settings, LogOut, PlusCircle, Languages, Menu, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -70,15 +70,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user || !adminData || adminData.isAdmin !== true) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <div className="text-center p-8 bg-white rounded-3xl shadow-xl max-w-md mx-4">
+        <div className="text-center p-8 bg-white rounded-[2.5rem] shadow-xl max-w-md mx-4 w-full border border-border">
           <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <LogOut className="text-destructive w-8 h-8" />
+            <ShieldAlert className="text-destructive w-8 h-8" />
           </div>
           <h1 className="text-2xl font-bold mb-2">Acceso Denegado</h1>
-          <p className="text-muted-foreground mb-8">Este portal está restringido al propietario. Si eres el administrador, asegúrate de tener los permisos correctos.</p>
-          <Link href="/">
-            <Button className="w-full">Volver al Inicio</Button>
-          </Link>
+          <p className="text-muted-foreground mb-8 text-balance">
+            {!user 
+              ? "Debes iniciar sesión con una cuenta autorizada para acceder al panel de administración." 
+              : "Esta cuenta no tiene privilegios de administrador para gestionar tours."}
+          </p>
+          <div className="flex flex-col gap-3">
+            {!user ? (
+              <Link href="/login" className="w-full">
+                <Button className="w-full h-12 text-base font-semibold rounded-2xl">
+                  Ir a Iniciar Sesión
+                </Button>
+              </Link>
+            ) : (
+              <Button 
+                variant="outline" 
+                className="w-full h-12 text-base font-semibold rounded-2xl text-destructive border-destructive/20 hover:bg-destructive/5"
+                onClick={handleLogout}
+              >
+                Cerrar sesión actual
+              </Button>
+            )}
+            <Link href="/" className="w-full">
+              <Button variant="ghost" className="w-full h-12 text-base font-semibold rounded-2xl">
+                Volver al Inicio
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     );
