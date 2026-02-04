@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -13,6 +14,9 @@ import { VersionIndicator } from '@/components/VersionIndicator';
 import {
   Sheet,
   SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
   SheetTrigger,
 } from "@/components/ui/sheet";
 
@@ -42,7 +46,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     es: { properties: 'Propiedades', new: 'Nueva Propiedad', settings: 'Configuración', logout: 'Cerrar Sesión', owner: 'PROPIETARIO', viewSite: 'Ver Sitio Público', management: 'Gestión de Servicios' },
     en: { properties: 'Properties', new: 'New Property', settings: 'Settings', logout: 'Logout', owner: 'OWNER', viewSite: 'View Public Site', management: 'Service Management' },
     pt: { properties: 'Propriedades', new: 'Nova Propriedade', settings: 'Configurações', logout: 'Sair', owner: 'PROPRIETÁRIO', viewSite: 'Ver Site Público', management: 'Gestão de Servicios' }
-  }[currentLang as 'es' | 'en' | 'pt'] || { properties: 'Propiedades', new: 'Nueva Propiedad', settings: 'Configuración', logout: 'Cerrar Sesión', owner: 'PROPIETARIO', viewSite: 'Ver Sitio Público', management: 'Gestión de Servicios' };
+  }[currentLang as 'es' | 'en' | 'pt'] || { properties: 'Propiedades', new: 'Nueva Propiedad', settings: 'Configuración', logout: 'Cerrar Sesión', owner: 'PROPIETARIO', viewSite: 'Ver Sitio Público', management: 'Gestão de Servicios' };
 
   const handleLogout = async () => {
     try {
@@ -158,6 +162,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="p-0 w-64">
+                  <div className="sr-only">
+                    <SheetHeader>
+                      <SheetTitle>Menú de Administración</SheetTitle>
+                      <SheetDescription>Navegación lateral para la gestión de la plataforma</SheetDescription>
+                    </SheetHeader>
+                  </div>
                   <SidebarContent />
                 </SheetContent>
               </Sheet>
