@@ -5,7 +5,24 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Camera, Map, Zap, ShieldCheck, Globe, Building2, UserCheck, Layout, Languages, ChevronDown, MessageCircle, ExternalLink, ArrowRight, Loader2 as LoaderIcon } from 'lucide-react';
+import { 
+  Camera, 
+  Map, 
+  Zap, 
+  ShieldCheck, 
+  Globe, 
+  Building2, 
+  UserCheck, 
+  Layout, 
+  Languages, 
+  ChevronDown, 
+  MessageCircle, 
+  ExternalLink, 
+  ArrowRight, 
+  Phone, 
+  Mail,
+  Loader2 as LoaderIcon 
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,7 +58,7 @@ const translations = {
     serv3Desc: "Tours diseñados específicamente para brokers, incluyendo información relevante y puntos de contacto directos.",
     ctaTitle: "¿Interesado en potenciar tus listados?",
     ctaDesc: "Ofrecemos paquetes personalizados para agencias y brokers individuales. Mejora el engagement de tus anuncios hoy mismo.",
-    ctaWa: "Contactar por WhatsApp",
+    ctaWa: "Hablar por WhatsApp",
     ctaRates: "Ver Tarifas",
     ctaGuarantee: "Servicio Garantizado",
     ctaQuality: "Calidad Profesional",
@@ -72,7 +89,7 @@ const translations = {
     serv3Desc: "Tours designed specifically for brokers, including relevant information and direct contact points.",
     ctaTitle: "Interested in boosting your listings?",
     ctaDesc: "We offer personalized packages for agencies and individual brokers. Improve the engagement of your ads today.",
-    ctaWa: "Contact via WhatsApp",
+    ctaWa: "Chat on WhatsApp",
     ctaRates: "See Rates",
     ctaGuarantee: "Guaranteed Service",
     ctaQuality: "Professional Quality",
@@ -102,7 +119,7 @@ const translations = {
     serv3Title: "Foco Comercial",
     serv3Desc: "Tours desenhados especificamente para corretores, incluyendo informações relevantes e pontos de contato diretos.",
     ctaTitle: "Interessado em impulsionar seus anúncios?",
-    ctaDesc: "Oferecemos pacotes personalizados para agências e corretores individuales. Melhore o engajamento dos seus anúncios hoje mesmo.",
+    ctaDesc: "Oferecemos pacotes personalizados para agências e corretores individuales. Melhore o engajamento dos seus anúncios hoy mismo.",
     ctaWa: "Contato via WhatsApp",
     ctaRates: "Ver Tarifas",
     ctaGuarantee: "Serviço Garantizado",
@@ -120,14 +137,12 @@ export default function Home() {
   const [lang, setLang] = useState<Language>('es');
   const firestore = useFirestore();
 
-  // Configuración global para contacto
   const siteConfigRef = useMemoFirebase(() => {
     if (!firestore) return null;
     return doc(firestore, 'siteConfigurations', 'default');
   }, [firestore]);
   const { data: siteConfig } = useDoc(siteConfigRef);
 
-  // Tours para el portafolio
   const portfolioQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(
@@ -275,7 +290,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Portfolio Section */}
         <section id="portafolio" className="py-20 md:py-24 bg-background">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-2xl mx-auto mb-16">
@@ -296,6 +310,7 @@ export default function Home() {
                         src={tour.thumbnailUrl || 'https://picsum.photos/seed/placeholder/600/400'} 
                         alt={tour.name} 
                         className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                        data-ai-hint="virtual tour"
                       />
                     </div>
                     <CardHeader className="pb-2">
@@ -321,27 +336,40 @@ export default function Home() {
         </section>
 
         {hasContactInfo && (
-          <section id="contacto" className="py-20 md:py-24">
+          <section id="contacto" className="py-20 md:py-24 bg-white">
             <div className="container mx-auto px-4">
               <div className="bg-primary rounded-[2rem] md:rounded-[3rem] p-8 md:p-16 lg:p-20 text-white flex flex-col lg:flex-row items-center gap-12 overflow-hidden shadow-2xl">
                 <div className="flex-1 text-center lg:text-left">
                   <h2 className="text-2xl md:text-4xl font-bold mb-6">{t.ctaTitle}</h2>
                   <p className="text-lg md:text-xl text-white/80 mb-8">{t.ctaDesc}</p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                  
+                  <div className="flex flex-col gap-8">
                     {siteConfig?.contactWhatsApp && (
                       <Link href={getWhatsAppLink() || '#'} target="_blank">
-                        <Button size="lg" className="bg-white text-primary hover:bg-white/90 w-full sm:w-auto h-14 rounded-2xl gap-3">
+                        <Button size="lg" className="bg-white text-primary hover:bg-white/90 w-full sm:w-auto h-14 rounded-2xl gap-3 text-lg font-bold">
                           <MessageCircle className="w-6 h-6" /> {t.ctaWa}
                         </Button>
                       </Link>
                     )}
-                    {siteConfig?.contactEmail && (
-                      <Link href={`mailto:${siteConfig.contactEmail}`}>
-                        <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 w-full sm:w-auto h-14 rounded-2xl">
-                          {t.contacto} por Email
-                        </Button>
-                      </Link>
-                    )}
+
+                    <div className="flex flex-col gap-4 text-left">
+                      {siteConfig?.contactPhone && (
+                        <div className="flex items-center gap-3 justify-center lg:justify-start">
+                          <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                            <Phone className="w-5 h-5 text-white" />
+                          </div>
+                          <span className="text-lg font-semibold">{siteConfig.contactPhone}</span>
+                        </div>
+                      )}
+                      {siteConfig?.contactEmail && (
+                        <div className="flex items-center gap-3 justify-center lg:justify-start">
+                          <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                            <Mail className="w-5 h-5 text-white" />
+                          </div>
+                          <span className="text-lg font-semibold">{siteConfig.contactEmail}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex-1 relative aspect-square w-full max-w-[260px] sm:max-w-sm bg-white/10 rounded-full flex items-center justify-center border border-white/20">
