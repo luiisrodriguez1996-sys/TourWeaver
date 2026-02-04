@@ -64,14 +64,8 @@ export default function TourEditor() {
     return collection(firestore, 'tours', id as string, 'scenes');
   }, [firestore, id]);
 
-  const allToursRef = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'tours');
-  }, [firestore]);
-
   const { data: tour, isLoading: isTourLoading } = useDoc(tourRef);
   const { data: serverScenes, isLoading: isScenesLoading } = useCollection(scenesRef);
-  const { data: allTours } = useCollection(allToursRef);
   
   const [localTourInfo, setLocalTourInfo] = useState({
     name: '',
@@ -319,7 +313,7 @@ export default function TourEditor() {
     }
   };
 
-  if (isTourLoading || isScenesLoading) return <div className="p-8"><Loader2 className="animate-spin" /></div>;
+  if (isTourLoading || isScenesLoading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>;
 
   return (
     <div className="space-y-6">
@@ -336,8 +330,9 @@ export default function TourEditor() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto lg:min-h-[600px]">
-        <div className="lg:col-span-3 space-y-4 bg-white rounded-3xl p-4 border shadow-sm h-full overflow-y-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left: Scenes List */}
+        <div className="lg:col-span-3 space-y-4 bg-white rounded-3xl p-4 border shadow-sm max-h-[700px] overflow-y-auto">
           <h3 className="font-semibold text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Estancias</h3>
           <Button variant="outline" className="w-full gap-2 border-dashed h-12" onClick={() => sceneFileInputRef.current?.click()}>
             {isUploading ? <Loader2 className="animate-spin w-4 h-4" /> : <Plus className="w-4 h-4" />} Añadir Estancia
@@ -368,8 +363,9 @@ export default function TourEditor() {
           </div>
         </div>
 
+        {/* Center: Viewer */}
         <div className="lg:col-span-6 flex flex-col gap-4">
-          <div className="flex-grow rounded-3xl overflow-hidden shadow-xl border relative bg-black aspect-video">
+          <div className="rounded-3xl overflow-hidden shadow-xl border relative bg-black aspect-video w-full">
             {activeScene && (
               <ThreeSixtyViewer 
                 imageUrl={activeScene.imageUrl} 
@@ -385,7 +381,8 @@ export default function TourEditor() {
           </div>
         </div>
 
-        <div className="lg:col-span-3 space-y-4 bg-white rounded-3xl p-4 border shadow-sm h-full overflow-y-auto">
+        {/* Right: Scene/Links Details */}
+        <div className="lg:col-span-3 space-y-4 bg-white rounded-3xl p-4 border shadow-sm max-h-[700px] overflow-y-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full grid grid-cols-2"><TabsTrigger value="details">Estancia</TabsTrigger><TabsTrigger value="links">Enlaces</TabsTrigger></TabsList>
             
@@ -468,6 +465,7 @@ export default function TourEditor() {
         </div>
       </div>
 
+      {/* Bottom: General Configuration */}
       <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="rounded-3xl border shadow-md">
           <CardHeader className="bg-primary/5 pb-4"><CardTitle className="text-sm">Detalles de Propiedad</CardTitle></CardHeader>
