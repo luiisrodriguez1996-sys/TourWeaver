@@ -173,7 +173,16 @@ export default function AdminDashboard() {
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent 
+              align="end"
+              onCloseAutoFocus={(e) => {
+                // Si vamos a abrir el diálogo de borrar, prevenimos que el menú intente 
+                // recuperar el foco, lo cual causa el error de aria-hidden en consola.
+                if (tourToDeleteId !== null) {
+                  e.preventDefault();
+                }
+              }}
+            >
               <DropdownMenuItem className="cursor-pointer" onClick={() => togglePublish(tour.id, tour.published)}>
                 {tour.published ? (
                   <>
@@ -190,7 +199,7 @@ export default function AdminDashboard() {
                 onSelect={(e) => {
                   // Prevenir comportamiento por defecto de Radix para evitar conflictos de foco inmediato
                   e.preventDefault();
-                  // Abrir el diálogo con un retardo mayor para permitir que el menú se cierre limpiamente
+                  // Abrir el diálogo con un retardo para permitir que el menú se cierre limpiamente
                   setTimeout(() => {
                     setTourToDeleteId(tour.id);
                   }, 150);
