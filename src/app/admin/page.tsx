@@ -57,14 +57,26 @@ export default function AdminDashboard() {
     if (savedView) setViewMode(savedView);
   }, []);
 
-  // Fail-safe para asegurar que pointer-events y overflow se restauren siempre al cerrar el modal
-  // y evitar el error de aria-hidden bloqueado o interfaz congelada
+  // SOLUCIÓN DEFINITIVA PARA POINTER-EVENTS Y ARIA-HIDDEN
+  // Este efecto se asegura de que el body siempre recupere su estado normal al cerrar el diálogo
   useEffect(() => {
     if (tourToDeleteId === null) {
-      const timer = setTimeout(() => {
+      const cleanup = () => {
+        // Restaurar interactividad y scroll
         document.body.style.pointerEvents = 'auto';
         document.body.style.overflow = 'auto';
-      }, 100);
+        
+        // Limpiar atributos aria-hidden que Radix/Shadcn puedan haber dejado bloqueados
+        const hiddenElements = document.querySelectorAll('[data-aria-hidden="true"], [aria-hidden="true"]');
+        hiddenElements.forEach(el => {
+          el.removeAttribute('data-aria-hidden');
+          el.removeAttribute('aria-hidden');
+        });
+      };
+      
+      // Ejecutar inmediatamente y con un pequeño delay para asegurar que las animaciones de Radix terminaron
+      cleanup();
+      const timer = setTimeout(cleanup, 300);
       return () => clearTimeout(timer);
     }
   }, [tourToDeleteId]);
@@ -176,12 +188,12 @@ export default function AdminDashboard() {
               <DropdownMenuItem 
                 className="text-destructive cursor-pointer focus:bg-destructive/10 focus:text-destructive" 
                 onSelect={(e) => {
-                  // Prevenir que el menú maneje el evento y abrir el diálogo con un delay
-                  // para evitar conflictos de aria-hidden y foco.
+                  // Prevenir comportamiento por defecto de Radix para evitar conflictos de foco inmediato
                   e.preventDefault();
+                  // Abrir el diálogo con un retardo mayor para permitir que el menú se cierre limpiamente
                   setTimeout(() => {
                     setTourToDeleteId(tour.id);
-                  }, 200);
+                  }, 150);
                 }}
               >
                 <Trash2 className="mr-2 h-4 w-4" /> {isSpanish ? 'Eliminar Propiedad' : 'Delete Property'}
@@ -318,7 +330,9 @@ export default function AdminDashboard() {
       <AlertDialog 
         open={tourToDeleteId !== null} 
         onOpenChange={(open) => {
-          if (!open) setTourToDeleteId(null);
+          if (!open) {
+            setTourToDeleteId(null);
+          }
         }}
       >
         <AlertDialogContent className="rounded-[2rem]">
