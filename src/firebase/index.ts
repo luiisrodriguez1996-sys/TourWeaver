@@ -3,9 +3,10 @@
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore'
+import { getFirestore } from 'firebase/firestore';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
-// IMPORTANT: DO NOT MODIFY THIS FUNCTION
+// IMPORTANT: DO NOT MODIFY THIS FUNCTION STRUCTURE
 export function initializeFirebase() {
   if (!getApps().length) {
     // Important! initializeApp() is called without any arguments because Firebase App Hosting
@@ -23,6 +24,21 @@ export function initializeFirebase() {
         console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
       }
       firebaseApp = initializeApp(firebaseConfig);
+    }
+
+    // Initialize App Check only on the client side
+    if (typeof window !== 'undefined') {
+      const appCheckSiteKey = process.env.NEXT_PUBLIC_FIREBASE_APP_CHECK_SITE_KEY;
+      if (appCheckSiteKey) {
+        try {
+          initializeAppCheck(firebaseApp, {
+            provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey),
+            isTokenAutoRefreshEnabled: true,
+          });
+        } catch (err) {
+          console.error('Firebase App Check failed to initialize:', err);
+        }
+      }
     }
 
     return getSdks(firebaseApp);
