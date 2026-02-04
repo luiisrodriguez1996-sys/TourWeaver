@@ -50,7 +50,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { useDoc, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, writeBatch } from 'firebase/firestore';
+import { doc, writeBatch, collection } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 
 function sanitizeForFirestore(data: any): any {
