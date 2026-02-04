@@ -454,6 +454,7 @@ export default function TourEditor() {
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] text-muted-foreground">{(scene.hotspots || []).length} enlaces</span>
                         {index === 0 && <span className="text-[10px] text-primary font-black uppercase">Inicial</span>}
+                        {scene.floorPlanX !== undefined && <MapPin className="w-2.5 h-2.5 text-primary" />}
                       </div>
                     </div>
                     
@@ -464,7 +465,7 @@ export default function TourEditor() {
                         variant="ghost" 
                         className="h-5 w-5" 
                         disabled={index === 0}
-                        onClick={() => moveScene(index, 'up')}
+                        onClick={(e) => { e.stopPropagation(); moveScene(index, 'up'); }}
                       >
                         <ChevronUp className="w-3 h-3" />
                       </Button>
@@ -473,7 +474,7 @@ export default function TourEditor() {
                         variant="ghost" 
                         className="h-5 w-5" 
                         disabled={index === localScenes.length - 1}
-                        onClick={() => moveScene(index, 'down')}
+                        onClick={(e) => { e.stopPropagation(); moveScene(index, 'down'); }}
                       >
                         <ChevronDown className="w-3 h-3" />
                       </Button>
