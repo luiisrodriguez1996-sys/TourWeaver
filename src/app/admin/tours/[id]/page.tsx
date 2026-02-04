@@ -332,7 +332,7 @@ export default function TourEditor() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left: Scenes List */}
-        <div className="lg:col-span-3 space-y-4 bg-white rounded-3xl p-4 border shadow-sm max-h-[700px] overflow-y-auto">
+        <div className="lg:col-span-3 space-y-4 bg-white rounded-3xl p-4 border shadow-sm max-h-[calc(100vh-220px)] overflow-y-auto">
           <h3 className="font-semibold text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Estancias</h3>
           <Button variant="outline" className="w-full gap-2 border-dashed h-12" onClick={() => sceneFileInputRef.current?.click()}>
             {isUploading ? <Loader2 className="animate-spin w-4 h-4" /> : <Plus className="w-4 h-4" />} Añadir Estancia
@@ -365,7 +365,7 @@ export default function TourEditor() {
 
         {/* Center: Viewer */}
         <div className="lg:col-span-6 flex flex-col gap-4">
-          <div className="rounded-3xl overflow-hidden shadow-xl border relative bg-black aspect-[4/5] w-full">
+          <div className="rounded-3xl overflow-hidden shadow-xl border relative bg-black aspect-[4/5] w-full max-h-[calc(100vh-220px)] flex items-center justify-center">
             {activeScene && (
               <ThreeSixtyViewer 
                 imageUrl={activeScene.imageUrl} 
@@ -382,7 +382,7 @@ export default function TourEditor() {
         </div>
 
         {/* Right: Scene/Links Details */}
-        <div className="lg:col-span-3 space-y-4 bg-white rounded-3xl p-4 border shadow-sm max-h-[700px] overflow-y-auto">
+        <div className="lg:col-span-3 space-y-4 bg-white rounded-3xl p-4 border shadow-sm max-h-[calc(100vh-220px)] overflow-y-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full grid grid-cols-2"><TabsTrigger value="details">Estancia</TabsTrigger><TabsTrigger value="links">Enlaces</TabsTrigger></TabsList>
             
