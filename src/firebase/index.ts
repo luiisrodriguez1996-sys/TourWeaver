@@ -1,3 +1,4 @@
+
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
@@ -25,6 +26,7 @@ export function initializeFirebase() {
             provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey),
             isTokenAutoRefreshEnabled: true,
           });
+          console.log('Firebase App Check initialized successfully with reCAPTCHA Enterprise.');
         } catch (err) {
           // Prevent App Check initialization errors from blocking the entire app
           console.error('Firebase App Check failed to initialize:', err);
