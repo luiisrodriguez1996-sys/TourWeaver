@@ -23,7 +23,6 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      // Usamos await aquí para manejar la redirección y errores de forma controlada
       await signInWithEmailAndPassword(auth, email, password);
       toast({
         title: "Acceso concedido",
@@ -101,7 +100,7 @@ export default function LoginPage() {
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   Autenticando...
                 </>
-              ) : 'Iniciar Sesión'}
+              ) : 'Iniciar sesión'}
             </Button>
             <p className="text-[10px] text-center text-muted-foreground uppercase tracking-wider">
               Acceso restringido para personal autorizado
