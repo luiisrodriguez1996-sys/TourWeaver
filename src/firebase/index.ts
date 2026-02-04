@@ -28,6 +28,11 @@ export function initializeFirebase() {
 
     // Initialize App Check only on the client side
     if (typeof window !== 'undefined') {
+      // Enable debug token in development environments (like Cloud Workstations)
+      if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
+        (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+      }
+
       const appCheckSiteKey = process.env.NEXT_PUBLIC_FIREBASE_APP_CHECK_SITE_KEY;
       if (appCheckSiteKey) {
         try {
@@ -36,7 +41,8 @@ export function initializeFirebase() {
             isTokenAutoRefreshEnabled: true,
           });
         } catch (err) {
-          console.error('Firebase App Check failed to initialize:', err);
+          // We don't crash the app if App Check fails to initialize
+          console.warn('Firebase App Check failed to initialize:', err);
         }
       }
     }
