@@ -11,11 +11,13 @@ import {
   MousePointer2, 
   Globe, 
   TrendingUp,
-  LayoutDashboard,
-  Clock
+  Clock,
+  ArrowRight,
+  History,
+  Eye
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
   AreaChart, 
   Area, 
@@ -25,6 +27,7 @@ import {
   Tooltip, 
   ResponsiveContainer
 } from 'recharts';
+import Link from 'next/link';
 
 export default function AnalyticsDashboard() {
   const firestore = useFirestore();
@@ -46,7 +49,7 @@ export default function AnalyticsDashboard() {
 
     const totalVisits = visits.length;
     
-    // Calcular duración media (solo registros que tengan duración registrada)
+    // Calcular duración media
     const visitsWithDuration = visits.filter(v => v.duration && v.duration > 0);
     const avgDuration = visitsWithDuration.length > 0 
       ? Math.round(visitsWithDuration.reduce((acc, v) => acc + (v.duration || 0), 0) / visitsWithDuration.length)
@@ -66,6 +69,7 @@ export default function AnalyticsDashboard() {
 
     const topTours = tours
       .map(t => ({
+        id: t.id,
         name: t.name,
         views: visitsByTour[t.id] || 0,
         rate: visitsByTour[t.id] ? Math.min(100, Math.round((visitsByTour[t.id] / totalVisits) * 100)) : 0
@@ -111,9 +115,7 @@ export default function AnalyticsDashboard() {
   if (isLoading) {
     return (
       <div className="space-y-8 p-4">
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-10 w-64" />
-        </div>
+        <Skeleton className="h-10 w-64" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 w-full rounded-3xl" />)}
         </div>
@@ -127,9 +129,9 @@ export default function AnalyticsDashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold font-headline flex items-center gap-3">
-            <BarChart3 className="text-primary w-8 h-8" /> Estadísticas de Rendimiento
+            <BarChart3 className="text-primary w-8 h-8" /> Estadísticas Generales
           </h1>
-          <p className="text-muted-foreground">Monitorea el tráfico y el compromiso de tus clientes en tiempo real.</p>
+          <p className="text-muted-foreground">Rendimiento global de tus propiedades y engagement de usuarios.</p>
         </div>
       </div>
 
@@ -178,9 +180,16 @@ export default function AnalyticsDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2 rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white">
-          <CardHeader className="bg-primary/5">
-            <CardTitle className="text-lg">Tráfico de los Últimos 7 Días</CardTitle>
-            <CardDescription>Visualización de la actividad semanal capturada por el sistema.</CardDescription>
+          <CardHeader className="bg-primary/5 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">Tráfico de los Últimos 7 Días</CardTitle>
+              <CardDescription>Actividad reciente detectada en la plataforma.</CardDescription>
+            </div>
+            <Link href="/admin/analytics/traffic">
+              <Button variant="outline" size="sm" className="rounded-xl gap-2 h-9">
+                <History className="w-4 h-4" /> Historial Completo
+              </Button>
+            </Link>
           </CardHeader>
           <CardContent className="pt-10">
             <div className="h-[300px] w-full">
@@ -225,11 +234,11 @@ export default function AnalyticsDashboard() {
         <Card className="rounded-[2.5rem] border-none shadow-xl bg-white">
           <CardHeader>
             <CardTitle className="text-lg">Propiedades Populares</CardTitle>
-            <CardDescription>Clasificación basada en el número total de aperturas.</CardDescription>
+            <CardDescription>Ranking basado en visualizaciones totales.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {stats?.topTours && stats.topTours.length > 0 ? stats.topTours.map((tour, idx) => (
-              <div key={idx} className="flex items-center gap-4">
+              <div key={idx} className="flex items-center gap-4 group">
                 <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary font-bold shrink-0">
                   {idx + 1}
                 </div>
@@ -237,18 +246,44 @@ export default function AnalyticsDashboard() {
                   <p className="text-sm font-bold truncate">{tour.name}</p>
                   <p className="text-[10px] text-muted-foreground">{tour.views} aperturas totales</p>
                 </div>
-                <div className="text-right shrink-0">
-                  <div className="text-xs font-bold text-green-500">{tour.rate}%</div>
-                  <div className="w-12 h-1 bg-muted rounded-full overflow-hidden">
-                    <div className="bg-green-500 h-full" style={{ width: `${tour.rate}%` }} />
-                  </div>
-                </div>
+                <Link href={`/admin/analytics/tours/${tour.id}`}>
+                  <Button variant="ghost" size="icon" className="rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
               </div>
             )) : (
               <p className="text-sm text-muted-foreground text-center py-10 italic">Aún no hay visitas registradas.</p>
             )}
           </CardContent>
         </Card>
+      </div>
+
+      <div className="bg-white rounded-[2.5rem] border p-8 shadow-sm">
+        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+          <Globe className="w-5 h-5 text-primary" /> Todas las Propiedades
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {tours?.map(tour => (
+            <Link key={tour.id} href={`/admin/analytics/tours/${tour.id}`}>
+              <Card className="hover:border-primary transition-all cursor-pointer group bg-gray-50/50">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold truncate">{tour.name}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase">{tour.clientName || 'Sin Cliente'}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-sm font-bold">{visits?.filter(v => v.tourId === tour.id).length || 0}</p>
+                      <p className="text-[8px] text-muted-foreground uppercase">Visitas</p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );
