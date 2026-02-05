@@ -10,6 +10,7 @@ import { useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@
 import { doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 
 export default function SettingsPage() {
   const firestore = useFirestore();
