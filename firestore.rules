@@ -38,10 +38,11 @@ service cloud.firestore {
 
     match /tourVisits/{visitId} {
       // Validación estricta para la creación de registros de visita (Telemetría interna)
+      // Usamos 'number' en lugar de 'int' para mayor compatibilidad con Date.now() de JS
       allow create: if request.resource.data.keys().hasAll(['tourId', 'timestamp', 'userAgent'])
                     && (request.resource.data.size() == 3 || (request.resource.data.size() == 4 && request.resource.data.duration is number))
                     && request.resource.data.tourId is string
-                    && request.resource.data.timestamp is int
+                    && request.resource.data.timestamp is number
                     && request.resource.data.userAgent is string;
       
       // Permitimos actualizar la duración al cerrar la visita

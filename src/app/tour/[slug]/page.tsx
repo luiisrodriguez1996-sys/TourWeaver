@@ -65,7 +65,9 @@ export default function PublicTourViewer() {
 
   // LOG DE VISITA Y SEGUIMIENTO DE DURACIÓN
   useEffect(() => {
-    if (tour && firestore && !isAdmin) {
+    // Solo registramos si tenemos el tour cargado, no estamos cargando el rol de admin
+    // y confirmamos que el usuario NO es el administrador (para no ensuciar las métricas)
+    if (tour && firestore && !isAdminLoading && !isAdmin && !visitIdRef.current) {
       const visitsRef = collection(firestore, 'tourVisits');
       
       // Crear el registro de visita inicial
@@ -74,7 +76,9 @@ export default function PublicTourViewer() {
         timestamp: Date.now(),
         userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown'
       }).then(docRef => {
-        if (docRef) visitIdRef.current = docRef.id;
+        if (docRef) {
+          visitIdRef.current = docRef.id;
+        }
       });
 
       // Función para actualizar la duración final
@@ -100,7 +104,7 @@ export default function PublicTourViewer() {
         updateDuration();
       };
     }
-  }, [tour, firestore, isAdmin]);
+  }, [tour, firestore, isAdmin, isAdminLoading]);
 
   const scenesRef = useMemoFirebase(() => {
     if (!firestore || !tour) return null;
