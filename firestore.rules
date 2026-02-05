@@ -38,7 +38,6 @@ service cloud.firestore {
 
     match /tourVisits/{visitId} {
       // Validación estricta para la creación de registros de visita (Telemetría interna)
-      // Usamos 'number' en lugar de 'int' para mayor compatibilidad con Date.now() de JS
       allow create: if request.resource.data.keys().hasAll(['tourId', 'timestamp', 'userAgent'])
                     && (request.resource.data.size() == 3 || (request.resource.data.size() == 4 && request.resource.data.duration is number))
                     && request.resource.data.tourId is string
@@ -52,8 +51,8 @@ service cloud.firestore {
       // Solo el administrador autorizado puede consultar las estadísticas
       allow get, list: if isAdmin();
       
-      // Bloqueamos cualquier intento de borrar el historial de visitas
-      allow delete: if false;
+      // Permitir al administrador borrar los registros para reiniciar estadísticas
+      allow delete: if isAdmin();
     }
 
     match /tours/{tourId} {

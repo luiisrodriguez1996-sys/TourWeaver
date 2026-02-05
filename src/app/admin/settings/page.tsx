@@ -1,20 +1,33 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Languages, CheckCircle2, Phone, Mail, MessageSquare, BarChart3, ShieldCheck } from 'lucide-react';
+import { Languages, CheckCircle2, Phone, Mail, MessageSquare, BarChart3, ShieldCheck, AlertTriangle, Trash2, Loader2 } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { doc, collection, getDocs, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function SettingsPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
+  const [isResetting, setIsResetting] = useState(false);
   
   const siteConfigRef = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -39,6 +52,43 @@ export default function SettingsPage() {
 
   const handleLanguageChange = (value: string) => {
     updateConfig({ defaultLanguage: value });
+  };
+
+  const handleResetStats = async () => {
+    if (!firestore) return;
+    setIsResetting(true);
+    
+    try {
+      const visitsRef = collection(firestore, 'tourVisits');
+      const snapshot = await getDocs(visitsRef);
+      
+      if (snapshot.empty) {
+        toast({ title: "Sin datos", description: "No hay registros de estadísticas para borrar." });
+        setIsResetting(false);
+        return;
+      }
+
+      const batch = writeBatch(firestore);
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      
+      await batch.commit();
+      
+      toast({
+        title: "Estadísticas Reiniciadas",
+        description: "Todos los registros de visitas han sido eliminados correctamente.",
+      });
+    } catch (error) {
+      console.error("Error al borrar estadísticas:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudieron borrar las estadísticas. Inténtalo de nuevo.",
+      });
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   if (isLoading) return <div className="p-8 text-center text-muted-foreground">Cargando configuración...</div>;
@@ -134,31 +184,33 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2 font-bold"><MessageSquare className="w-4 h-4 text-green-500" /> WhatsApp para Home</Label>
-                <Input 
+                <input 
+                  type="text"
                   placeholder="ej: 34600000000 (sin +)" 
                   defaultValue={siteConfig?.contactWhatsApp || ''}
-                  onBlur={(e) => updateConfig({ contactWhatsApp: e.target.value })}
-                  className="rounded-xl h-11"
+                  onBlur={(e) => updateConfig({ contactWhatsApp: e.currentTarget.value })}
+                  className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="flex items-center gap-2 font-bold"><Phone className="w-4 h-4 text-primary" /> Teléfono Público</Label>
-                <Input 
+                <input 
+                  type="text"
                   placeholder="ej: +34 900 000 000" 
                   defaultValue={siteConfig?.contactPhone || ''}
-                  onBlur={(e) => updateConfig({ contactPhone: e.target.value })}
-                  className="rounded-xl h-11"
+                  onBlur={(e) => updateConfig({ contactPhone: e.currentTarget.value })}
+                  className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
             </div>
             <div className="space-y-2">
               <Label className="flex items-center gap-2 font-bold"><Mail className="w-4 h-4 text-primary" /> Email de Contacto</Label>
-              <Input 
+              <input 
                 type="email"
                 placeholder="ej: hola@tourweaver.com" 
                 defaultValue={siteConfig?.contactEmail || ''}
-                onBlur={(e) => updateConfig({ contactEmail: e.target.value })}
-                className="rounded-xl h-11"
+                onBlur={(e) => updateConfig({ contactEmail: e.currentTarget.value })}
+                className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
           </CardContent>
@@ -186,11 +238,12 @@ export default function SettingsPage() {
                 ID de Medición de GA4
                 <Badge variant="outline" className="font-normal text-[9px] uppercase tracking-tighter">Recomendado</Badge>
               </Label>
-              <Input 
+              <input 
+                type="text"
                 placeholder="ej: G-XXXXXXXXXX" 
                 defaultValue={siteConfig?.googleAnalyticsId || ''}
-                onBlur={(e) => updateConfig({ googleAnalyticsId: e.target.value })}
-                className="rounded-xl h-11"
+                onBlur={(e) => updateConfig({ googleAnalyticsId: e.currentTarget.value })}
+                className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
               <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3" /> Una vez configurado y guardado, el rastreo se activará automáticamente.
@@ -200,6 +253,57 @@ export default function SettingsPage() {
           <CardFooter className="bg-gray-50/50 text-[10px] text-muted-foreground border-t">
             El rastreo se aplicará automáticamente a todas tus páginas públicas y tours activos.
           </CardFooter>
+        </Card>
+
+        {/* Zona de Peligro / Mantenimiento */}
+        <Card className="border-destructive/20 border-2 shadow-md overflow-hidden rounded-[2rem] bg-destructive/5">
+          <CardHeader className="bg-destructive/10">
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-destructive/20 rounded-lg">
+                <AlertTriangle className="text-destructive w-5 h-5" />
+              </div>
+              <div>
+                <CardTitle className="text-destructive">Zona de Peligro</CardTitle>
+                <CardDescription className="text-destructive/70">Acciones irreversibles sobre los datos de la plataforma.</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-8">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div>
+                <p className="font-bold text-sm">Reiniciar Estadísticas Internas</p>
+                <p className="text-xs text-muted-foreground">Esta acción borrará permanentemente todo el historial de visitas registradas en Firestore.</p>
+              </div>
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="rounded-xl gap-2 h-11" disabled={isResetting}>
+                    {isResetting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    Borrar Historial de Visitas
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="rounded-[2rem]">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-xl font-bold flex items-center gap-2">
+                      <AlertTriangle className="text-destructive w-6 h-6" /> ¿Estás completamente seguro?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-base pt-2">
+                      Esta acción es **irreversible**. Se eliminarán todos los registros de visitas y el panel de estadísticas volverá a estar a cero.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter className="gap-2 sm:gap-0 pt-4">
+                    <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleResetStats}
+                      className="bg-destructive hover:bg-destructive/90 rounded-xl"
+                    >
+                      Sí, borrar estadísticas
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </CardContent>
         </Card>
       </div>
     </div>
