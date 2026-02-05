@@ -136,14 +136,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Button>
         </Link>
         
-        {siteConfig?.googleAnalyticsId && (
-          <Link href="/admin/analytics">
-            <Button variant="ghost" className={`w-full justify-start gap-3 rounded-xl ${pathname === '/admin/analytics' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:text-primary'}`}>
-              <BarChart3 className="w-4 h-4" />
-              {menuText.analytics}
-            </Button>
-          </Link>
-        )}
+        {/* Analytics visible siempre, ya que rastreamos visitas internas */}
+        <Link href="/admin/analytics">
+          <Button variant="ghost" className={`w-full justify-start gap-3 rounded-xl ${pathname === '/admin/analytics' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:text-primary'}`}>
+            <BarChart3 className="w-4 h-4" />
+            {menuText.analytics}
+          </Button>
+        </Link>
 
         <Separator className="my-4" />
         <Link href="/admin/settings">
