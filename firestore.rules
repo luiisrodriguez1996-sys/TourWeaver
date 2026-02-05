@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -33,6 +34,13 @@ service cloud.firestore {
       allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow list: if isAdmin();
       allow create, update, delete: if false; 
+    }
+
+    match /tourVisits/{visitId} {
+      // Cualquier visitante puede registrar su visita
+      allow create: if true;
+      // Solo el admin puede ver los datos de analíticas
+      allow get, list: if isAdmin();
     }
 
     match /tours/{tourId} {

@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { useCollection, useFirestore, useMemoFirebase, useUser, useDoc } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useUser, useDoc, addDocumentNonBlocking } from '@/firebase';
 import { collection, query, where, limit, doc } from 'firebase/firestore';
 import { ThreeSixtyViewer } from '@/components/ThreeSixtyViewer';
 import { Button } from '@/components/ui/button';
@@ -58,6 +58,21 @@ export default function PublicTourViewer() {
 
   const { data: tours, isLoading: isTourLoading, error: tourError } = useCollection(tourQuery);
   const tour = tours?.[0];
+
+  // LOG DE VISITA REAL
+  useEffect(() => {
+    if (tour && firestore) {
+      // No registrar visitas de administradores para no ensuciar los datos
+      if (isAdmin) return;
+
+      const visitsRef = collection(firestore, 'tourVisits');
+      addDocumentNonBlocking(visitsRef, {
+        tourId: tour.id,
+        timestamp: Date.now(),
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown'
+      });
+    }
+  }, [tour, firestore, isAdmin]);
 
   const scenesRef = useMemoFirebase(() => {
     if (!firestore || !tour) return null;
@@ -131,7 +146,6 @@ export default function PublicTourViewer() {
     );
   }
 
-  // Si hay error de permisos (porque pasó a privado) o el tour no existe/no es público
   if (!tour || !canView || scenesError || tourError) {
     return (
       <div className="h-[100dvh] bg-black flex items-center justify-center text-white p-6">
@@ -185,7 +199,6 @@ export default function PublicTourViewer() {
                   </div>
                 )}
                 
-                {/* Contact section in info panel */}
                 <div className="space-y-2 pt-2 border-t border-white/10">
                   <p className="text-[9px] font-black text-white/40 uppercase tracking-wider">Contacto Directo</p>
                   <div className="grid grid-cols-1 gap-2">
@@ -344,7 +357,6 @@ export default function PublicTourViewer() {
         </div>
       )}
 
-      {/* Floating contact button for desktop */}
       {tour.contactWhatsApp && (
         <div className="absolute bottom-4 left-4 z-40 hidden md:block">
           <a href={getWhatsAppLink() || '#'} target="_blank" rel="noopener noreferrer">

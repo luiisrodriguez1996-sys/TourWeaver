@@ -190,6 +190,18 @@
         "content": { "type": "string" },
         "sceneId": { "type": "string" }
       }
+    },
+    "TourVisit": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TourVisit",
+      "type": "object",
+      "description": "Represents a single view of a tour.",
+      "properties": {
+        "id": { "type": "string" },
+        "tourId": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "userAgent": { "type": "string" }
+      }
     }
   },
   "auth": {
@@ -230,6 +242,14 @@
           "entityName": "AdminUser",
           "schema": { "$ref": "#/backend/entities/AdminUser" },
           "description": "Collection used to manage administrator roles."
+        }
+      },
+      {
+        "path": "tourVisits/{visitId}",
+        "definition": {
+          "entityName": "TourVisit",
+          "schema": { "$ref": "#/backend/entities/TourVisit" },
+          "description": "Logs of tour visits."
         }
       }
     ]
