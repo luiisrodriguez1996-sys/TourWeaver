@@ -37,10 +37,19 @@ service cloud.firestore {
     }
 
     match /tourVisits/{visitId} {
-      // Cualquier visitante puede registrar su visita
-      allow create: if true;
-      // Solo el admin puede ver los datos de analíticas
+      // Validación estricta para la creación de registros de visita (Telemetría interna)
+      // Solo permitimos los campos exactos, tipos correctos y protegemos contra datos basura.
+      allow create: if request.resource.data.keys().hasAll(['tourId', 'timestamp', 'userAgent'])
+                    && request.resource.data.size() == 3
+                    && request.resource.data.tourId is string
+                    && request.resource.data.timestamp is int
+                    && request.resource.data.userAgent is string;
+      
+      // Solo el administrador autorizado puede consultar las estadísticas
       allow get, list: if isAdmin();
+      
+      // Bloqueamos cualquier intento de modificar o borrar el historial de visitas
+      allow update, delete: if false;
     }
 
     match /tours/{tourId} {
