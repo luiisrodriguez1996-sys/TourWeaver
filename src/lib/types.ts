@@ -28,6 +28,7 @@ export interface SiteConfiguration {
   contactWhatsApp?: string;
   contactPhone?: string;
   contactEmail?: string;
+  googleAnalyticsId?: string;
 }
 
 export interface Floor {

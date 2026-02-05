@@ -1,12 +1,43 @@
-import type {Metadata} from 'next';
+
+"use client";
+
+import React from 'react';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import Script from 'next/script';
 
-export const metadata: Metadata = {
-  title: 'Tour Weaver | Immersive Virtual Tours',
-  description: 'Create and share 360 virtual tours with AI-powered scene linking.',
-};
+function GoogleAnalyticsTracking() {
+  const firestore = useFirestore();
+  const siteConfigRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'siteConfigurations', 'default');
+  }, [firestore]);
+
+  const { data: siteConfig } = useDoc(siteConfigRef);
+  const gaId = siteConfig?.googleAnalyticsId;
+
+  if (!gaId) return null;
+
+  return (
+    <>
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${gaId}');
+        `}
+      </Script>
+    </>
+  );
+}
 
 export default function RootLayout({
   children,
@@ -22,6 +53,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased selection:bg-primary selection:text-white">
         <FirebaseClientProvider>
+          <GoogleAnalyticsTracking />
           {children}
           <Toaster />
         </FirebaseClientProvider>

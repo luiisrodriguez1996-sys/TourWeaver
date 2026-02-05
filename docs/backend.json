@@ -11,7 +11,8 @@
         "defaultLanguage": { "type": "string" },
         "contactWhatsApp": { "type": "string" },
         "contactPhone": { "type": "string" },
-        "contactEmail": { "type": "string" }
+        "contactEmail": { "type": "string" },
+        "googleAnalyticsId": { "type": "string", "description": "Google Analytics Measurement ID (G-XXXXX)" }
       }
     },
     "Tour": {
