@@ -273,9 +273,9 @@ export default function TourAnalytics() {
           <CardDescription className="text-xs">Registro individual de cada acceso y contacto detectado.</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto scrollbar-hide">
             <Table>
-              <TableHeader>
+              <TableHeader className="hidden md:table-header-group">
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="pl-6 md:pl-8 text-[11px] uppercase font-bold">Fecha</TableHead>
                   <TableHead className="text-center text-[11px] uppercase font-bold">Dispositivo</TableHead>
@@ -286,48 +286,48 @@ export default function TourAnalytics() {
               <TableBody>
                 {stats?.sortedVisits && stats.sortedVisits.length > 0 ? stats.sortedVisits.map((visit) => (
                   <TableRow key={visit.id} className="group hover:bg-gray-50/50">
-                    <TableCell className="pl-6 md:pl-8 py-4">
+                    <TableCell className="pl-4 md:pl-8 py-4">
                       <div className="flex flex-col">
-                        <span className="font-medium text-sm">
+                        <span className="font-medium text-xs md:text-sm">
                           {format(new Date(visit.timestamp), "d MMM yyyy", { locale: es })}
                         </span>
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-[9px] md:text-[10px] text-muted-foreground">
                           {format(new Date(visit.timestamp), "HH:mm")}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center px-2">
                       <div className="flex items-center justify-center" title={visit.userAgent}>
                         {getDeviceIcon(visit.userAgent)}
                       </div>
                     </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-2">
+                    <TableCell className="text-center px-2">
+                      <div className="flex items-center justify-center gap-1.5 md:gap-2">
                         {visit.contacted ? (
                           <>
                             {visit.contactMethods?.includes('info_request') && (
-                              <Zap className="w-4 h-4 text-primary" title="Solicitud Información" />
+                              <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" title="Solicitud Información" />
                             )}
                             {visit.contactMethods?.includes('whatsapp') && (
-                              <MessageCircle className="w-4 h-4 text-green-500 fill-green-500" title="WhatsApp Directo" />
+                              <MessageCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-500 fill-green-500" title="WhatsApp Directo" />
                             )}
-                            {visit.contactMethods?.includes('phone') && <Phone className="w-4 h-4 text-primary" title="Llamada" />}
-                            {visit.contactMethods?.includes('email') && <Mail className="w-4 h-4 text-accent" title="Email" />}
-                            {visit.contactMethods?.includes('location') && <MapPin className="w-4 h-4 text-blue-500" title="Ver Ubicación" />}
-                            {visit.contactMethods?.includes('share') && <Share2 className="w-4 h-4 text-orange-500" title="Compartido" />}
+                            {visit.contactMethods?.includes('phone') && <Phone className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" title="Llamada" />}
+                            {visit.contactMethods?.includes('email') && <Mail className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" title="Email" />}
+                            {visit.contactMethods?.includes('location') && <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4 text-blue-500" title="Ver Ubicación" />}
+                            {visit.contactMethods?.includes('share') && <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-orange-500" title="Compartido" />}
                           </>
                         ) : (
-                          <span className="text-[9px] text-muted-foreground/30 italic">Sin clic</span>
+                          <span className="text-[8px] md:text-[9px] text-muted-foreground/30 italic">Sin clic</span>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right pr-6 md:pr-8">
+                    <TableCell className="text-right pr-4 md:pr-8">
                       {visit.duration ? (
-                        <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20 text-[9px] px-2 py-0">
+                        <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20 text-[8px] md:text-[9px] px-1.5 md:px-2 py-0">
                           {stats.formatDuration(visit.duration)}
                         </Badge>
                       ) : (
-                        <span className="text-[9px] text-muted-foreground italic">Breve</span>
+                        <span className="text-[8px] md:text-[9px] text-muted-foreground italic">Breve</span>
                       )}
                     </TableCell>
                   </TableRow>
