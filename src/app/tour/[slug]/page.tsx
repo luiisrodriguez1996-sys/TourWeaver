@@ -274,10 +274,21 @@ export default function PublicTourViewer() {
                     <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5 mt-0.5 text-primary" /><span className="underline underline-offset-4 decoration-white/20 group-hover:decoration-primary">{tour.address}</span>
                   </a>
                 )}
-                {activeScene?.description && (
+                
+                {/* Bloque Sobre esta estancia con asociación a planta */}
+                {(activeScene?.description || activeScene?.floorId) && (
                   <div className="bg-white/20 rounded-xl p-2 md:p-3 border border-white/10">
-                    <p className="text-[8px] md:text-[9px] font-black text-accent uppercase mb-1 tracking-wider">Sobre esta estancia</p>
-                    <p className="text-[10px] md:text-sm text-white/80 font-semibold leading-relaxed">{activeScene.description}</p>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-[8px] md:text-[9px] font-black text-accent uppercase tracking-wider">Sobre esta estancia</p>
+                      {activeScene?.floorId && tour?.floors?.find((f: any) => f.id === activeScene.floorId) && (
+                        <span className="text-[8px] md:text-[9px] font-bold text-white/40 flex items-center gap-1 uppercase">
+                          <Layers className="w-2.5 h-2.5" /> {tour.floors.find((f: any) => f.id === activeScene.floorId).name}
+                        </span>
+                      )}
+                    </div>
+                    {activeScene?.description && (
+                      <p className="text-[10px] md:text-sm text-white/80 font-semibold leading-relaxed">{activeScene.description}</p>
+                    )}
                   </div>
                 )}
                 
