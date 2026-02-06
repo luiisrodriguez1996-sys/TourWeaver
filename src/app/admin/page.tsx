@@ -19,7 +19,8 @@ import {
   LayoutGrid, 
   ArrowLeft,
   ChevronRight,
-  Loader2
+  Loader2,
+  BarChart3
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -151,7 +152,7 @@ export default function AdminDashboard() {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[1, 2, 3].map(i => <Skeleton key={i} className="aspect-video w-full rounded-xl" />)}
+        {[1, 2, 3].map(i => <Skeleton className="aspect-video w-full rounded-xl" />)}
       </div>
     );
   }
@@ -175,9 +176,9 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
-          <div>
+          <div className="min-w-0 pr-2">
             <div className="flex items-center gap-1.5 text-primary text-[10px] font-bold uppercase mb-1">
               <User className="w-3 h-3" /> {tour.clientName || (isSpanish ? 'Sin Cliente' : 'No Client')}
             </div>
@@ -185,7 +186,7 @@ export default function AdminDashboard() {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button type="button" variant="ghost" size="icon" className="h-8 w-8" disabled={loadingActions[tour.id]}>
+              <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0" disabled={loadingActions[tour.id]}>
                 {loadingActions[tour.id] ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreVertical className="h-4 w-4" />}
               </Button>
             </DropdownMenuTrigger>
@@ -204,7 +205,7 @@ export default function AdminDashboard() {
                   </>
                 ) : (
                   <>
-                    <Eye className="mr-2 h-4 w-4" /> {isSpanish ? 'Publicar para Cliente' : 'Publish for Client'}
+                    <Eye className="mr-2 h-4 w-4" /> {isSpanish ? 'Publicar' : 'Publish'}
                   </>
                 )}
               </DropdownMenuItem>
@@ -223,11 +224,6 @@ export default function AdminDashboard() {
           </DropdownMenu>
         </div>
       </CardHeader>
-      <CardContent className="pb-4">
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          {tour.description}
-        </p>
-      </CardContent>
       <CardFooter className="gap-2 border-t pt-4 bg-gray-50/50">
         <Button 
           type="button" 
@@ -239,6 +235,11 @@ export default function AdminDashboard() {
           {isNavigating === tour.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Edit3 className="w-4 h-4" />} 
           {isSpanish ? 'Gestionar' : 'Manage'}
         </Button>
+        <Link href={`/admin/analytics/tours/${tour.id}`}>
+          <Button type="button" variant="ghost" size="icon" className="text-muted-foreground hover:text-primary transition-colors" title={isSpanish ? "Ver Estadísticas" : "View Statistics"}>
+            <BarChart3 className="w-4 h-4" />
+          </Button>
+        </Link>
         <Link href={`/tour/${tour.slug}`} target="_blank" rel="noopener noreferrer">
           <Button type="button" variant="ghost" size="icon" className="text-accent hover:text-accent/80 transition-colors">
             <ExternalLink className="w-4 h-4" />
