@@ -23,7 +23,8 @@
         "contactWhatsApp": { "type": "string" },
         "contactPhone": { "type": "string" },
         "contactEmail": { "type": "string" },
-        "googleAnalyticsId": { "type": "string", "description": "Google Analytics Measurement ID (G-XXXXX)" }
+        "googleAnalyticsId": { "type": "string", "description": "Google Analytics Measurement ID (G-XXXXX)" },
+        "googleSearchConsoleCode": { "type": "string", "description": "Google Search Console verification code (content attribute of the meta tag)" }
       }
     },
     "Tour": {

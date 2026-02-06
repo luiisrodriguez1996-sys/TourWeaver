@@ -4,6 +4,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { GoogleAnalyticsTracking } from '@/components/GoogleAnalyticsTracking';
+import { GoogleSearchConsoleVerification } from '@/components/GoogleSearchConsoleVerification';
 
 /**
  * Configuración de metadatos SEO para buscadores y redes sociales (WhatsApp, Twitter, FB).
@@ -67,6 +68,7 @@ export default function RootLayout({
       <body className="font-body antialiased selection:bg-primary selection:text-white">
         <FirebaseClientProvider>
           <GoogleAnalyticsTracking />
+          <GoogleSearchConsoleVerification />
           {children}
           <Toaster />
         </FirebaseClientProvider>

@@ -29,6 +29,7 @@ export interface SiteConfiguration {
   contactPhone?: string;
   contactEmail?: string;
   googleAnalyticsId?: string;
+  googleSearchConsoleCode?: string;
 }
 
 export interface Floor {

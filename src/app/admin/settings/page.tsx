@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Languages, CheckCircle2, Phone, Mail, MessageSquare, BarChart3, ShieldCheck, AlertTriangle, Trash2, Loader2 } from 'lucide-react';
+import { Languages, CheckCircle2, Phone, Mail, MessageSquare, BarChart3, ShieldCheck, AlertTriangle, Trash2, Loader2, Search } from 'lucide-react';
 import { useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
 import { doc, collection, getDocs, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -219,7 +219,7 @@ export default function SettingsPage() {
           </CardFooter>
         </Card>
 
-        {/* Google Analytics Integration */}
+        {/* Google Tools */}
         <Card className="border-none shadow-md overflow-hidden rounded-[2rem]">
           <CardHeader className="bg-accent/5">
             <div className="flex items-center gap-4">
@@ -227,12 +227,12 @@ export default function SettingsPage() {
                 <BarChart3 className="text-accent w-5 h-5" />
               </div>
               <div>
-                <CardTitle>Google Analytics</CardTitle>
-                <CardDescription>Vincula tu propiedad de Google Analytics 4 para rastrear visitas a tus tours.</CardDescription>
+                <CardTitle>Herramientas de Google</CardTitle>
+                <CardDescription>Configura Analytics y la verificación de Search Console.</CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="pt-8 space-y-6">
+          <CardContent className="pt-8 space-y-8">
             <div className="space-y-2">
               <Label className="font-bold flex items-center gap-2">
                 ID de Medición de GA4
@@ -246,12 +246,31 @@ export default function SettingsPage() {
                 className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
               <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3" /> Una vez configurado y guardado, el rastreo se activará automáticamente.
+                <ShieldCheck className="w-3 h-3" /> Rastreo automático de visitas y clics de contacto.
               </p>
+            </div>
+
+            <div className="space-y-2 pt-4 border-t border-dashed">
+              <Label className="font-bold flex items-center gap-2">
+                <Search className="w-4 h-4 text-primary" /> Verificación de Google Search Console
+              </Label>
+              <input 
+                type="text"
+                placeholder="Pega aquí el código de verificación (content='...')" 
+                defaultValue={siteConfig?.googleSearchConsoleCode || ''}
+                onBlur={(e) => updateConfig({ googleSearchConsoleCode: e.currentTarget.value })}
+                className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+              <div className="bg-muted/30 p-3 rounded-xl space-y-2">
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  <strong>Instrucciones:</strong> En Search Console, elige <strong>Prefijo de URL</strong> > <strong>Etiqueta HTML</strong>. 
+                  Copia solo el valor del atributo <code>content</code> (ej: <code>PagIUOTwGh...</code>) y pégalo arriba.
+                </p>
+              </div>
             </div>
           </CardContent>
           <CardFooter className="bg-gray-50/50 text-[10px] text-muted-foreground border-t">
-            El rastreo se aplicará automáticamente a todas tus páginas públicas y tours activos.
+            El meta tag de verificación se inyectará automáticamente en todas las páginas.
           </CardFooter>
         </Card>
 
