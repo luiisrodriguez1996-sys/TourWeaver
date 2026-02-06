@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo } from 'react';
@@ -20,7 +19,9 @@ import {
   Mail,
   Zap,
   Info,
-  ExternalLink
+  ExternalLink,
+  Share2,
+  MapPin
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -273,12 +274,19 @@ export default function TourAnalytics() {
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex items-center justify-center gap-2">
                         {visit.contacted ? (
                           <>
-                            {visit.contactMethods?.includes('whatsapp') && <MessageCircle className="w-4 h-4 text-green-500" title="WhatsApp" />}
+                            {visit.contactMethods?.includes('info_request') && (
+                              <MessageCircle className="w-4 h-4 text-green-500" title="Solicitud Información" />
+                            )}
+                            {visit.contactMethods?.includes('whatsapp') && (
+                              <MessageCircle className="w-4 h-4 text-green-500 fill-green-500" title="WhatsApp Directo" />
+                            )}
                             {visit.contactMethods?.includes('phone') && <Phone className="w-4 h-4 text-primary" title="Llamada" />}
                             {visit.contactMethods?.includes('email') && <Mail className="w-4 h-4 text-accent" title="Email" />}
+                            {visit.contactMethods?.includes('location') && <MapPin className="w-4 h-4 text-blue-500" title="Ver Ubicación" />}
+                            {visit.contactMethods?.includes('share') && <Share2 className="w-4 h-4 text-orange-500" title="Compartido" />}
                           </>
                         ) : (
                           <span className="text-[9px] text-muted-foreground/30 italic">Sin clic</span>

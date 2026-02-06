@@ -118,7 +118,7 @@ export default function PublicTourViewer() {
     }
   }, [showOnboarding]);
 
-  const trackConversion = (method: 'whatsapp' | 'phone' | 'email') => {
+  const trackConversion = (method: 'whatsapp' | 'phone' | 'email' | 'info_request' | 'location' | 'share') => {
     if (visitIdRef.current && firestore && !isAdmin) {
       const docRef = doc(firestore, 'tourVisits', visitIdRef.current);
       
@@ -144,6 +144,7 @@ export default function PublicTourViewer() {
     if (typeof window !== 'undefined') {
       navigator.clipboard.writeText(window.location.href);
       toast({ title: "Enlace copiado al portapapeles" });
+      trackConversion('share');
     }
   };
 
@@ -168,6 +169,7 @@ export default function PublicTourViewer() {
     };
     
     img.src = "data:image/svg+xml;base64," + btoa(svgData);
+    trackConversion('share');
   };
 
   const scenesRef = useMemoFirebase(() => {
@@ -297,7 +299,13 @@ export default function PublicTourViewer() {
                     
                     <div className="p-1.5 md:p-2 space-y-1.5">
                       {tour.address && (
-                        <a href={getMapsUrl() || '#'} target="_blank" rel="noopener noreferrer" className="group flex items-start gap-2 text-[10px] md:text-xs text-white hover:text-primary transition-colors">
+                        <a 
+                          href={getMapsUrl() || '#'} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="group flex items-start gap-2 text-[10px] md:text-xs text-white hover:text-primary transition-colors"
+                          onClick={() => trackConversion('location')}
+                        >
                           <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5 mt-0.5 text-primary" />
                           <span className="underline underline-offset-4 decoration-white/20 group-hover:decoration-primary">{tour.address}</span>
                         </a>
@@ -391,6 +399,7 @@ export default function PublicTourViewer() {
               variant="secondary" 
               className="rounded-full bg-[#25D366] text-white hover:bg-[#20ba59] h-9 px-4 md:h-10 md:px-6 border-none shadow-xl gap-2 transition-all active:scale-95"
               onClick={() => {
+                trackConversion('info_request');
                 if (hasDetailsContent) {
                   setIsDetailsExpanded(true);
                   setHighlightContact(true);
@@ -406,14 +415,14 @@ export default function PublicTourViewer() {
           )}
 
           {getMapsUrl() && (
-            <a href={getMapsUrl()!} target="_blank" rel="noopener noreferrer">
+            <a href={getMapsUrl()!} target="_blank" rel="noopener noreferrer" onClick={() => trackConversion('location')}>
               <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-9 w-9 md:h-10 md:w-10">
                 <MapPin className="w-4 h-4" />
               </Button>
             </a>
           )}
 
-          <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
+          <Dialog open={isShareOpen} onOpenChange={(open) => { setIsShareOpen(open); if(open) trackConversion('share'); }}>
             <DialogTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-9 w-9 md:h-10 md:w-10">
                 <Share2 className="w-4 h-4" />
