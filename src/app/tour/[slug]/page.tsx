@@ -336,12 +336,15 @@ export default function PublicTourViewer() {
             imageUrl={activeScene.imageUrl} 
             hotspots={activeScene.hotspots || []} 
             annotations={activeScene.annotations || []}
+            onInteractionStart={() => setIsDetailsExpanded(false)}
             onHotspotClick={(targetId) => {
               setActiveSceneId(targetId);
               setSelectedAnnotationId(null);
+              setIsDetailsExpanded(false);
             }} 
             onAnnotationClick={(annotationId) => {
               setSelectedAnnotationId(annotationId);
+              setIsDetailsExpanded(false);
             }}
           />
         )}
@@ -383,7 +386,7 @@ export default function PublicTourViewer() {
                   <div className="grid grid-cols-1 gap-2">
                     {orderedScenes?.map((scene: any) => (
                       <DialogClose asChild key={scene.id}>
-                        <button onClick={() => { setActiveSceneId(scene.id); setSelectedAnnotationId(null); }} className={cn("w-full flex items-center gap-4 p-3 rounded-2xl transition-all group border", activeSceneId === scene.id ? 'bg-primary/20 text-primary border-primary/40' : 'hover:bg-white/10 text-white/70 hover:text-white border-transparent')}>
+                        <button onClick={() => { setActiveSceneId(scene.id); setSelectedAnnotationId(null); setIsDetailsExpanded(false); }} className={cn("w-full flex items-center gap-4 p-3 rounded-2xl transition-all group border", activeSceneId === scene.id ? 'bg-primary/20 text-primary border-primary/40' : 'hover:bg-white/10 text-white/70 hover:text-white border-transparent')}>
                           <div className="relative w-20 md:w-24 h-14 md:h-16 rounded-xl overflow-hidden flex-shrink-0"><img src={scene.imageUrl} className="w-full h-full object-cover" alt={scene.name} />{activeSceneId === scene.id && <div className="absolute inset-0 bg-primary/40 flex items-center justify-center"><Check className="w-6 h-6 text-white" /></div>}</div>
                           <span className="text-xs md:text-sm font-semibold truncate flex-1 text-left">{scene.name}</span>
                         </button>
@@ -397,7 +400,7 @@ export default function PublicTourViewer() {
            {(tour.showFloorPlan && tour.floors?.length > 0) && (
              <>
                <div className="h-4 w-px bg-white/20 mx-1 md:mx-2 flex-shrink-0" />
-               <Button variant="ghost" onClick={() => setShowFloorPlan(!showFloorPlan)} className={cn("flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-10 px-3 md:px-4 flex-shrink-0", showFloorPlan && 'text-primary bg-primary/10')}><Map className="w-4 h-4" /><span className="text-xs md:text-sm font-medium whitespace-nowrap">Plano</span></Button>
+               <Button variant="ghost" onClick={() => { setShowFloorPlan(!showFloorPlan); setIsDetailsExpanded(false); }} className={cn("flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-10 px-3 md:px-4 flex-shrink-0", showFloorPlan && 'text-primary bg-primary/10')}><Map className="w-4 h-4" /><span className="text-xs md:text-sm font-medium whitespace-nowrap">Plano</span></Button>
              </>
            )}
         </div>
@@ -422,7 +425,7 @@ export default function PublicTourViewer() {
                    <>
                      <img src={tour.floors.find((f: any) => f.id === activeFloorId).imageUrl} alt="Plano" className="w-full h-full object-contain" />
                      {orderedScenes?.filter((s: any) => s.floorId === activeFloorId).map((s: any) => s.floorPlanX !== undefined && (
-                       <button key={s.id} onClick={() => { setActiveSceneId(s.id); setShowFloorPlan(false); setSelectedAnnotationId(null); }} className={cn("absolute w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-white shadow-xl -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 flex items-center justify-center", s.id === activeSceneId ? 'bg-primary z-20 ring-4 ring-primary/30 scale-125' : 'bg-muted-foreground/80 z-10 hover:bg-primary')} style={{ left: `${s.floorPlanX}%`, top: `${s.floorPlanY}%` }} title={s.name}><MapPin className={cn("w-3 h-3 md:w-3.5 md:h-3.5 text-white", s.id === activeSceneId ? 'block' : 'hidden')} /></button>
+                       <button key={s.id} onClick={() => { setActiveSceneId(s.id); setShowFloorPlan(false); setSelectedAnnotationId(null); setIsDetailsExpanded(false); }} className={cn("absolute w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-white shadow-xl -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 flex items-center justify-center", s.id === activeSceneId ? 'bg-primary z-20 ring-4 ring-primary/30 scale-125' : 'bg-muted-foreground/80 z-10 hover:bg-primary')} style={{ left: `${s.floorPlanX}%`, top: `${s.floorPlanY}%` }} title={s.name}><MapPin className={cn("w-3 h-3 md:w-3.5 md:h-3.5 text-white", s.id === activeSceneId ? 'block' : 'hidden')} /></button>
                      ))}
                    </>
                  ) : (

@@ -15,6 +15,7 @@ interface ThreeSixtyViewerProps {
   onHotspotClick?: (targetSceneId: string, hotspotId: string) => void;
   onAnnotationClick?: (annotationId: string) => void;
   onSceneClick?: (yaw: number, pitch: number) => void;
+  onInteractionStart?: () => void;
   isEditing?: boolean;
 }
 
@@ -25,6 +26,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
   onHotspotClick,
   onAnnotationClick,
   onSceneClick,
+  onInteractionStart,
   isEditing = false
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -228,6 +230,9 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     onPointerDownMouseY.current = event.clientY;
     pointerDownPos.current = { x: event.clientX, y: event.clientY };
     pointerDownTime.current = Date.now();
+    
+    // Notificar al padre que ha comenzado una interacción (para cerrar paneles, etc.)
+    onInteractionStart?.();
   };
 
   const onPointerMove = (event: React.PointerEvent) => {
