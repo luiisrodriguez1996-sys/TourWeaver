@@ -59,13 +59,13 @@ service cloud.firestore {
     }
 
     match /slug_registry/{slug} {
-      // Unicidad de Slugs: Lectura pública, escritura solo admin bajo condiciones
+      // Unicidad de Slugs: Lectura pública, escritura solo admin
       allow get: if true;
-      allow create: if isAdmin();
-      allow delete: if isAdmin();
+      allow create, delete: if isAdmin();
     }
 
     match /tours/{tourId} {
+      // Lectura pública si está publicado, o acceso total si es admin
       allow get, list: if (resource != null && resource.data.published == true) || isAdmin();
       
       allow create, update: if isAdmin() && 
