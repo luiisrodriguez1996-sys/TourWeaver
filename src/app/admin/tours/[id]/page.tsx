@@ -416,7 +416,6 @@ export default function TourEditor() {
       }}
       title={localTourInfo.published ? "Actualmente Público" : "Actualmente Privado"}
     >
-      {/* Sliding Background Indicator */}
       <div 
         className={cn(
           "absolute h-9 w-[44px] rounded-lg transition-all duration-300 ease-in-out shadow-sm",
@@ -425,8 +424,6 @@ export default function TourEditor() {
             : "translate-x-0 bg-amber-500"
         )}
       />
-      
-      {/* Icons Container */}
       <div className="flex w-full h-full relative z-10">
         <div className="flex-1 flex items-center justify-center">
           <Lock className={cn("w-4 h-4 transition-colors duration-300", !localTourInfo.published ? "text-white" : "text-muted-foreground/40")} />
@@ -440,19 +437,16 @@ export default function TourEditor() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-[64px] z-40 bg-background/80 backdrop-blur-sm pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-[64px] z-40 bg-transparent pb-4">
         <div className="flex items-center gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 text-primary text-[10px] font-bold uppercase"><User className="w-3 h-3" /> {localTourInfo.clientName}</div>
             <h1 className="text-xl md:text-2xl font-bold truncate">{localTourInfo.name}</h1>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="hidden lg:block">
-            <VisibilityToggle />
-          </div>
-
-          <Tabs value={mainEditorTab} onValueChange={setMainEditorTab} className="hidden lg:block">
+        <div className="hidden lg:flex items-center gap-3">
+          <VisibilityToggle />
+          <Tabs value={mainEditorTab} onValueChange={setMainEditorTab}>
             <TabsList className="bg-white border rounded-xl p-1 h-11">
               <TabsTrigger value="space" className="rounded-lg gap-2 data-[state=active]:bg-primary data-[state=active]:text-white"><LayoutGrid className="w-4 h-4" /> Espacio</TabsTrigger>
               <TabsTrigger value="details" className="rounded-lg gap-2 data-[state=active]:bg-primary data-[state=active]:text-white"><Settings className="w-4 h-4" /> Detalles</TabsTrigger>
@@ -465,16 +459,24 @@ export default function TourEditor() {
         </div>
       </div>
 
-      {/* Mobile Tabs & Visibility Toggle */}
-      <div className="lg:hidden flex items-center gap-2">
+      {/* Mobile Unified Controls Row */}
+      <div className="lg:hidden flex items-center gap-2 sticky top-[120px] z-40 bg-transparent mb-4">
         <VisibilityToggle />
         <Tabs value={mainEditorTab} onValueChange={setMainEditorTab} className="flex-1">
-          <TabsList className="w-full bg-white border rounded-xl p-1 h-11">
+          <TabsList className="w-full bg-white/60 backdrop-blur-md border rounded-xl p-1 h-11">
             <TabsTrigger value="space" className="flex-1 rounded-lg"><LayoutGrid className="w-4 h-4" /></TabsTrigger>
             <TabsTrigger value="details" className="flex-1 rounded-lg"><Settings className="w-4 h-4" /></TabsTrigger>
             <TabsTrigger value="contact" className="flex-1 rounded-lg"><MessageSquare className="w-4 h-4" /></TabsTrigger>
           </TabsList>
         </Tabs>
+        <Button 
+          size="icon" 
+          className="bg-primary h-11 w-11 rounded-xl shadow-lg shadow-primary/20 shrink-0" 
+          onClick={handleSaveAll} 
+          disabled={isSaving || !hasUnsavedChanges}
+        >
+          {isSaving ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
+        </Button>
       </div>
 
       {mainEditorTab === 'space' && (
@@ -539,7 +541,6 @@ export default function TourEditor() {
                   />
                 )}
                 
-                {/* Mode Switcher */}
                 <div className="absolute top-4 left-4 z-50 flex bg-white/10 backdrop-blur-md p-1 rounded-full border border-white/20">
                    <Button 
                     variant={editorMode === 'hotspot' ? 'default' : 'ghost'} 
@@ -893,7 +894,7 @@ export default function TourEditor() {
 function Map({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" />
+      <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 1 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 1 1 1.788 0z" />
       <path d="M15 5.764v15" />
       <path d="M9 3.236v15" />
     </svg>
