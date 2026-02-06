@@ -164,17 +164,48 @@ export default function TourEditor() {
     }
   }, [serverScenes, tour]);
 
-  // Protección ante cierre de pestaña con cambios sin guardar
+  // Protección ante abandono de página con cambios sin guardar
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Flag global para que AdminLayout intercepte la navegación por clics internos
+      (window as any).__IS_DIRTY__ = hasUnsavedChanges;
+    }
+
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         e.preventDefault();
-        e.returnValue = ''; // Muestra el mensaje estándar del navegador
+        e.returnValue = ''; // Muestra el mensaje estándar del navegador al cerrar pestaña
+      }
+    };
+
+    // Manejo de retroceso del navegador (Back button)
+    const handlePopState = (e: PopStateEvent) => {
+      if (hasUnsavedChanges) {
+        const confirmLeave = window.confirm("Tienes cambios sin guardar. ¿Estás seguro de que quieres volver?");
+        if (!confirmLeave) {
+          // Volvemos a meter el estado actual en el historial para cancelar el retroceso visualmente
+          window.history.pushState(null, '', window.location.href);
+        } else {
+          (window as any).__IS_DIRTY__ = false;
+        }
       }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    
+    // Inyectamos un estado artificial si hay cambios para poder capturar el primer retroceso
+    if (hasUnsavedChanges) {
+      window.history.pushState(null, '', window.location.href);
+    }
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+      if (typeof window !== 'undefined') {
+        (window as any).__IS_DIRTY__ = false;
+      }
+    };
   }, [hasUnsavedChanges]);
 
   const activeScene = localScenes.find((s) => s.id === activeSceneId);
@@ -409,6 +440,7 @@ export default function TourEditor() {
       await batch.commit();
       setDeletedSceneIds([]);
       setHasUnsavedChanges(false);
+      if (typeof window !== 'undefined') (window as any).__IS_DIRTY__ = false;
       setIsSaving(false);
       toast({ title: "Guardado con éxito" });
     } catch (error) {
@@ -422,7 +454,7 @@ export default function TourEditor() {
 
   const VisibilityToggle = () => (
     <div 
-      className="h-11 w-24 bg-white border rounded-xl p-1 relative cursor-pointer flex items-center shadow-sm hover:border-primary/30 transition-all group"
+      className="h-11 w-24 bg-white/60 backdrop-blur-md border rounded-xl p-1 relative cursor-pointer flex items-center shadow-sm hover:border-primary/30 transition-all group"
       onClick={() => {
         setLocalTourInfo(prev => ({ ...prev, published: !prev.published }));
         setHasUnsavedChanges(true);
@@ -772,7 +804,7 @@ export default function TourEditor() {
                   <div className="mt-8 flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                        <Map className="w-5 h-5 text-primary" />
+                        <MapIcon className="w-5 h-5 text-primary" />
                       </div>
                       <div>
                         <p className="text-sm font-bold">Mostrar selector de planos</p>
@@ -904,7 +936,7 @@ export default function TourEditor() {
   );
 }
 
-function Map({ className }: { className?: string }) {
+function MapIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
       <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 1 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 1 1 1.788 0z" />

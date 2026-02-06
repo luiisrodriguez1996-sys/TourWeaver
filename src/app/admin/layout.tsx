@@ -40,6 +40,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setIsMobileMenuOpen(false);
       return;
     }
+
+    // Interceptación de navegación interna si hay cambios sin guardar
+    if (typeof window !== 'undefined' && (window as any).__IS_DIRTY__) {
+      const confirmLeave = window.confirm("Tienes cambios sin guardar en el editor. ¿Estás seguro de que quieres salir de esta página?");
+      if (!confirmLeave) return;
+      // Si el usuario acepta salir, limpiamos el flag
+      (window as any).__IS_DIRTY__ = false;
+    }
+
     setIsNavigating(true);
     setIsMobileMenuOpen(false);
     router.push(path);
@@ -78,43 +87,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       console.error('Error signing out:', error);
     }
   };
-
-  if (isUserLoading || isAdminLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-12 h-12 text-primary animate-spin" />
-          <p className="text-muted-foreground animate-pulse font-medium">Verificando credenciales...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user || !adminData || adminData.isAdmin !== true) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-        <div className="text-center p-8 bg-white rounded-[2.5rem] shadow-xl max-w-md mx-4 w-full border border-border">
-          <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <ShieldAlert className="text-destructive w-8 h-8" />
-          </div>
-          <h1 className="text-2xl font-bold mb-2">Acceso Denegado</h1>
-          <p className="text-muted-foreground mb-8 text-balance">
-            {!user 
-              ? "Debes iniciar sesión con una cuenta autorizada para acceder al panel de administración." 
-              : "Esta cuenta no tiene privilegios de administrador para gestionar tours."}
-          </p>
-          <div className="flex flex-col gap-3">
-            <Button className="w-full h-12 text-base font-semibold rounded-2xl" onClick={() => handleNavigation('/login')}>
-              Ir a Iniciar Sesión
-            </Button>
-            <Button variant="ghost" className="w-full h-12 text-base font-semibold rounded-2xl" onClick={() => handleNavigation('/')}>
-              Volver al Inicio
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full overflow-y-auto">
@@ -199,10 +171,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="p-4 border-t space-y-4">
         <div className="flex items-center gap-3 px-2 py-3">
           <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-primary uppercase flex-shrink-0">
-            {user.email?.substring(0, 2) || 'AD'}
+            {user?.email?.substring(0, 2) || 'AD'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user.email}</p>
+            <p className="text-sm font-medium truncate">{user?.email}</p>
             <p className="text-xs text-muted-foreground truncate uppercase">{menuText.owner}</p>
           </div>
         </div>
@@ -212,6 +184,43 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
     </div>
   );
+
+  if (isUserLoading || isAdminLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-12 h-12 text-primary animate-spin" />
+          <p className="text-muted-foreground animate-pulse font-medium">Verificando credenciales...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !adminData || adminData.isAdmin !== true) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+        <div className="text-center p-8 bg-white rounded-[2.5rem] shadow-xl max-w-md mx-4 w-full border border-border">
+          <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <ShieldAlert className="text-destructive w-8 h-8" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2">Acceso Denegado</h1>
+          <p className="text-muted-foreground mb-8 text-balance">
+            {!user 
+              ? "Debes iniciar sesión con una cuenta autorizada para acceder al panel de administración." 
+              : "Esta cuenta no tiene privilegios de administrador para gestionar tours."}
+          </p>
+          <div className="flex flex-col gap-3">
+            <Button className="w-full h-12 text-base font-semibold rounded-2xl" onClick={() => router.push('/login')}>
+              Ir a Iniciar Sesión
+            </Button>
+            <Button variant="ghost" className="w-full h-12 text-base font-semibold rounded-2xl" onClick={() => router.push('/')}>
+              Volver al Inicio
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex bg-[#F8FAFC] max-w-full overflow-x-hidden relative">
