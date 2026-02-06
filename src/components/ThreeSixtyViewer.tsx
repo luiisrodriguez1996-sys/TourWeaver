@@ -231,7 +231,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     pointerDownPos.current = { x: event.clientX, y: event.clientY };
     pointerDownTime.current = Date.now();
     
-    // Cierra paneles automáticamente al interactuar
+    // Auto-close panels on interaction start
     onInteractionStart?.();
   };
 

@@ -36,6 +36,7 @@ export default function PublicTourViewer() {
   const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null);
   const [highlightContact, setHighlightContact] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [showFloorPlan, setShowFloorPlan] = useState(false);
 
   const visitIdRef = useRef<string | null>(null);
   const startTimeRef = useRef<number>(Date.now());
@@ -167,7 +168,6 @@ export default function PublicTourViewer() {
   const { data: serverScenes, isLoading: isScenesLoading, error: scenesError } = useCollection(scenesRef);
 
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null);
-  const [showFloorPlan, setShowFloorPlan] = useState(false);
   const [orderedScenes, setOrderedScenes] = useState<any[]>([]);
 
   useEffect(() => {
@@ -188,18 +188,17 @@ export default function PublicTourViewer() {
         setActiveSceneId(sorted[0].id);
       }
     }
-  }, [serverScenes, tour, activeSceneId]);
+  }, [serverScenes, tour]);
 
   const activeScene = orderedScenes?.find((s: any) => s.id === activeSceneId);
   const activeAnnotation = activeScene?.annotations?.find((a: any) => a.id === selectedAnnotationId);
 
+  // Sync map with current scene floor ONLY when room changes
   useEffect(() => {
     if (activeScene?.floorId) {
       setActiveFloorId(activeScene.floorId);
-    } else if (tour?.floors?.length && !activeFloorId) {
-      setActiveFloorId(tour.floors[0].id);
     }
-  }, [activeScene, tour, activeFloorId]);
+  }, [activeSceneId]);
 
   const getMapsUrl = () => {
     if (tour?.googleMapsUrl) return tour.googleMapsUrl;
@@ -211,6 +210,12 @@ export default function PublicTourViewer() {
     if (!tour?.contactWhatsApp) return null;
     const message = encodeURIComponent(`Hola, estoy viendo el tour virtual de "${tour.name}" y me gustaría recibir más información.`);
     return `https://wa.me/${tour.contactWhatsApp.replace(/\D/g, '')}?text=${message}`;
+  };
+
+  const closeAllPanels = () => {
+    setIsDetailsExpanded(false);
+    setSelectedAnnotationId(null);
+    setShowFloorPlan(false);
   };
 
   const canView = tour ? (tour.published || isAdmin) : false;
@@ -247,79 +252,80 @@ export default function PublicTourViewer() {
 
   return (
     <div className="h-[100dvh] w-full relative overflow-hidden bg-black flex flex-col touch-none">
-      <div className="absolute top-0 left-0 right-0 p-4 md:p-6 z-20 pointer-events-none flex flex-col md:flex-row justify-between items-start gap-4">
+      {/* Header controls */}
+      <div className="absolute top-0 left-0 right-0 p-2 md:p-4 z-20 pointer-events-none flex flex-col md:flex-row justify-between items-start gap-4">
         <div className="pointer-events-auto w-full md:w-[40%]">
           <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 text-white w-full shadow-2xl overflow-hidden">
-            <div className="p-2 md:p-2.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}>
+            <div className="p-2 md:p-2 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}>
               <div className="flex-1 min-w-0 pr-4">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <h1 className="text-base md:text-xl font-bold font-headline truncate">{tour.name}</h1>
+                  <h1 className="text-sm md:text-lg font-bold font-headline truncate">{tour.name}</h1>
                   {!tour.published && isAdmin && <div className="flex-shrink-0 flex items-center gap-1 bg-accent/20 text-accent px-1.5 py-0.5 rounded text-[8px] font-bold border border-accent/20"><Shield className="w-2.5 h-2.5" /> ADMIN</div>}
                 </div>
-                <p className="text-[10px] md:text-xs text-white/80 flex items-center gap-1"><Info className="w-3 h-3" /> {activeScene?.name || 'Cargando...'}</p>
+                <p className="text-[9px] md:text-[10px] text-white/80 flex items-center gap-1"><Info className="w-2.5 h-2.5" /> {activeScene?.name || 'Cargando...'}</p>
               </div>
               {isDetailsExpanded ? <ChevronUp className="w-4 h-4 text-white/60" /> : <ChevronDown className="w-4 h-4 text-white/60" />}
             </div>
             
-            <div className={cn("overflow-hidden transition-all duration-300 ease-in-out px-2 md:px-2.5", isDetailsExpanded ? "max-h-[600px] pb-2.5 opacity-100" : "max-h-0 opacity-0")}>
-              <div className="space-y-2.5 pt-1">
+            <div className={cn("overflow-hidden transition-all duration-300 ease-in-out px-2 md:px-2", isDetailsExpanded ? "max-h-[600px] pb-2 opacity-100" : "max-h-0 opacity-0")}>
+              <div className="space-y-2 pt-1">
                 {tour.address && (
-                  <a href={getMapsUrl() || '#'} target="_blank" rel="noopener noreferrer" className="group flex items-start gap-2 text-xs md:text-sm text-white hover:text-primary transition-colors">
-                    <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4 mt-0.5 text-primary" /><span className="underline underline-offset-4 decoration-white/20 group-hover:decoration-primary">{tour.address}</span>
+                  <a href={getMapsUrl() || '#'} target="_blank" rel="noopener noreferrer" className="group flex items-start gap-2 text-[10px] md:text-xs text-white hover:text-primary transition-colors">
+                    <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5 mt-0.5 text-primary" /><span className="underline underline-offset-4 decoration-white/20 group-hover:decoration-primary">{tour.address}</span>
                   </a>
                 )}
                 {activeScene?.description && (
                   <div className="bg-white/20 rounded-xl p-2 md:p-2.5 border border-white/10">
-                    <p className="text-[9px] md:text-[10px] font-black text-accent uppercase mb-1 tracking-wider">Sobre esta estancia</p>
-                    <p className="text-[11px] md:text-sm text-white/80 font-semibold leading-relaxed">{activeScene.description}</p>
+                    <p className="text-[8px] md:text-[9px] font-black text-accent uppercase mb-1 tracking-wider">Sobre esta estancia</p>
+                    <p className="text-[10px] md:text-sm text-white/80 font-semibold leading-relaxed">{activeScene.description}</p>
                   </div>
                 )}
                 
                 <div className={cn(
-                  "space-y-2 pt-2 border-t border-white/10 transition-all duration-500",
+                  "space-y-1.5 pt-2 border-t border-white/10 transition-all duration-500",
                   highlightContact && "bg-primary/20 scale-[1.02] rounded-xl p-2 ring-2 ring-primary shadow-lg"
                 )}>
-                  <p className="text-[9px] md:text-[10px] font-black text-white/60 uppercase tracking-wider">Contacto Directo</p>
-                  <div className="grid grid-cols-1 gap-2">
+                  <p className="text-[8px] md:text-[9px] font-black text-white/60 uppercase tracking-wider">Contacto Directo</p>
+                  <div className="grid grid-cols-1 gap-1.5">
                     {tour.contactWhatsApp && (
                       <a href={getWhatsAppLink() || '#'} target="_blank" rel="noopener noreferrer" onClick={() => trackConversion('whatsapp')}>
-                        <Button size="sm" className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white text-[10px] md:text-xs h-8 md:h-9 rounded-xl gap-2 font-bold">
-                          <MessageCircle className="w-4 h-4" /> WhatsApp
+                        <Button size="sm" className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white text-[9px] md:text-xs h-7 md:h-8 rounded-xl gap-2 font-bold">
+                          <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
                         </Button>
                       </a>
                     )}
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5">
                       {tour.contactPhone && (
                         <>
                           <a href={`tel:${tour.contactPhone}`} className="flex-1 md:hidden" onClick={() => trackConversion('phone')}>
-                            <Button size="sm" variant="secondary" className="w-full bg-white/10 hover:bg-white/20 text-white text-[10px] h-8 rounded-xl gap-2">
-                              <Phone className="w-4 h-4" /> Llamar
+                            <Button size="sm" variant="secondary" className="w-full bg-white/10 hover:bg-white/20 text-white text-[9px] h-7 rounded-xl gap-2">
+                              <Phone className="w-3.5 h-3.5" /> Llamar
                             </Button>
                           </a>
                           <Button 
                             size="sm" 
                             variant="secondary" 
-                            className="hidden md:flex flex-1 bg-white/10 hover:bg-white/20 text-white text-xs h-9 rounded-xl gap-2 truncate"
+                            className="hidden md:flex flex-1 bg-white/10 hover:bg-white/20 text-white text-[10px] h-8 rounded-xl gap-2 truncate"
                             onClick={() => handleCopy(tour.contactPhone!, "Teléfono", "phone")}
                           >
-                            <Phone className="w-4 h-4 shrink-0" /> {tour.contactPhone}
+                            <Phone className="w-3.5 h-3.5 shrink-0" /> {tour.contactPhone}
                           </Button>
                         </>
                       )}
                       {tour.contactEmail && (
                         <>
                           <a href={`mailto:${tour.contactEmail}`} className="flex-1 md:hidden" onClick={() => trackConversion('email')}>
-                            <Button size="sm" variant="secondary" className="w-full bg-white/10 hover:bg-white/20 text-white text-[10px] h-8 rounded-xl gap-2">
-                              <Mail className="w-4 h-4" /> Email
+                            <Button size="sm" variant="secondary" className="w-full bg-white/10 hover:bg-white/20 text-white text-[9px] h-7 rounded-xl gap-2">
+                              <Mail className="w-3.5 h-3.5" /> Email
                             </Button>
                           </a>
                           <Button 
                             size="sm" 
                             variant="secondary" 
-                            className="hidden md:flex flex-1 bg-white/10 hover:bg-white/20 text-white text-xs h-9 rounded-xl gap-2 truncate"
+                            className="hidden md:flex flex-1 bg-white/10 hover:bg-white/20 text-white text-[10px] h-8 rounded-xl gap-2 truncate"
                             onClick={() => handleCopy(tour.contactEmail!, "Email", "email")}
                           >
-                            <Mail className="w-4 h-4 shrink-0" /> {tour.contactEmail}
+                            <Mail className="w-3.5 h-3.5 shrink-0" /> {tour.contactEmail}
                           </Button>
                         </>
                       )}
@@ -335,26 +341,21 @@ export default function PublicTourViewer() {
           {tour.contactWhatsApp && (
             <Button 
               variant="secondary" 
-              className="rounded-full bg-[#25D366] text-white hover:bg-[#20ba59] h-10 px-4 md:h-11 md:px-6 border-none shadow-xl gap-2 transition-all active:scale-95"
+              className="rounded-full bg-[#25D366] text-white hover:bg-[#20ba59] h-9 px-4 md:h-10 md:px-6 border-none shadow-xl gap-2 transition-all active:scale-95"
               onClick={() => {
                 setIsDetailsExpanded(true);
                 setHighlightContact(true);
                 setTimeout(() => setHighlightContact(false), 2000);
               }}
             >
-              <MessageCircle className="w-5 h-5" />
-              <span className="font-black text-[10px] md:text-xs tracking-tight uppercase whitespace-nowrap">SOLICITAR INFORMACIÓN</span>
-            </Button>
-          )}
-          {(tour.address || tour.googleMapsUrl) && (
-            <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-10 w-10 md:h-11 md:w-11" onClick={() => { const url = getMapsUrl(); if (url) window.open(url, '_blank'); }}>
-              <MapPin className="w-4 h-4" />
+              <MessageCircle className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="font-black text-[9px] md:text-xs tracking-tight uppercase whitespace-nowrap">SOLICITAR INFORMACIÓN</span>
             </Button>
           )}
           
           <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
             <DialogTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-10 w-10 md:h-11 md:w-11">
+              <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-9 w-9 md:h-10 md:w-10">
                 <Share2 className="w-4 h-4" />
               </Button>
             </DialogTrigger>
@@ -402,25 +403,21 @@ export default function PublicTourViewer() {
         </div>
       </div>
 
-      <div className="flex-grow w-full h-full relative">
+      <div className="flex-grow w-full h-full relative" onClick={closeAllPanels}>
         {activeScene && (
           <ThreeSixtyViewer 
             imageUrl={activeScene.imageUrl} 
             hotspots={activeScene.hotspots || []} 
             annotations={activeScene.annotations || []}
-            onInteractionStart={() => {
-              setIsDetailsExpanded(false);
-              setSelectedAnnotationId(null);
-              setShowFloorPlan(false);
-            }}
+            onInteractionStart={closeAllPanels}
             onHotspotClick={(targetId) => {
               setActiveSceneId(targetId);
-              setSelectedAnnotationId(null);
-              setIsDetailsExpanded(false);
+              closeAllPanels();
             }} 
             onAnnotationClick={(annotationId) => {
               setSelectedAnnotationId(annotationId);
               setIsDetailsExpanded(false);
+              setShowFloorPlan(false);
             }}
           />
         )}
@@ -457,9 +454,9 @@ export default function PublicTourViewer() {
         <div className="bg-black/40 backdrop-blur-md px-2 md:px-6 py-1 rounded-full border border-white/10 flex items-center gap-1 md:gap-2 text-white shadow-2xl pointer-events-auto max-w-full overflow-x-auto scrollbar-hide">
            <Dialog>
              <DialogTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-10 px-3 md:px-4 flex-shrink-0">
+                <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-9 px-3 md:px-4 flex-shrink-0">
                   <ChevronUp className="w-4 h-4" />
-                  <span className="text-xs md:text-sm font-medium whitespace-nowrap">Estancias ({orderedScenes?.length || 0})</span>
+                  <span className="text-[10px] md:text-sm font-medium whitespace-nowrap">Estancias ({orderedScenes?.length || 0})</span>
                 </Button>
              </DialogTrigger>
              <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[425px] bg-black/80 backdrop-blur-xl border-white/10 text-white p-0 rounded-[2.5rem] overflow-hidden shadow-2xl">
@@ -468,7 +465,7 @@ export default function PublicTourViewer() {
                   <div className="grid grid-cols-1 gap-2">
                     {orderedScenes?.map((scene: any) => (
                       <DialogClose asChild key={scene.id}>
-                        <button onClick={() => { setActiveSceneId(scene.id); setSelectedAnnotationId(null); setIsDetailsExpanded(false); }} className={cn("w-full flex items-center gap-4 p-3 rounded-2xl transition-all group border", activeSceneId === scene.id ? 'bg-primary/20 text-primary border-primary/40' : 'hover:bg-white/10 text-white/70 hover:text-white border-transparent')}>
+                        <button onClick={() => { setActiveSceneId(scene.id); closeAllPanels(); }} className={cn("w-full flex items-center gap-4 p-3 rounded-2xl transition-all group border", activeSceneId === scene.id ? 'bg-primary/20 text-primary border-primary/40' : 'hover:bg-white/10 text-white/70 hover:text-white border-transparent')}>
                           <div className="relative w-20 md:w-24 h-14 md:h-16 rounded-xl overflow-hidden flex-shrink-0"><img src={scene.imageUrl} className="w-full h-full object-cover" alt={scene.name} />{activeSceneId === scene.id && <div className="absolute inset-0 bg-primary/40 flex items-center justify-center"><Check className="w-6 h-6 text-white" /></div>}</div>
                           <span className="text-xs md:text-sm font-semibold truncate flex-1 text-left">{scene.name}</span>
                         </button>
@@ -482,7 +479,7 @@ export default function PublicTourViewer() {
            {(tour.showFloorPlan && tour.floors?.length > 0) && (
              <>
                <div className="h-4 w-px bg-white/20 mx-1 md:mx-2 flex-shrink-0" />
-               <Button variant="ghost" onClick={() => { setShowFloorPlan(!showFloorPlan); setIsDetailsExpanded(false); }} className={cn("flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-10 px-3 md:px-4 flex-shrink-0", showFloorPlan && 'text-primary bg-primary/10')}><Map className="w-4 h-4" /><span className="text-xs md:text-sm font-medium whitespace-nowrap">Plano</span></Button>
+               <Button variant="ghost" onClick={() => { setShowFloorPlan(!showFloorPlan); setIsDetailsExpanded(false); setSelectedAnnotationId(null); }} className={cn("flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-9 px-3 md:px-4 flex-shrink-0", showFloorPlan && 'text-primary bg-primary/10')}><Map className="w-4 h-4" /><span className="text-[10px] md:text-sm font-medium whitespace-nowrap">Plano</span></Button>
              </>
            )}
         </div>
@@ -494,7 +491,7 @@ export default function PublicTourViewer() {
           onClick={() => setShowFloorPlan(false)}
         >
            <div 
-            className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 max-w-[calc(100vw-2rem)] md:max-w-3xl w-full relative shadow-2xl flex flex-col gap-6 cursor-auto"
+            className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 max-w-[calc(100vw-2rem)] md:max-w-3xl w-full relative shadow-2xl flex flex-col gap-4 md:gap-6 cursor-auto"
             onClick={(e) => e.stopPropagation()}
            >
               <div className="flex items-center justify-between">
@@ -509,10 +506,10 @@ export default function PublicTourViewer() {
                       key={floor.id} 
                       variant={activeFloorId === floor.id ? "default" : "outline"} 
                       size="sm" 
-                      className="rounded-full h-8 px-4 text-[10px] whitespace-nowrap" 
+                      className="rounded-full h-8 px-4 text-[10px] whitespace-nowrap transition-all" 
                       onClick={() => setActiveFloorId(floor.id)}
                     >
-                      <Layers className="w-3 h-3 mr-2" /> {floor.name}
+                      <Layers className={cn("w-3 h-3 mr-2", activeFloorId === floor.id ? "text-white" : "text-primary")} /> {floor.name}
                     </Button>
                   ))}
                 </div>
@@ -523,7 +520,7 @@ export default function PublicTourViewer() {
                    <>
                      <img src={tour.floors.find((f: any) => f.id === activeFloorId).imageUrl} alt="Plano" className="w-full h-full object-contain" />
                      {orderedScenes?.filter((s: any) => s.floorId === activeFloorId).map((s: any) => s.floorPlanX !== undefined && (
-                       <button key={s.id} onClick={() => { setActiveSceneId(s.id); setShowFloorPlan(false); setSelectedAnnotationId(null); setIsDetailsExpanded(false); }} className={cn("absolute w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-white shadow-xl -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 flex items-center justify-center", s.id === activeSceneId ? 'bg-primary z-20 ring-4 ring-primary/30 scale-125' : 'bg-muted-foreground/80 z-10 hover:bg-primary')} style={{ left: `${s.floorPlanX}%`, top: `${s.floorPlanY}%` }} title={s.name}><MapPin className={cn("w-3 h-3 md:w-3.5 md:h-3.5 text-white", s.id === activeSceneId ? 'block' : 'hidden')} /></button>
+                       <button key={s.id} onClick={() => { setActiveSceneId(s.id); closeAllPanels(); }} className={cn("absolute w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-white shadow-xl -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 flex items-center justify-center", s.id === activeSceneId ? 'bg-primary z-20 ring-4 ring-primary/30 scale-125' : 'bg-muted-foreground/80 z-10 hover:bg-primary')} style={{ left: `${s.floorPlanX}%`, top: `${s.floorPlanY}%` }} title={s.name}><MapPin className={cn("w-3 h-3 md:w-3.5 md:h-3.5 text-white", s.id === activeSceneId ? 'block' : 'hidden')} /></button>
                      ))}
                    </>
                  ) : (
@@ -533,7 +530,7 @@ export default function PublicTourViewer() {
                    </div>
                  )}
               </div>
-              <p className="text-xs md:text-sm text-muted-foreground text-center font-medium">Selecciona un nivel y toca los puntos para navegar.</p>
+              <p className="text-[10px] md:text-xs text-muted-foreground text-center font-medium">Selecciona un nivel y toca los puntos para navegar.</p>
            </div>
         </div>
       )}
