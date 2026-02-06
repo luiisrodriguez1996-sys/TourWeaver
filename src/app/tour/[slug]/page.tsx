@@ -121,16 +121,10 @@ export default function PublicTourViewer() {
     }
   };
 
-  const handleSolicitarInfo = () => {
-    setIsDetailsExpanded(true);
-    setHighlightContact(true);
-    setTimeout(() => setHighlightContact(false), 2000);
-  };
-
   const handleCopy = (text: string, label: string, method: 'phone' | 'email') => {
     if (typeof window !== 'undefined') {
       navigator.clipboard.writeText(text);
-      toast({ title: `${label} copiado` });
+      toast({ title: `${label} copiado al portapapeles` });
       trackConversion(method);
     }
   };
@@ -275,7 +269,7 @@ export default function PublicTourViewer() {
                   </a>
                 )}
                 {activeScene?.description && (
-                  <div className="bg-white/20 rounded-xl p-2 md:p-3 border border-white/10">
+                  <div className="bg-white/20 rounded-xl p-2 md:p-2.5 border border-white/10">
                     <p className="text-[9px] md:text-[10px] font-black text-accent uppercase mb-1 tracking-wider">Sobre esta estancia</p>
                     <p className="text-[11px] md:text-sm text-white/80 font-semibold leading-relaxed">{activeScene.description}</p>
                   </div>
@@ -289,7 +283,7 @@ export default function PublicTourViewer() {
                   <div className="grid grid-cols-1 gap-2">
                     {tour.contactWhatsApp && (
                       <a href={getWhatsAppLink() || '#'} target="_blank" rel="noopener noreferrer" onClick={() => trackConversion('whatsapp')}>
-                        <Button size="sm" className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white text-[10px] md:text-xs h-8 md:h-10 rounded-xl gap-2 font-bold">
+                        <Button size="sm" className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white text-[10px] md:text-xs h-8 md:h-9 rounded-xl gap-2 font-bold">
                           <MessageCircle className="w-4 h-4" /> WhatsApp
                         </Button>
                       </a>
@@ -305,7 +299,7 @@ export default function PublicTourViewer() {
                           <Button 
                             size="sm" 
                             variant="secondary" 
-                            className="hidden md:flex flex-1 bg-white/10 hover:bg-white/20 text-white text-xs h-10 rounded-xl gap-2 truncate"
+                            className="hidden md:flex flex-1 bg-white/10 hover:bg-white/20 text-white text-xs h-9 rounded-xl gap-2 truncate"
                             onClick={() => handleCopy(tour.contactPhone!, "Teléfono", "phone")}
                           >
                             <Phone className="w-4 h-4 shrink-0" /> {tour.contactPhone}
@@ -322,7 +316,7 @@ export default function PublicTourViewer() {
                           <Button 
                             size="sm" 
                             variant="secondary" 
-                            className="hidden md:flex flex-1 bg-white/10 hover:bg-white/20 text-white text-xs h-10 rounded-xl gap-2 truncate"
+                            className="hidden md:flex flex-1 bg-white/10 hover:bg-white/20 text-white text-xs h-9 rounded-xl gap-2 truncate"
                             onClick={() => handleCopy(tour.contactEmail!, "Email", "email")}
                           >
                             <Mail className="w-4 h-4 shrink-0" /> {tour.contactEmail}
@@ -349,7 +343,7 @@ export default function PublicTourViewer() {
               }}
             >
               <MessageCircle className="w-5 h-5" />
-              <span className="font-black text-[10px] md:text-xs tracking-tight uppercase whitespace-nowrap">Solicitar Información</span>
+              <span className="font-black text-[10px] md:text-xs tracking-tight uppercase whitespace-nowrap">SOLICITAR INFORMACIÓN</span>
             </Button>
           )}
           {(tour.address || tour.googleMapsUrl) && (
@@ -496,24 +490,34 @@ export default function PublicTourViewer() {
 
       {(showFloorPlan && tour.showFloorPlan && tour.floors?.length > 0) && (
         <div 
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm z-30 flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300 cursor-pointer"
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300 cursor-pointer"
           onClick={() => setShowFloorPlan(false)}
         >
            <div 
-            className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 max-w-[calc(100vw-2rem)] md:max-w-3xl w-full relative shadow-2xl flex flex-col gap-4 cursor-auto"
+            className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 max-w-[calc(100vw-2rem)] md:max-w-3xl w-full relative shadow-2xl flex flex-col gap-6 cursor-auto"
             onClick={(e) => e.stopPropagation()}
            >
-              <Button variant="ghost" size="icon" className="absolute top-4 right-4 h-10 w-10 rounded-full hover:bg-muted" onClick={() => setShowFloorPlan(false)}>✕</Button>
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center justify-between">
                 <h2 className="text-xl md:text-2xl font-bold font-headline text-primary flex items-center gap-2"><Map className="w-5 h-5 md:w-6 md:h-6" /> Mapa de Navegación</h2>
-                {tour.floors.length > 1 && (
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    {tour.floors.map((floor: any) => (
-                      <Button key={floor.id} variant={activeFloorId === floor.id ? "default" : "outline"} size="sm" className="rounded-full h-8 px-4 text-[10px]" onClick={() => setActiveFloorId(floor.id)}><Layers className="w-3 h-3 mr-2" /> {floor.name}</Button>
-                    ))}
-                  </div>
-                )}
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-muted" onClick={() => setShowFloorPlan(false)}><X className="w-5 h-5" /></Button>
               </div>
+
+              {tour.floors.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                  {tour.floors.map((floor: any) => (
+                    <Button 
+                      key={floor.id} 
+                      variant={activeFloorId === floor.id ? "default" : "outline"} 
+                      size="sm" 
+                      className="rounded-full h-8 px-4 text-[10px] whitespace-nowrap" 
+                      onClick={() => setActiveFloorId(floor.id)}
+                    >
+                      <Layers className="w-3 h-3 mr-2" /> {floor.name}
+                    </Button>
+                  ))}
+                </div>
+              )}
+
               <div className="aspect-video bg-muted rounded-2xl md:rounded-3xl overflow-hidden relative border shadow-inner">
                  {tour.floors.find((f: any) => f.id === activeFloorId)?.imageUrl ? (
                    <>
