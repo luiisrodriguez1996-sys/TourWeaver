@@ -16,7 +16,9 @@ import {
   History,
   Loader2,
   Info,
-  Zap
+  Zap,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -36,11 +38,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from '@/lib/utils';
 
 export default function AnalyticsDashboard() {
   const firestore = useFirestore();
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   const toursRef = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -127,9 +132,23 @@ export default function AnalyticsDashboard() {
       topTours,
       chartData,
       totalTours: tours.length,
-      publishedTours: tours.filter(t => t.published).length
+      publishedTours: tours.filter(t => t.published).length,
+      visitsByTour
     };
   }, [visits, tours]);
+
+  const paginatedTours = useMemo(() => {
+    if (!tours) return [];
+    const sortedTours = [...tours].sort((a, b) => {
+      const visitsA = stats?.visitsByTour[a.id] || 0;
+      const visitsB = stats?.visitsByTour[b.id] || 0;
+      return visitsB - visitsA;
+    });
+    const start = (currentPage - 1) * itemsPerPage;
+    return sortedTours.slice(start, start + itemsPerPage);
+  }, [tours, currentPage, stats]);
+
+  const totalPages = Math.ceil((tours?.length || 0) / itemsPerPage);
 
   const isLoading = isToursLoading || isVisitsLoading;
 
@@ -146,7 +165,7 @@ export default function AnalyticsDashboard() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto">
+    <div className="space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto pb-10">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold font-headline flex items-center gap-3">
@@ -287,7 +306,7 @@ export default function AnalyticsDashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats?.chartData || []}>
                   <defs>
-                    <linearGradient id="colorVisits" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="colorVisits" x1="0" x1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#29ABE2" stopOpacity={0.1}/>
                       <stop offset="95%" stopColor="#29ABE2" stopOpacity={0}/>
                     </linearGradient>
@@ -324,8 +343,8 @@ export default function AnalyticsDashboard() {
 
         <Card className="rounded-[2.5rem] border-none shadow-xl bg-white">
           <CardHeader>
-            <CardTitle className="text-lg">Propiedades Populares</CardTitle>
-            <CardDescription>Ranking basado en visualizaciones totales.</CardDescription>
+            <CardTitle className="text-lg">Top 5 Populares</CardTitle>
+            <CardDescription>Propiedades con más aperturas totales.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {stats?.topTours && stats.topTours.length > 0 ? stats.topTours.map((tour, idx) => (
@@ -355,35 +374,78 @@ export default function AnalyticsDashboard() {
       </div>
 
       <div className="bg-white rounded-[2.5rem] border p-8 shadow-sm">
-        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-          <Globe className="w-5 h-5 text-primary" /> Todas las Propiedades
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tours?.map(tour => (
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <Globe className="w-5 h-5 text-primary" /> Todas las Propiedades
+          </h2>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8 rounded-lg"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-xs font-medium text-muted-foreground">
+                Página {currentPage} de {totalPages}
+              </span>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8 rounded-lg"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-3">
+          {paginatedTours.map(tour => (
             <Card 
               key={tour.id} 
-              className="hover:border-primary transition-all cursor-pointer group bg-gray-50/50"
+              className="hover:border-primary transition-all cursor-pointer group bg-gray-50/50 border-transparent border-2"
               onClick={() => handleNavigate(`/admin/analytics/tours/${tour.id}`, `list-${tour.id}`)}
             >
               <CardContent className="p-4 flex items-center justify-between">
-                <div className="min-w-0">
-                  <p className="text-sm font-bold truncate">{tour.name}</p>
-                  <p className="text-[10px] text-muted-foreground uppercase">{tour.clientName || 'Sin Cliente'}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <p className="text-sm font-bold">{visits?.filter(v => v.tourId === tour.id).length || 0}</p>
-                    <p className="text-[8px] text-muted-foreground uppercase">Visitas</p>
+                <div className="flex-1 min-w-0 flex items-center gap-4">
+                  <div className="w-10 h-10 bg-white rounded-lg border flex items-center justify-center flex-shrink-0">
+                    <Globe className="w-5 h-5 text-muted-foreground/40 group-hover:text-primary transition-colors" />
                   </div>
-                  {isNavigating === `list-${tour.id}` ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                  ) : (
-                    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                  )}
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold truncate group-hover:text-primary transition-colors">{tour.name}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase font-medium">{tour.clientName || 'Sin Cliente'}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-6 md:gap-12">
+                  <div className="text-right">
+                    <p className="text-sm font-bold">{stats?.visitsByTour[tour.id] || 0}</p>
+                    <p className="text-[8px] text-muted-foreground uppercase font-bold tracking-tighter">Visitas</p>
+                  </div>
+                  <div className="text-right hidden sm:block">
+                    <p className="text-sm font-bold">{visits?.filter(v => v.tourId === tour.id && v.contacted).length || 0}</p>
+                    <p className="text-[8px] text-muted-foreground uppercase font-bold tracking-tighter">Interacciones</p>
+                  </div>
+                  <div className="w-8 flex justify-center">
+                    {isNavigating === `list-${tour.id}` ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    ) : (
+                      <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-all group-hover:translate-x-1" />
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))}
+          {(!tours || tours.length === 0) && (
+            <p className="text-sm text-muted-foreground text-center py-10 italic">No hay propiedades registradas para mostrar.</p>
+          )}
         </div>
       </div>
     </div>
