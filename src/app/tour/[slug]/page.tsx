@@ -249,8 +249,8 @@ export default function PublicTourViewer() {
                 )}
                 {activeScene?.description && (
                   <div className="bg-white/20 rounded-xl p-2 md:p-3 border border-white/10">
-                    <p className="text-[9px] md:text-[10px] font-black text-primary uppercase mb-1 tracking-wider">Sobre esta estancia</p>
-                    <p className="text-[11px] md:text-sm text-neutral-900 font-semibold leading-relaxed">{activeScene.description}</p>
+                    <p className="text-[9px] md:text-[10px] font-black text-accent uppercase mb-1 tracking-wider">Sobre esta estancia</p>
+                    <p className="text-[11px] md:text-sm text-white/80 font-semibold leading-relaxed">{activeScene.description}</p>
                   </div>
                 )}
                 
@@ -418,9 +418,9 @@ export default function PublicTourViewer() {
                 )}
               </div>
               <div className="aspect-video bg-muted rounded-2xl md:rounded-3xl overflow-hidden relative border shadow-inner">
-                 {currentFloor?.imageUrl ? (
+                 {tour.floors.find((f: any) => f.id === activeFloorId)?.imageUrl ? (
                    <>
-                     <img src={currentFloor.imageUrl} alt={currentFloor.name} className="w-full h-full object-contain" />
+                     <img src={tour.floors.find((f: any) => f.id === activeFloorId).imageUrl} alt="Plano" className="w-full h-full object-contain" />
                      {orderedScenes?.filter((s: any) => s.floorId === activeFloorId).map((s: any) => s.floorPlanX !== undefined && (
                        <button key={s.id} onClick={() => { setActiveSceneId(s.id); setShowFloorPlan(false); setSelectedAnnotationId(null); }} className={cn("absolute w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-white shadow-xl -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 flex items-center justify-center", s.id === activeSceneId ? 'bg-primary z-20 ring-4 ring-primary/30 scale-125' : 'bg-muted-foreground/80 z-10 hover:bg-primary')} style={{ left: `${s.floorPlanX}%`, top: `${s.floorPlanY}%` }} title={s.name}><MapPin className={cn("w-3 h-3 md:w-3.5 md:h-3.5 text-white", s.id === activeSceneId ? 'block' : 'hidden')} /></button>
                      ))}
