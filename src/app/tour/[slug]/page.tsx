@@ -250,6 +250,8 @@ export default function PublicTourViewer() {
     );
   }
 
+  const hasContactInfo = !!(tour.contactWhatsApp || tour.contactPhone || tour.contactEmail);
+
   return (
     <div className="h-[100dvh] w-full relative overflow-hidden bg-black flex flex-col touch-none">
       {/* Header controls */}
@@ -275,7 +277,6 @@ export default function PublicTourViewer() {
                   </a>
                 )}
                 
-                {/* Bloque Sobre esta estancia con asociación a planta */}
                 {(activeScene?.description || activeScene?.floorId) && (
                   <div className="bg-white/20 rounded-xl p-2 md:p-3 border border-white/10">
                     <div className="flex items-center justify-between mb-1">
@@ -292,57 +293,59 @@ export default function PublicTourViewer() {
                   </div>
                 )}
                 
-                <div className={cn(
-                  "space-y-1.5 pt-2 border-t border-white/10 transition-all duration-500",
-                  highlightContact && "bg-primary/20 scale-[1.02] rounded-xl p-2 ring-2 ring-primary shadow-lg"
-                )}>
-                  <p className="text-[8px] md:text-[9px] font-black text-white/60 uppercase tracking-wider">Contacto Directo</p>
-                  <div className="grid grid-cols-1 gap-1.5">
-                    {tour.contactWhatsApp && (
-                      <a href={getWhatsAppLink() || '#'} target="_blank" rel="noopener noreferrer" onClick={() => trackConversion('whatsapp')}>
-                        <Button size="sm" className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white text-[9px] md:text-xs h-7 md:h-8 rounded-xl gap-2 font-bold">
-                          <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
-                        </Button>
-                      </a>
-                    )}
-                    <div className="flex gap-1.5">
-                      {tour.contactPhone && (
-                        <>
-                          <a href={`tel:${tour.contactPhone}`} className="flex-1 md:hidden" onClick={() => trackConversion('phone')}>
-                            <Button size="sm" variant="secondary" className="w-full bg-white/10 hover:bg-white/20 text-white text-[9px] h-7 rounded-xl gap-2">
-                              <Phone className="w-3.5 h-3.5" /> Llamar
-                            </Button>
-                          </a>
-                          <Button 
-                            size="sm" 
-                            variant="secondary" 
-                            className="hidden md:flex flex-1 bg-white/10 hover:bg-white/20 text-white text-[10px] h-8 rounded-xl gap-2 truncate"
-                            onClick={() => handleCopy(tour.contactPhone!, "Teléfono", "phone")}
-                          >
-                            <Phone className="w-3.5 h-3.5 shrink-0" /> {tour.contactPhone}
+                {hasContactInfo && (
+                  <div className={cn(
+                    "space-y-1.5 pt-2 border-t border-white/10 transition-all duration-500",
+                    highlightContact && "bg-primary/20 scale-[1.02] rounded-xl p-2 ring-2 ring-primary shadow-lg"
+                  )}>
+                    <p className="text-[8px] md:text-[9px] font-black text-white/60 uppercase tracking-wider">Contacto Directo</p>
+                    <div className="grid grid-cols-1 gap-1.5">
+                      {tour.contactWhatsApp && (
+                        <a href={getWhatsAppLink() || '#'} target="_blank" rel="noopener noreferrer" onClick={() => trackConversion('whatsapp')}>
+                          <Button size="sm" className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white text-[9px] md:text-xs h-7 md:h-8 rounded-xl gap-2 font-bold">
+                            <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
                           </Button>
-                        </>
+                        </a>
                       )}
-                      {tour.contactEmail && (
-                        <>
-                          <a href={`mailto:${tour.contactEmail}`} className="flex-1 md:hidden" onClick={() => trackConversion('email')}>
-                            <Button size="sm" variant="secondary" className="w-full bg-white/10 hover:bg-white/20 text-white text-[9px] h-7 rounded-xl gap-2">
-                              <Mail className="w-3.5 h-3.5" /> Email
+                      <div className="flex gap-1.5">
+                        {tour.contactPhone && (
+                          <>
+                            <a href={`tel:${tour.contactPhone}`} className="flex-1 md:hidden" onClick={() => trackConversion('phone')}>
+                              <Button size="sm" variant="secondary" className="w-full bg-white/10 hover:bg-white/20 text-white text-[9px] h-7 rounded-xl gap-2">
+                                <Phone className="w-3.5 h-3.5" /> Llamar
+                              </Button>
+                            </a>
+                            <Button 
+                              size="sm" 
+                              variant="secondary" 
+                              className="hidden md:flex flex-1 bg-white/10 hover:bg-white/20 text-white text-[10px] h-8 rounded-xl gap-2 truncate"
+                              onClick={() => handleCopy(tour.contactPhone!, "Teléfono", "phone")}
+                            >
+                              <Phone className="w-3.5 h-3.5 shrink-0" /> {tour.contactPhone}
                             </Button>
-                          </a>
-                          <Button 
-                            size="sm" 
-                            variant="secondary" 
-                            className="hidden md:flex flex-1 bg-white/10 hover:bg-white/20 text-white text-[10px] h-8 rounded-xl gap-2 truncate"
-                            onClick={() => handleCopy(tour.contactEmail!, "Email", "email")}
-                          >
-                            <Mail className="w-3.5 h-3.5 shrink-0" /> {tour.contactEmail}
-                          </Button>
-                        </>
-                      )}
+                          </>
+                        )}
+                        {tour.contactEmail && (
+                          <>
+                            <a href={`mailto:${tour.contactEmail}`} className="flex-1 md:hidden" onClick={() => trackConversion('email')}>
+                              <Button size="sm" variant="secondary" className="w-full bg-white/10 hover:bg-white/20 text-white text-[9px] h-7 rounded-xl gap-2">
+                                <Mail className="w-3.5 h-3.5" /> Email
+                              </Button>
+                            </a>
+                            <Button 
+                              size="sm" 
+                              variant="secondary" 
+                              className="hidden md:flex flex-1 bg-white/10 hover:bg-white/20 text-white text-[10px] h-8 rounded-xl gap-2 truncate"
+                              onClick={() => handleCopy(tour.contactEmail!, "Email", "email")}
+                            >
+                              <Mail className="w-3.5 h-3.5 shrink-0" /> {tour.contactEmail}
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -584,6 +587,14 @@ export default function PublicTourViewer() {
             Potenciado por Tour Weaver
           </span>
         </Link>
+      </div>
+
+      <div className="absolute bottom-1.5 left-4 md:left-8 z-20 pointer-events-none">
+        <span 
+          className="text-neutral-700 text-[8px] md:text-[10px] font-bold tracking-widest uppercase"
+        >
+          Inmersión 360°
+        </span>
       </div>
     </div>
   );
