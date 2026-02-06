@@ -338,6 +338,14 @@ export default function PublicTourViewer() {
         </div>
         
         <div className="flex gap-2 pointer-events-auto w-full md:w-auto justify-end">
+          {getMapsUrl() && (
+            <a href={getMapsUrl()!} target="_blank" rel="noopener noreferrer">
+              <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-9 w-9 md:h-10 md:w-10">
+                <MapPin className="w-4 h-4" />
+              </Button>
+            </a>
+          )}
+
           {tour.contactWhatsApp && (
             <Button 
               variant="secondary" 
@@ -364,7 +372,7 @@ export default function PublicTourViewer() {
                 <DialogTitle className="text-xl font-bold flex items-center gap-2">
                   <Share2 className="w-5 h-5 text-primary" /> Compartir Tour
                 </DialogTitle>
-                <DialogDescription className="sr-only">
+                <DialogDescription>
                   Opciones para compartir el tour mediante enlace directo o código QR descargable.
                 </DialogDescription>
               </DialogHeader>
@@ -465,7 +473,7 @@ export default function PublicTourViewer() {
              <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[425px] bg-black/80 backdrop-blur-xl border-white/10 text-white p-0 rounded-[2.5rem] overflow-hidden shadow-2xl">
                 <DialogHeader className="p-6 border-b border-white/10 text-left">
                   <DialogTitle className="font-bold text-lg">Explorar Estancias</DialogTitle>
-                  <DialogDescription className="sr-only">
+                  <DialogDescription>
                     Lista de todas las habitaciones y estancias disponibles en este tour virtual.
                   </DialogDescription>
                 </DialogHeader>

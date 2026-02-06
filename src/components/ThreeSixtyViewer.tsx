@@ -330,7 +330,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
                 {isEditing && <Settings2 className="w-4 h-4 text-white" />}
                 <span className={cn(
                   "overflow-hidden transition-all duration-300 font-medium",
-                  isEditing ? "max-w-[200px]" : "max-w-0 group-hover:max-w-[200px]"
+                  isEditing ? "max-w-[200px]" : "max-w-[200px] md:max-w-0 md:group-hover:max-w-[200px]"
                 )}>
                   {h.label}
                 </span>
