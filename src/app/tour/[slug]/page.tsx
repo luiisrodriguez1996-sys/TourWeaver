@@ -276,11 +276,14 @@ export default function PublicTourViewer() {
         
         <div className="flex gap-2 pointer-events-auto w-full md:w-auto justify-end">
           {tour.contactWhatsApp && (
-            <a href={getWhatsAppLink() || '#'} target="_blank" rel="noopener noreferrer" className="md:hidden" onClick={() => trackConversion('whatsapp')}>
-              <Button variant="secondary" size="icon" className="rounded-full bg-[#25D366] text-white hover:bg-[#20ba59] h-10 w-10 border-none shadow-xl">
-                <MessageCircle className="w-5 h-5" />
-              </Button>
-            </a>
+            <Button 
+              variant="secondary" 
+              size="icon" 
+              className="rounded-full bg-[#25D366] text-white hover:bg-[#20ba59] h-10 w-10 md:h-11 md:w-11 border-none shadow-xl"
+              onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
+            >
+              <MessageCircle className="w-5 h-5" />
+            </Button>
           )}
           {(tour.address || tour.googleMapsUrl) && (
             <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-10 w-10 md:h-11 md:w-11" onClick={() => { const url = getMapsUrl(); if (url) window.open(url, '_blank'); }}>
@@ -329,7 +332,7 @@ export default function PublicTourViewer() {
         )}
       </div>
 
-      <div className="absolute bottom-16 md:bottom-20 left-1/2 -translate-x-1/2 z-20 flex items-center gap-4 w-full px-4 justify-center">
+      <div className="absolute bottom-10 md:bottom-12 left-1/2 -translate-x-1/2 z-20 flex items-center gap-4 w-full px-4 justify-center">
         <div className="bg-black/40 backdrop-blur-md px-2 md:px-6 py-1 rounded-full border border-white/10 flex items-center gap-1 md:gap-2 text-white shadow-2xl pointer-events-auto max-w-full overflow-x-auto scrollbar-hide">
            <Dialog>
              <DialogTrigger asChild>
