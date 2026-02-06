@@ -106,15 +106,15 @@ export default function TourAnalytics() {
     };
   }, [visits]);
 
-  const getDeviceIcon = (ua: string) => {
+  const getDeviceInfo = (ua: string) => {
     const userAgent = (ua || '').toLowerCase();
     if (userAgent.includes('tablet') || userAgent.includes('ipad') || userAgent.includes('playbook') || userAgent.includes('silk')) {
-      return <Tablet className="w-4 h-4 text-muted-foreground" title="Tablet" />;
+      return { icon: <Tablet className="w-4 h-4 text-muted-foreground" />, label: 'Tablet' };
     }
     if (userAgent.includes('mobile') || userAgent.includes('android') || userAgent.includes('iphone') || userAgent.includes('phone')) {
-      return <Smartphone className="w-4 h-4 text-muted-foreground" title="Móvil" />;
+      return { icon: <Smartphone className="w-4 h-4 text-muted-foreground" />, label: 'Smartphone' };
     }
-    return <Monitor className="w-4 h-4 text-muted-foreground" title="Escritorio" />;
+    return { icon: <Monitor className="w-4 h-4 text-muted-foreground" />, label: 'Escritorio' };
   };
 
   if (isTourLoading || isVisitsLoading) {
@@ -273,84 +273,104 @@ export default function TourAnalytics() {
             </CardContent>
           </Card>
         </div>
-      </TooltipProvider>
 
-      <Card className="md:rounded-[2.5rem] rounded-3xl border-none shadow-xl overflow-hidden bg-white mx-2">
-        <CardHeader className="bg-primary/5 p-6">
-          <CardTitle className="text-lg">Historial de Visitas</CardTitle>
-          <CardDescription className="text-xs">Registro individual de cada acceso y contacto detectado.</CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto scrollbar-hide">
-            <Table>
-              <TableHeader className="hidden md:table-header-group">
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="pl-6 md:pl-8 text-[11px] uppercase font-bold">Fecha</TableHead>
-                  <TableHead className="text-center text-[11px] uppercase font-bold">Dispositivo</TableHead>
-                  <TableHead className="text-center text-[11px] uppercase font-bold">Interacción</TableHead>
-                  <TableHead className="text-right pr-6 md:pr-8 text-[11px] uppercase font-bold">Duración</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {stats?.sortedVisits && stats.sortedVisits.length > 0 ? stats.sortedVisits.map((visit) => (
-                  <TableRow key={visit.id} className="group hover:bg-gray-50/50">
-                    <TableCell className="pl-4 md:pl-8 py-4">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-xs md:text-sm">
-                          {format(new Date(visit.timestamp), "d MMM yyyy", { locale: es })}
-                        </span>
-                        <span className="text-[9px] md:text-[10px] text-muted-foreground">
-                          {format(new Date(visit.timestamp), "HH:mm")}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center px-2">
-                      <div className="flex items-center justify-center" title={visit.userAgent}>
-                        {getDeviceIcon(visit.userAgent)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center px-2">
-                      <div className="flex items-center justify-center gap-1.5 md:gap-2">
-                        {visit.contacted ? (
-                          <>
-                            {visit.contactMethods?.includes('info_request') && (
-                              <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" title="Solicitud Información" />
-                            )}
-                            {visit.contactMethods?.includes('whatsapp') && (
-                              <MessageCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-500 fill-green-500" title="WhatsApp Directo" />
-                            )}
-                            {visit.contactMethods?.includes('phone') && <Phone className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" title="Llamada" />}
-                            {visit.contactMethods?.includes('email') && <Mail className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" title="Email" />}
-                            {visit.contactMethods?.includes('location') && <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4 text-blue-500" title="Ver Ubicación" />}
-                            {visit.contactMethods?.includes('share') && <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-orange-500" title="Compartido" />}
-                          </>
-                        ) : (
-                          <span className="text-[8px] md:text-[9px] text-muted-foreground/30 italic">Sin clic</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right pr-4 md:pr-8">
-                      {visit.duration ? (
-                        <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20 text-[8px] md:text-[9px] px-1.5 md:px-2 py-0">
-                          {stats.formatDuration(visit.duration)}
-                        </Badge>
-                      ) : (
-                        <span className="text-[8px] md:text-[9px] text-muted-foreground italic">Breve</span>
-                      )}
-                    </TableCell>
+        <Card className="md:rounded-[2.5rem] rounded-3xl border-none shadow-xl overflow-hidden bg-white mx-2">
+          <CardHeader className="bg-primary/5 p-6">
+            <CardTitle className="text-lg">Historial de Visitas</CardTitle>
+            <CardDescription className="text-xs">Registro individual de cada acceso y contacto detectado.</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto scrollbar-hide">
+              <Table>
+                <TableHeader className="hidden md:table-header-group">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="pl-6 md:pl-8 text-[11px] uppercase font-bold">Fecha</TableHead>
+                    <TableHead className="text-center text-[11px] uppercase font-bold">Dispositivo</TableHead>
+                    <TableHead className="text-center text-[11px] uppercase font-bold">Interacción</TableHead>
+                    <TableHead className="text-right pr-6 md:pr-8 text-[11px] uppercase font-bold">Duración</TableHead>
                   </TableRow>
-                )) : (
-                  <TableRow>
-                    <TableCell colSpan={4} className="h-32 text-center text-muted-foreground italic text-sm">
-                      No hay visitas registradas aún.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {stats?.sortedVisits && stats.sortedVisits.length > 0 ? stats.sortedVisits.map((visit) => {
+                    const deviceInfo = getDeviceInfo(visit.userAgent);
+                    return (
+                      <TableRow key={visit.id} className="group hover:bg-gray-50/50">
+                        <TableCell className="pl-4 md:pl-8 py-4">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-xs md:text-sm">
+                              {format(new Date(visit.timestamp), "d MMM yyyy", { locale: es })}
+                            </span>
+                            <span className="text-[9px] md:text-[10px] text-muted-foreground">
+                              {format(new Date(visit.timestamp), "HH:mm")}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center px-2">
+                          <div className="flex items-center justify-center">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button className="focus:outline-none hover:scale-110 transition-transform active:scale-95">
+                                  {deviceInfo.icon}
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-[250px] rounded-xl p-3" side="top">
+                                <div className="space-y-1">
+                                  <p className="text-xs font-bold flex items-center gap-2">
+                                    {React.cloneElement(deviceInfo.icon as React.ReactElement, { className: 'w-3 h-3' })}
+                                    {deviceInfo.label}
+                                  </p>
+                                  <p className="text-[9px] text-muted-foreground break-all leading-tight">
+                                    {visit.userAgent}
+                                  </p>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center px-2">
+                          <div className="flex items-center justify-center gap-1.5 md:gap-2">
+                            {visit.contacted ? (
+                              <>
+                                {visit.contactMethods?.includes('info_request') && (
+                                  <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" title="Solicitud Información" />
+                                )}
+                                {visit.contactMethods?.includes('whatsapp') && (
+                                  <MessageCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-500 fill-green-500" title="WhatsApp Directo" />
+                                )}
+                                {visit.contactMethods?.includes('phone') && <Phone className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" title="Llamada" />}
+                                {visit.contactMethods?.includes('email') && <Mail className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" title="Email" />}
+                                {visit.contactMethods?.includes('location') && <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4 text-blue-500" title="Ver Ubicación" />}
+                                {visit.contactMethods?.includes('share') && <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-orange-500" title="Compartido" />}
+                              </>
+                            ) : (
+                              <span className="text-[8px] md:text-[9px] text-muted-foreground/30 italic">Sin clic</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right pr-4 md:pr-8">
+                          {visit.duration ? (
+                            <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20 text-[8px] md:text-[9px] px-1.5 md:px-2 py-0">
+                              {stats.formatDuration(visit.duration)}
+                            </Badge>
+                          ) : (
+                            <span className="text-[8px] md:text-[9px] text-muted-foreground italic">Breve</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="h-32 text-center text-muted-foreground italic text-sm">
+                        No hay visitas registradas aún.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </TooltipProvider>
     </div>
   );
 }
