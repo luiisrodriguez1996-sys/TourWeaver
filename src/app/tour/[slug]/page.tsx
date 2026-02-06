@@ -6,7 +6,7 @@ import { useCollection, useFirestore, useMemoFirebase, useUser, useDoc, addDocum
 import { collection, query, where, limit, doc, arrayUnion } from 'firebase/firestore';
 import { ThreeSixtyViewer } from '@/components/ThreeSixtyViewer';
 import { Button } from '@/components/ui/button';
-import { Globe, Map, ChevronUp, ChevronDown, Share2, Info, Loader2, Check, MapPin, ArrowLeft, Shield, Layers, ImageOff, StickyNote, X, Lock, MessageCircle, Phone, Mail, Copy, Download, ArrowUp } from 'lucide-react';
+import { Globe, Map, ChevronUp, ChevronDown, Share2, Info, Loader2, Check, MapPin, ArrowLeft, Shield, Layers, ImageOff, StickyNote, X, Lock, MessageCircle, Phone, Mail, Copy, Download } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -279,10 +279,10 @@ export default function PublicTourViewer() {
               <div className="space-y-2 pt-1">
                 
                 {(tour.description || tour.address) && (
-                  <div className="bg-white/10 rounded-xl p-1.5 md:p-2 border border-white/5 overflow-hidden">
-                    <p className="inline-block text-[8px] md:text-[9px] font-black bg-primary text-white uppercase tracking-wider mb-1.5 px-2 py-0.5 rounded-sm">Descripción de la propiedad</p>
+                  <div className="bg-white/10 rounded-xl overflow-hidden border border-white/5">
+                    <p className="inline-block text-[8px] md:text-[9px] font-black bg-primary text-white uppercase tracking-wider px-2 py-1 w-full">Descripción de la propiedad</p>
                     
-                    <div className="space-y-1.5">
+                    <div className="p-1.5 md:p-2 space-y-1.5">
                       {tour.address && (
                         <a href={getMapsUrl() || '#'} target="_blank" rel="noopener noreferrer" className="group flex items-start gap-2 text-[10px] md:text-xs text-white hover:text-primary transition-colors">
                           <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5 mt-0.5 text-primary" />
@@ -297,17 +297,19 @@ export default function PublicTourViewer() {
                 )}
                 
                 {(activeScene?.description || activeScene?.floorId) && (
-                  <div className="bg-white/20 rounded-xl p-1.5 md:p-2 border border-white/10">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <p className="inline-block text-[8px] md:text-[9px] font-black bg-accent text-white uppercase tracking-wider px-2 py-0.5 rounded-sm">Sobre esta estancia</p>
+                  <div className="bg-white/20 rounded-xl overflow-hidden border border-white/10">
+                    <div className="flex items-center justify-between bg-accent text-white px-2 py-1">
+                      <p className="text-[8px] md:text-[9px] font-black uppercase tracking-wider">Sobre esta estancia</p>
                       {activeScene?.floorId && tour?.floors?.find((f: any) => f.id === activeScene.floorId) && (
-                        <span className="text-[8px] md:text-[9px] font-bold text-white/40 flex items-center gap-1 uppercase">
+                        <span className="text-[8px] md:text-[9px] font-bold text-white/60 flex items-center gap-1 uppercase">
                           <Layers className="w-2.5 h-2.5" /> {tour.floors.find((f: any) => f.id === activeScene.floorId).name}
                         </span>
                       )}
                     </div>
                     {activeScene?.description && (
-                      <p className="text-[10px] md:text-sm text-white/80 font-semibold leading-relaxed">{activeScene.description}</p>
+                      <div className="p-1.5 md:p-2">
+                        <p className="text-[10px] md:text-sm text-white/80 font-semibold leading-relaxed">{activeScene.description}</p>
+                      </div>
                     )}
                   </div>
                 )}

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -369,14 +368,6 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
           ))}
         </div>
       )}
-
-      <div className="absolute bottom-1.5 left-4 z-30">
-        <span 
-          className="text-neutral-700 text-[8px] md:text-[10px] font-bold tracking-widest uppercase"
-        >
-          {isEditing ? 'Configurando Espacio' : 'Inmersión 360°'}
-        </span>
-      </div>
     </div>
   );
 };

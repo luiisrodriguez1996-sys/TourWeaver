@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -603,6 +602,12 @@ export default function TourEditor() {
                    >
                      <StickyNote className="w-3 h-3 mr-1" /> Notas
                    </Button>
+                </div>
+
+                <div className="absolute bottom-1.5 left-4 z-30 pointer-events-none">
+                  <span className="text-neutral-700 text-[8px] md:text-[10px] font-bold tracking-widest uppercase">
+                    Configurando Espacio
+                  </span>
                 </div>
               </div>
               <div className="p-3 bg-primary/5 rounded-2xl flex items-center gap-3 text-[10px] font-medium text-primary border border-primary/20">
