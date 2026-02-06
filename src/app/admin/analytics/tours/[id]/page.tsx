@@ -9,11 +9,8 @@ import { collection, doc, query, where } from 'firebase/firestore';
 import { 
   BarChart3, 
   Users, 
-  MousePointer2, 
   Clock,
   ArrowLeft,
-  Layout,
-  ExternalLink,
   Calendar,
   Smartphone,
   CheckCircle2,
@@ -22,7 +19,8 @@ import {
   Phone,
   Mail,
   Zap,
-  Info
+  Info,
+  ExternalLink
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -81,7 +79,6 @@ export default function TourAnalytics() {
       return `${mins}m ${remainingSecs}s`;
     };
 
-    // Ordenar visitas por fecha descendente para la tabla
     const sortedVisits = [...visits].sort((a, b) => b.timestamp - a.timestamp);
 
     return {
@@ -98,7 +95,7 @@ export default function TourAnalytics() {
     return (
       <div className="space-y-8 p-4">
         <Skeleton className="h-10 w-64" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 w-full rounded-3xl" />)}
         </div>
         <Skeleton className="h-[400px] w-full rounded-3xl" />
@@ -108,7 +105,7 @@ export default function TourAnalytics() {
 
   if (!tour) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="flex flex-col items-center justify-center py-20 text-center px-4">
         <AlertCircle className="w-16 h-16 text-muted-foreground mb-4" />
         <h2 className="text-2xl font-bold">Propiedad no encontrada</h2>
         <Link href="/admin/analytics" className="mt-4">
@@ -119,40 +116,40 @@ export default function TourAnalytics() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+    <div className="space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto pb-10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2">
+        <div className="flex items-center gap-3 md:gap-4">
           <Link href="/admin/analytics">
-            <Button variant="ghost" size="icon" className="rounded-full">
+            <Button variant="ghost" size="icon" className="rounded-full flex-shrink-0">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold font-headline truncate max-w-md">
+          <div className="min-w-0">
+            <h1 className="text-xl md:text-3xl font-bold font-headline truncate">
               {tour.name}
             </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 text-[10px]">
                 {tour.clientName || 'Sin Cliente'}
               </Badge>
               {tour.published ? (
-                <Badge className="bg-green-500 gap-1"><CheckCircle2 className="w-3 h-3" /> Publicado</Badge>
+                <Badge className="bg-green-500 gap-1 text-[10px]"><CheckCircle2 className="w-3 h-3" /> Publicado</Badge>
               ) : (
-                <Badge variant="secondary">Borrador</Badge>
+                <Badge variant="secondary" className="text-[10px]">Borrador</Badge>
               )}
             </div>
           </div>
         </div>
         
-        <Link href={`/tour/${tour.slug}`} target="_blank">
-          <Button className="rounded-xl gap-2 h-11">
+        <Link href={`/tour/${tour.slug}`} target="_blank" className="w-full md:w-auto">
+          <Button className="w-full md:w-auto rounded-xl gap-2 h-11">
             <ExternalLink className="w-4 h-4" /> Ver Tour Público
           </Button>
         </Link>
       </div>
 
       <TooltipProvider>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-2">
           <Card className="rounded-[2rem] border-none shadow-md bg-white">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-2">
@@ -169,7 +166,7 @@ export default function TourAnalytics() {
                 </div>
               </div>
               <p className="text-3xl font-bold">{stats?.totalVisits || 0}</p>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Aperturas Totales</p>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Aperturas Totales</p>
             </CardContent>
           </Card>
 
@@ -189,7 +186,7 @@ export default function TourAnalytics() {
                 </div>
               </div>
               <p className="text-3xl font-bold">{stats?.avgDuration}</p>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Permanencia Media</p>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Permanencia Media</p>
             </CardContent>
           </Card>
 
@@ -210,9 +207,9 @@ export default function TourAnalytics() {
               </div>
               <div className="flex items-baseline gap-1">
                 <p className="text-3xl font-bold">{stats?.conversionRate}%</p>
-                <p className="text-xs text-muted-foreground font-bold">({stats?.contactedVisits})</p>
+                <p className="text-[10px] text-muted-foreground font-bold">({stats?.contactedVisits})</p>
               </div>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Tasa de Conversión</p>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Tasa de Conversión</p>
             </CardContent>
           </Card>
 
@@ -231,41 +228,48 @@ export default function TourAnalytics() {
                   </Tooltip>
                 </div>
               </div>
-              <p className="text-lg font-bold">
-                {tour.createdAt ? format(new Date(tour.createdAt), 'dd/MM/yyyy') : '---'}
+              <p className="text-xl md:text-2xl font-bold">
+                {tour.createdAt ? format(new Date(tour.createdAt), 'dd/MM/yy') : '---'}
               </p>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Fecha de Creación</p>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Fecha de Registro</p>
             </CardContent>
           </Card>
         </div>
       </TooltipProvider>
 
-      <Card className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white">
-        <CardHeader className="bg-primary/5">
+      <Card className="md:rounded-[2.5rem] rounded-3xl border-none shadow-xl overflow-hidden bg-white mx-2">
+        <CardHeader className="bg-primary/5 p-6">
           <CardTitle className="text-lg">Historial de Visitas</CardTitle>
-          <CardDescription>Registro individualizado de cada acceso y contacto detectado para esta propiedad.</CardDescription>
+          <CardDescription className="text-xs">Registro individual de cada acceso y contacto detectado.</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="pl-8">Fecha y Hora</TableHead>
-                  <TableHead>Dispositivo / Navegador</TableHead>
-                  <TableHead className="text-center">Interacción</TableHead>
-                  <TableHead className="text-right pr-8">Duración</TableHead>
+                  <TableHead className="pl-6 md:pl-8 text-[11px] uppercase font-bold">Fecha / Hora</TableHead>
+                  <TableHead className="text-[11px] uppercase font-bold">Dispositivo</TableHead>
+                  <TableHead className="text-center text-[11px] uppercase font-bold">Interacción</TableHead>
+                  <TableHead className="text-right pr-6 md:pr-8 text-[11px] uppercase font-bold">Duración</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {stats?.sortedVisits && stats.sortedVisits.length > 0 ? stats.sortedVisits.map((visit) => (
-                  <TableRow key={visit.id} className="group">
-                    <TableCell className="pl-8 font-medium">
-                      {format(new Date(visit.timestamp), "d MMM yyyy, HH:mm", { locale: es })}
+                  <TableRow key={visit.id} className="group hover:bg-gray-50/50">
+                    <TableCell className="pl-6 md:pl-8 py-4">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-sm">
+                          {format(new Date(visit.timestamp), "d MMM yyyy", { locale: es })}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {format(new Date(visit.timestamp), "HH:mm")}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground max-w-xs truncate" title={visit.userAgent}>
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground max-w-[120px] md:max-w-xs truncate" title={visit.userAgent}>
                         <Smartphone className="w-3 h-3 flex-shrink-0" />
-                        {visit.userAgent}
+                        <span className="truncate">{visit.userAgent}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
@@ -277,24 +281,24 @@ export default function TourAnalytics() {
                             {visit.contactMethods?.includes('email') && <Mail className="w-4 h-4 text-accent" title="Email" />}
                           </>
                         ) : (
-                          <span className="text-[10px] text-muted-foreground/40 italic">Ninguna</span>
+                          <span className="text-[9px] text-muted-foreground/30 italic">Sin clic</span>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right pr-8">
+                    <TableCell className="text-right pr-6 md:pr-8">
                       {visit.duration ? (
-                        <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20">
+                        <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20 text-[9px] px-2 py-0">
                           {stats.formatDuration(visit.duration)}
                         </Badge>
                       ) : (
-                        <span className="text-[10px] text-muted-foreground italic">Visita activa/breve</span>
+                        <span className="text-[9px] text-muted-foreground italic">Breve</span>
                       )}
                     </TableCell>
                   </TableRow>
                 )) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="h-32 text-center text-muted-foreground italic">
-                      Aún no se han registrado visitas para esta propiedad.
+                    <TableCell colSpan={4} className="h-32 text-center text-muted-foreground italic text-sm">
+                      No hay visitas registradas aún.
                     </TableCell>
                   </TableRow>
                 )}
