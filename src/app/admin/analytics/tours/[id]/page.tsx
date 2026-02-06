@@ -21,7 +21,8 @@ import {
   Info,
   ExternalLink,
   Share2,
-  MapPin
+  MapPin,
+  MousePointer2
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -69,8 +70,17 @@ export default function TourAnalytics() {
       ? Math.round(visitsWithDuration.reduce((acc, v) => acc + (v.duration || 0), 0) / visitsWithDuration.length)
       : 0;
 
-    const contactedVisits = visits.filter(v => v.contacted === true).length;
-    const conversionRate = totalVisits > 0 ? Math.round((contactedVisits / totalVisits) * 100) : 0;
+    // Grupo 1: Conversión Directa (Contactos)
+    const directContactVisits = visits.filter(v => 
+      v.contactMethods?.some((m: string) => ['whatsapp', 'phone', 'email', 'info_request'].includes(m))
+    ).length;
+    const contactRate = totalVisits > 0 ? Math.round((directContactVisits / totalVisits) * 100) : 0;
+
+    // Grupo 2: Interés Secundario (Engagement)
+    const engagementVisits = visits.filter(v => 
+      v.contactMethods?.some((m: string) => ['location', 'share'].includes(m))
+    ).length;
+    const engagementRate = totalVisits > 0 ? Math.round((engagementVisits / totalVisits) * 100) : 0;
 
     const formatDuration = (sec: number) => {
       if (!sec) return '---';
@@ -85,8 +95,10 @@ export default function TourAnalytics() {
     return {
       totalVisits,
       avgDuration: formatDuration(avgDuration),
-      contactedVisits,
-      conversionRate,
+      directContactVisits,
+      contactRate,
+      engagementVisits,
+      engagementRate,
       sortedVisits,
       formatDuration
     };
@@ -138,6 +150,9 @@ export default function TourAnalytics() {
               ) : (
                 <Badge variant="secondary" className="text-[10px]">Borrador</Badge>
               )}
+              <Badge variant="ghost" className="text-[9px] text-muted-foreground gap-1">
+                <Calendar className="w-2.5 h-2.5" /> Registrado: {tour.createdAt ? format(new Date(tour.createdAt), 'dd/MM/yy') : '---'}
+              </Badge>
             </div>
           </div>
         </div>
@@ -201,16 +216,16 @@ export default function TourAnalytics() {
                       <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[200px] rounded-xl p-3">
-                      <p className="text-xs">Porcentaje de visitantes que hicieron clic en algún medio de contacto desde esta propiedad.</p>
+                      <p className="text-xs">Porcentaje de visitantes que intentaron contactar vía WhatsApp, Teléfono o Email.</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
               </div>
               <div className="flex items-baseline gap-1">
-                <p className="text-3xl font-bold">{stats?.conversionRate}%</p>
-                <p className="text-[10px] text-muted-foreground font-bold">({stats?.contactedVisits})</p>
+                <p className="text-3xl font-bold">{stats?.contactRate}%</p>
+                <p className="text-[10px] text-muted-foreground font-bold">({stats?.directContactVisits})</p>
               </div>
-              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Tasa de Conversión</p>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Conversión Directa</p>
             </CardContent>
           </Card>
 
@@ -218,21 +233,22 @@ export default function TourAnalytics() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Calendar className="text-blue-500 w-5 h-5" />
+                  <MousePointer2 className="text-blue-500 w-5 h-5" />
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[200px] rounded-xl p-3">
-                      <p className="text-xs">Fecha en la que esta propiedad fue registrada inicialmente en el sistema.</p>
+                      <p className="text-xs">Porcentaje de visitantes que consultaron la ubicación o compartieron el tour.</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
               </div>
-              <p className="text-xl md:text-2xl font-bold">
-                {tour.createdAt ? format(new Date(tour.createdAt), 'dd/MM/yy') : '---'}
-              </p>
-              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Fecha de Registro</p>
+              <div className="flex items-baseline gap-1">
+                <p className="text-3xl font-bold">{stats?.engagementRate}%</p>
+                <p className="text-[10px] text-muted-foreground font-bold">({stats?.engagementVisits})</p>
+              </div>
+              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Interés en Propiedad</p>
             </CardContent>
           </Card>
         </div>
