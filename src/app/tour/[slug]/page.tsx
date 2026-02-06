@@ -84,44 +84,69 @@ export default function PublicTourViewer() {
     };
   }, []);
 
+  // Seguimiento de Visita y Duración mejorado
   useEffect(() => {
-    if (isUserLoading || isAdminLoading) return;
+    if (isUserLoading || isAdminLoading || !tour || !firestore || isAdmin) return;
 
-    if (tour && firestore && !isAdmin && !visitIdRef.current) {
-      const visitsRef = collection(firestore, 'tourVisits');
-      
-      addDocumentNonBlocking(visitsRef, {
-        tourId: tour.id,
-        timestamp: Date.now(),
-        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown',
-        contacted: false,
-        contactMethods: [],
-        duration: 0
-      }).then(docRef => {
+    const startTime = Date.now();
+    startTimeRef.current = startTime;
+
+    // 1. Crear el registro de visita inicial
+    const createVisitRecord = async () => {
+      try {
+        const visitsRef = collection(firestore, 'tourVisits');
+        const docRef = await addDocumentNonBlocking(visitsRef, {
+          tourId: tour.id,
+          timestamp: startTime,
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown',
+          contacted: false,
+          contactMethods: [],
+          duration: 0
+        });
+        
         if (docRef) {
           visitIdRef.current = docRef.id;
         }
-      });
+      } catch (err) {
+        console.error("Error creating visit record:", err);
+      }
+    };
 
-      const updateFinalDuration = () => {
-        if (visitIdRef.current && firestore) {
-          const endTime = Date.now();
-          const durationSeconds = Math.floor((endTime - startTimeRef.current) / 1000);
-          
-          if (durationSeconds > 0) {
-            const docRef = doc(firestore, 'tourVisits', visitIdRef.current);
-            updateDocumentNonBlocking(docRef, { duration: durationSeconds });
-          }
-        }
-      };
+    createVisitRecord();
 
-      window.addEventListener('beforeunload', updateFinalDuration);
-      return () => {
-        window.removeEventListener('beforeunload', updateFinalDuration);
-        updateFinalDuration();
-      };
-    }
-  }, [tour, firestore, isAdmin, isAdminLoading, isUserLoading]);
+    // 2. Función para actualizar la duración (Heartbeat)
+    const updateDuration = () => {
+      if (!visitIdRef.current || !firestore) return;
+      
+      const currentTime = Date.now();
+      const durationSeconds = Math.floor((currentTime - startTime) / 1000);
+      
+      if (durationSeconds > 0) {
+        const docRef = doc(firestore, 'tourVisits', visitIdRef.current);
+        updateDocumentNonBlocking(docRef, { duration: durationSeconds });
+      }
+    };
+
+    // Actualizar cada 15 segundos (Latido)
+    const heartbeatInterval = setInterval(updateDuration, 15000);
+
+    // Eventos de cierre o cambio de pestaña (Móvil y Escritorio)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        updateDuration();
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', updateDuration);
+
+    return () => {
+      clearInterval(heartbeatInterval);
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', updateDuration);
+      updateDuration(); // Intento de actualización final al desmontar
+    };
+  }, [tour?.id, firestore, isAdmin, isAdminLoading, isUserLoading]);
 
   useEffect(() => {
     if (showOnboarding) {
