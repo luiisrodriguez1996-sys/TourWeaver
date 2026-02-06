@@ -152,7 +152,7 @@ export default function AdminDashboard() {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[1, 2, 3].map(i => <Skeleton className="aspect-video w-full rounded-xl" />)}
+        {[1, 2, 3].map(i => <Skeleton key={i} className="aspect-video w-full rounded-xl" />)}
       </div>
     );
   }
