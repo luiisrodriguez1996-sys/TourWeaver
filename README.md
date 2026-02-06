@@ -1,5 +1,4 @@
-# Firebase Studio
 
-This is a NextJS starter in Firebase Studio.
+# Tour Weaver v1.3.4
 
-To get started, take a look at src/app/page.tsx.
+Plataforma profesional para la creación y exhibición de tours virtuales 360°. Unificada con auditoría de seguridad integral y soporte SEO.

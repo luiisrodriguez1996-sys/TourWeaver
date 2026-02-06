@@ -10,66 +10,75 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Verifica si el usuario es administrador consultando la colección protegida.
-    // Usamos get() directamente; si el documento no existe o isAdmin no es true, la regla falla.
     function isAdmin() {
       return isSignedIn() && 
         get(/databases/$(database)/documents/roles_admin/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // Validadores de tipos de datos básicos.
     function isValidString(val) { return val is string && val.size() > 0; }
+    
+    // Validadores de formato (Regex)
+    function isValidEmail(val) {
+      return val == null || (val is string && val.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'));
+    }
+    
+    function isValidPhone(val) {
+      return val == null || (val is string && val.matches('^\\+?[0-9\\s\\-\\(\\)]{7,20}$'));
+    }
+    
+    function isValidWhatsApp(val) {
+      return val == null || (val is string && val.matches('^[0-9]{7,15}$'));
+    }
 
     // --- REGLAS DE COLECCIONES ---
 
-    // Configuración del sitio: Lectura pública, escritura solo admin.
     match /siteConfigurations/{siteConfigurationId} {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
     }
 
-    // Roles de administrador: El usuario ve el suyo, admin ve todos. No se crean desde la app.
     match /roles_admin/{userId} {
       allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow list: if isAdmin();
       allow create, update, delete: if false; 
     }
 
-    // Telemetría de visitas: Creación pública, gestión solo admin.
     match /tourVisits/{visitId} {
       allow create: if request.resource.data.keys().hasAll(['tourId', 'timestamp', 'userAgent'])
                     && request.resource.data.tourId is string;
       
-      // Permitimos actualización limitada (para duración y clics) sin ser admin,
-      // siempre que no se cambien datos base.
       allow update: if request.resource.data.tourId == resource.data.tourId
-                    && (request.resource.data.duration is number || !request.resource.data.keys().contains('duration'))
-                    && (request.resource.data.contacted is bool || !request.resource.data.keys().contains('contacted'));
+                    // Blindaje: La duración solo puede aumentar
+                    && (!request.resource.data.keys().contains('duration') || request.resource.data.duration >= resource.data.duration)
+                    // Blindaje: Si ya fue contactado, no puede volver a false
+                    && (!request.resource.data.keys().contains('contacted') || (request.resource.data.contacted == true || resource.data.contacted == false))
+                    // Blindaje: Los métodos de contacto no pueden ser eliminados, solo añadidos
+                    && (!request.resource.data.keys().contains('contactMethods') || request.resource.data.contactMethods.hasAll(resource.data.contactMethods));
 
       allow get, list, delete: if isAdmin();
     }
 
-    // Tours y Propiedades: Núcleo de la aplicación.
+    match /slug_registry/{slug} {
+      // Unicidad de Slugs: Lectura pública, escritura solo admin
+      allow get: if true;
+      allow create, delete: if isAdmin();
+    }
+
     match /tours/{tourId} {
-      // Lectura: Público ve lo publicado, Admin ve todo. 
-      // Se añade comprobación de existencia (resource != null) para evitar errores.
+      // Lectura pública si está publicado, o acceso total si es admin
       allow get, list: if (resource != null && resource.data.published == true) || isAdmin();
       
-      // Escritura: Solo administradores con validación de campos mínimos.
       allow create, update: if isAdmin() && 
         isValidString(request.resource.data.name) && 
-        isValidString(request.resource.data.slug);
+        isValidString(request.resource.data.slug) &&
+        isValidEmail(request.resource.data.contactEmail) &&
+        isValidPhone(request.resource.data.contactPhone) &&
+        isValidWhatsApp(request.resource.data.contactWhatsApp);
       
-      // Eliminación: Permitida para cualquier administrador.
       allow delete: if isAdmin();
 
-      // Subcolecciones (Escenas, Hotspots, Anotaciones):
-      // Usamos un comodín recursivo para asegurar que el admin tenga control total sobre los hijos del tour.
       match /{allSubcollections=**} {
-        // El acceso de lectura depende de si el tour padre es público o si eres admin.
         allow read: if isAdmin() || get(/databases/$(database)/documents/tours/$(tourId)).data.published == true;
-        
-        // Escritura total en subcolecciones para administradores.
         allow write: if isAdmin();
       }
     }

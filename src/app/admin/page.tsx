@@ -40,8 +40,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCollection, useFirestore, useMemoFirebase, updateDocumentNonBlocking, deleteDocumentNonBlocking, useDoc } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase, updateDocumentNonBlocking, useDoc } from '@/firebase';
+import { collection, doc, writeBatch } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -122,27 +122,48 @@ function AdminDashboardContent() {
       setLoadingActions(prev => ({ ...prev, [id]: false }));
       toast({
         title: currentStatus ? (isSpanish ? "Propiedad Privada" : "Private Property") : (isSpanish ? "Propiedad Publicada" : "Property Published"),
-        description: currentStatus ? (isSpanish ? "El tour ya no es visible para el público." : "The tour is no longer visible to the public.") : (isSpanish ? "El tour ahora es accesible mediante su enlace." : "The tour ahora es accesible mediante su enlace."),
+        description: currentStatus ? (isSpanish ? "El tour ya no es visible para el público." : "The tour is no longer visible to the public.") : (isSpanish ? "El tour ahora es accesible mediante su enlace." : "The tour is now accessible through its link."),
       });
     }, 500);
   };
 
-  const handleDeleteConfirm = () => {
-    if (!firestore || !tourToDeleteId) return;
+  const handleDeleteConfirm = async () => {
+    if (!firestore || !tourToDeleteId || !tours) return;
     
+    const tourToDelete = tours.find(t => t.id === tourToDeleteId);
+    if (!tourToDelete) return;
+
     setLoadingActions(prev => ({ ...prev, [`delete-${tourToDeleteId}`]: true }));
-    const tourRef = doc(firestore, 'tours', tourToDeleteId);
-    deleteDocumentNonBlocking(tourRef);
     
-    setTimeout(() => {
-      setLoadingActions(prev => ({ ...prev, [`delete-${tourToDeleteId}`]: false }));
+    try {
+      const batch = writeBatch(firestore);
+      
+      // 1. Eliminar documento del Tour
+      batch.delete(doc(firestore, 'tours', tourToDeleteId));
+      
+      // 2. Liberar el Slug del registro de unicidad
+      if (tourToDelete.slug) {
+        batch.delete(doc(firestore, 'slug_registry', tourToDelete.slug));
+      }
+      
+      await batch.commit();
+
       toast({
         variant: "destructive",
         title: isSpanish ? "Propiedad Eliminada" : "Property Deleted",
-        description: isSpanish ? "El tour ha sido borrado permanentemente." : "The tour has been permanently deleted.",
+        description: isSpanish ? "El tour y su URL han sido borrados permanentemente." : "The tour and its URL have been permanently deleted.",
       });
+    } catch (error) {
+      console.error("Error al eliminar tour:", error);
+      toast({
+        variant: "destructive",
+        title: "Error de Sistema",
+        description: "No se pudo completar la eliminación. Inténtalo de nuevo.",
+      });
+    } finally {
+      setLoadingActions(prev => ({ ...prev, [`delete-${tourToDeleteId}`]: false }));
       setTourToDeleteId(null);
-    }, 500);
+    }
   };
 
   const handleNavigateTo = (path: string, id: string) => {
@@ -404,7 +425,7 @@ function AdminDashboardContent() {
             </div>
             <AlertDialogTitle className="text-xl font-bold">¿Estás completamente seguro?</AlertDialogTitle>
             <AlertDialogDescription className="text-base">
-              Esta acción no se puede deshacer. Se eliminará la propiedad permanentemente de nuestros servidores.
+              Esta acción no se puede deshacer. Se eliminará la propiedad y se liberará su URL permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">

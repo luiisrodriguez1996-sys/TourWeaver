@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -9,8 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Briefcase, Loader2, User, Search, MapPin, Link as LinkIcon, AlertTriangle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { useFirestore, addDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, doc, writeBatch, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 export default function NewTour() {
@@ -28,7 +29,6 @@ export default function NewTour() {
     googleMapsUrl: ''
   });
 
-  // Obtener clientes existentes para sugerencias
   const toursRef = useMemoFirebase(() => {
     if (!firestore) return null;
     return collection(firestore, 'tours');
@@ -48,21 +48,26 @@ export default function NewTour() {
     try {
       const targetSlug = formData.slug || formData.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, '');
 
-      // Auditoría de Seguridad: Verificar unicidad de Slug
-      const q = query(collection(firestore, 'tours'), where('slug', '==', targetSlug), limit(1));
-      const querySnapshot = await getDocs(q);
+      // Auditoría de Seguridad: Verificar disponibilidad en el Registro de Slugs
+      const slugRegistryRef = doc(firestore, 'slug_registry', targetSlug);
+      const slugSnapshot = await getDoc(slugRegistryRef);
 
-      if (!querySnapshot.empty) {
+      if (slugSnapshot.exists()) {
         setIsLoading(false);
         toast({
           variant: "destructive",
-          title: "Error de Unicidad",
-          description: "Ya existe una propiedad con este Identificador de URL (Slug). Por favor, elige uno diferente.",
+          title: "URL No Disponible",
+          description: "Este Identificador de URL ya está en uso por otra propiedad. Elige uno diferente.",
         });
         return;
       }
 
+      const tourCol = collection(firestore, 'tours');
+      const tourDocRef = doc(tourCol); // Generar ID único
+      const tourId = tourDocRef.id;
+
       const tourData = {
+        id: tourId,
         name: formData.name,
         clientName: formData.clientName,
         slug: targetSlug,
@@ -74,24 +79,29 @@ export default function NewTour() {
         updatedAt: Date.now()
       };
       
-      const docRef = await addDocumentNonBlocking(collection(firestore, 'tours'), tourData);
-      if (docRef) {
-        toast({ title: "Propiedad Inicializada", description: "Ahora puedes añadir tus escenas 360° en el editor." });
-        router.push(`/admin/tours/${docRef.id}`);
-      }
+      // Operación Atómica: Crear Tour y Registrar Slug simultáneamente
+      const batch = writeBatch(firestore);
+      batch.set(tourDocRef, tourData);
+      batch.set(slugRegistryRef, { tourId: tourId });
+      
+      await batch.commit();
+
+      toast({ title: "Propiedad Inicializada", description: "Ahora puedes añadir tus escenas 360° en el editor." });
+      router.push(`/admin/tours/${tourId}`);
+      
     } catch (error) {
       console.error(error);
       setIsLoading(false);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "No se pudo crear la propiedad. Inténtalo de nuevo.",
+        title: "Error de Creación",
+        description: "No se pudo crear la propiedad. Verifica tu conexión e inténtalo de nuevo.",
       });
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-8">
+    <div className="max-w-2xl mx-auto py-8 px-4">
       <Card className="border-none shadow-xl rounded-3xl overflow-hidden">
         <CardHeader className="bg-primary/5 pb-8">
           <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
@@ -136,10 +146,11 @@ export default function NewTour() {
                 value={formData.name}
                 onChange={e => {
                   const name = e.target.value;
+                  const newSlug = name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, '');
                   setFormData({ 
                     ...formData, 
                     name, 
-                    slug: name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, '') 
+                    slug: newSlug
                   });
                 }}
                 className="rounded-xl h-11"
@@ -160,7 +171,7 @@ export default function NewTour() {
                 />
               </div>
               <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" /> Debe ser único para esta propiedad.
+                <AlertTriangle className="w-3 h-3" /> Este identificador será único y formará parte del enlace público.
               </p>
             </div>
 
@@ -201,9 +212,6 @@ export default function NewTour() {
                   onChange={e => setFormData({ ...formData, googleMapsUrl: e.target.value })}
                   className="rounded-xl h-11"
                 />
-                <p className="text-[10px] text-muted-foreground italic">
-                  Si pegas un enlace aquí, se usará directamente. Si no, se buscará por la dirección escrita.
-                </p>
               </div>
             </div>
           </CardContent>
@@ -212,7 +220,7 @@ export default function NewTour() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Verificando Disponibilidad...
+                  Garantizando Unicidad...
                 </>
               ) : 'Crear Propiedad e Ir al Editor'}
             </Button>
