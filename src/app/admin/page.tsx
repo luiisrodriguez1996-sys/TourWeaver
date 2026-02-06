@@ -231,18 +231,20 @@ function AdminDashboardContent() {
         <Button 
           type="button" 
           variant="outline" 
-          className="flex-1 gap-2 text-primary border-primary hover:bg-primary hover:text-white"
+          className="flex-1 gap-2 text-primary border-primary hover:bg-primary hover:text-white min-w-0"
           onClick={() => handleNavigateTo(`/admin/tours/${tour.id}`, `manage-${tour.id}`)}
           disabled={isNavigating === `manage-${tour.id}`}
         >
           {isNavigating === `manage-${tour.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Edit3 className="w-4 h-4" />} 
-          {isSpanish ? 'Gestionar' : 'Manage'}
+          <span className="truncate hidden sm:inline md:hidden 2xl:inline">
+            {isSpanish ? 'Gestionar' : 'Manage'}
+          </span>
         </Button>
         <Button 
           type="button" 
           variant="ghost" 
           size="icon" 
-          className="text-muted-foreground hover:bg-muted-foreground hover:text-white transition-all" 
+          className="text-muted-foreground hover:bg-muted-foreground hover:text-white transition-all shrink-0" 
           title={isSpanish ? "Ver Estadísticas" : "View Statistics"}
           onClick={() => handleNavigateTo(`/admin/analytics/tours/${tour.id}`, `stats-${tour.id}`)}
           disabled={isNavigating === `stats-${tour.id}`}
@@ -253,7 +255,7 @@ function AdminDashboardContent() {
           type="button" 
           variant="ghost" 
           size="icon" 
-          className="text-accent hover:bg-accent hover:text-white transition-all"
+          className="text-accent hover:bg-accent hover:text-white transition-all shrink-0"
           title={isSpanish ? "Ver Tour" : "View Tour"}
           onClick={() => window.open(`/tour/${tour.slug}`, '_blank')}
         >
@@ -265,7 +267,7 @@ function AdminDashboardContent() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="max-w-full">
           <h1 className="text-2xl md:text-3xl font-bold font-headline truncate">
             {isSpanish ? 'Gestión de Propiedades' : 'Property Management'}
