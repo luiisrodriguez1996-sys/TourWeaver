@@ -40,7 +40,10 @@ import {
   Mail,
   MessageSquare,
   LayoutGrid,
-  Briefcase
+  Briefcase,
+  Lock,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import {
   Select,
@@ -98,6 +101,7 @@ export default function TourEditor() {
     name: '',
     clientName: '',
     description: '',
+    published: false,
     floors: [] as Floor[],
     showFloorPlan: false,
     showInPortfolio: false,
@@ -126,6 +130,7 @@ export default function TourEditor() {
         name: tour.name || '',
         clientName: tour.clientName || '',
         description: tour.description || '',
+        published: !!tour.published,
         floors: tour.floors || [],
         showFloorPlan: !!tour.showFloorPlan,
         showInPortfolio: !!tour.showInPortfolio,
@@ -343,15 +348,15 @@ export default function TourEditor() {
     updateLocalScene({ hotspots: activeScene?.hotspots.filter(h => h.id !== hotspotId) || [] });
   };
 
+  const removeAnnotation = (annotationId: string) => {
+    updateLocalScene({ annotations: activeScene?.annotations?.filter(a => a.id !== annotationId) || [] });
+  };
+
   const updateHotspot = (hotspotId: string, updates: Partial<Hotspot>) => {
     if (!activeScene) return;
     updateLocalScene({
       hotspots: activeScene.hotspots.map(h => h.id === hotspotId ? { ...h, ...updates } : h)
     });
-  };
-
-  const removeAnnotation = (annotationId: string) => {
-    updateLocalScene({ annotations: activeScene?.annotations?.filter(a => a.id !== annotationId) || [] });
   };
 
   const updateAnnotation = (annotationId: string, updates: Partial<Annotation>) => {
@@ -412,6 +417,22 @@ export default function TourEditor() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className={cn(
+              "h-11 w-11 rounded-xl transition-all duration-300 hidden lg:flex", 
+              localTourInfo.published ? "border-green-500 text-green-500 hover:bg-green-50" : "border-amber-500 text-amber-500 hover:bg-amber-50"
+            )}
+            onClick={() => {
+              setLocalTourInfo(prev => ({ ...prev, published: !prev.published }));
+              setHasUnsavedChanges(true);
+            }}
+            title={localTourInfo.published ? "Publicado" : "Privado"}
+          >
+            {localTourInfo.published ? <Eye className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+          </Button>
+
           <Tabs value={mainEditorTab} onValueChange={setMainEditorTab} className="hidden lg:block">
             <TabsList className="bg-white border rounded-xl p-1 h-11">
               <TabsTrigger value="space" className="rounded-lg gap-2 data-[state=active]:bg-primary data-[state=active]:text-white"><LayoutGrid className="w-4 h-4" /> Espacio</TabsTrigger>
@@ -425,9 +446,23 @@ export default function TourEditor() {
         </div>
       </div>
 
-      {/* Mobile Tabs */}
-      <div className="lg:hidden">
-        <Tabs value={mainEditorTab} onValueChange={setMainEditorTab}>
+      {/* Mobile Tabs & Visibility Toggle */}
+      <div className="lg:hidden flex items-center gap-2">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className={cn(
+            "h-11 w-11 rounded-xl flex-shrink-0 transition-all duration-300", 
+            localTourInfo.published ? "border-green-500 text-green-500 hover:bg-green-50" : "border-amber-500 text-amber-500 hover:bg-amber-50"
+          )}
+          onClick={() => {
+            setLocalTourInfo(prev => ({ ...prev, published: !prev.published }));
+            setHasUnsavedChanges(true);
+          }}
+        >
+          {localTourInfo.published ? <Eye className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+        </Button>
+        <Tabs value={mainEditorTab} onValueChange={setMainEditorTab} className="flex-1">
           <TabsList className="w-full bg-white border rounded-xl p-1 h-11">
             <TabsTrigger value="space" className="flex-1 rounded-lg"><LayoutGrid className="w-4 h-4" /></TabsTrigger>
             <TabsTrigger value="details" className="flex-1 rounded-lg"><Settings className="w-4 h-4" /></TabsTrigger>
@@ -445,7 +480,7 @@ export default function TourEditor() {
               <Button variant="outline" className="w-full gap-2 border-dashed h-12" onClick={() => sceneFileInputRef.current?.click()}>
                 {isUploading ? <Loader2 className="animate-spin w-4 h-4" /> : <Plus className="w-4 h-4" />} Añadir Estancia
               </Button>
-              <input type="file" min="0" ref={sceneFileInputRef} className="hidden" accept="image/*" onChange={handleSceneFileChange} />
+              <input type="file" ref={sceneFileInputRef} className="hidden" accept="image/*" onChange={handleSceneFileChange} />
               
               <div className="space-y-2">
                 {localScenes.map((scene, index) => (
