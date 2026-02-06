@@ -338,6 +338,29 @@ export default function PublicTourViewer() {
         </div>
         
         <div className="flex gap-2 pointer-events-auto w-full md:w-auto justify-end">
+          {tour.contactWhatsApp && (
+            <Button 
+              variant="secondary" 
+              className="rounded-full bg-[#25D366] text-white hover:bg-[#20ba59] h-9 px-4 md:h-10 md:px-6 border-none shadow-xl gap-2 transition-all active:scale-95"
+              onClick={() => {
+                setIsDetailsExpanded(true);
+                setHighlightContact(true);
+                setTimeout(() => setHighlightContact(false), 2000);
+              }}
+            >
+              <MessageCircle className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="font-black text-[9px] md:text-xs tracking-tight uppercase whitespace-nowrap">SOLICITAR INFORMACIÓN</span>
+            </Button>
+          )}
+
+          {getMapsUrl() && (
+            <a href={getMapsUrl()!} target="_blank" rel="noopener noreferrer">
+              <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-9 w-9 md:h-10 md:w-10">
+                <MapPin className="w-4 h-4" />
+              </Button>
+            </a>
+          )}
+
           <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
             <DialogTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-9 w-9 md:h-10 md:w-10">
@@ -388,29 +411,6 @@ export default function PublicTourViewer() {
               </div>
             </DialogContent>
           </Dialog>
-
-          {getMapsUrl() && (
-            <a href={getMapsUrl()!} target="_blank" rel="noopener noreferrer">
-              <Button variant="secondary" size="icon" className="rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 h-9 w-9 md:h-10 md:w-10">
-                <MapPin className="w-4 h-4" />
-              </Button>
-            </a>
-          )}
-
-          {tour.contactWhatsApp && (
-            <Button 
-              variant="secondary" 
-              className="rounded-full bg-[#25D366] text-white hover:bg-[#20ba59] h-9 px-4 md:h-10 md:px-6 border-none shadow-xl gap-2 transition-all active:scale-95"
-              onClick={() => {
-                setIsDetailsExpanded(true);
-                setHighlightContact(true);
-                setTimeout(() => setHighlightContact(false), 2000);
-              }}
-            >
-              <MessageCircle className="w-4 h-4 md:w-5 md:h-5" />
-              <span className="font-black text-[9px] md:text-xs tracking-tight uppercase whitespace-nowrap">SOLICITAR INFORMACIÓN</span>
-            </Button>
-          )}
         </div>
       </div>
 
@@ -551,7 +551,7 @@ export default function PublicTourViewer() {
         </div>
       )}
 
-      <div className="absolute bottom-2 right-4 md:right-8 z-20 pointer-events-none flex flex-col md:flex-row items-end md:items-center gap-2 md:gap-3">
+      <div className="absolute bottom-1 right-4 md:right-8 z-20 pointer-events-none flex flex-col md:flex-row items-end md:items-center gap-2 md:gap-3">
         <VersionIndicator />
         <Link href="/" className="pointer-events-auto">
           <span 

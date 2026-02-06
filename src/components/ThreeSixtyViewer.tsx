@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Hotspot, Annotation } from '@/lib/types';
 import { Button } from './ui/button';
-import { ChevronRight, Loader2, Settings2, Info } from 'lucide-react';
+import { ArrowUp, Loader2, Settings2, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import * as THREE_REAL from 'three';
 
@@ -334,7 +334,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
                 )}>
                   {h.label}
                 </span>
-                {!isEditing && <ChevronRight className="w-5 h-5 text-white" />}
+                {!isEditing && <ArrowUp className="w-5 h-5 text-white" />}
               </Button>
             </div>
           ))}
@@ -370,7 +370,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
         </div>
       )}
 
-      <div className="absolute bottom-2 left-4 z-30">
+      <div className="absolute bottom-1.5 left-4 z-30">
         <span 
           className="text-neutral-700 text-[8px] md:text-[10px] font-bold tracking-widest uppercase"
         >
