@@ -16,7 +16,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea } from '@/components/area';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -277,16 +277,21 @@ export default function PublicTourViewer() {
             
             <div className={cn("overflow-hidden transition-all duration-300 ease-in-out px-2 md:px-3", isDetailsExpanded && hasDetailsContent ? "max-h-[600px] pb-3 opacity-100" : "max-h-0 opacity-0")}>
               <div className="space-y-2 pt-1">
-                {tour.address && (
-                  <a href={getMapsUrl() || '#'} target="_blank" rel="noopener noreferrer" className="group flex items-start gap-2 text-[10px] md:text-xs text-white hover:text-primary transition-colors">
-                    <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5 mt-0.5 text-primary" /><span className="underline underline-offset-4 decoration-white/20 group-hover:decoration-primary">{tour.address}</span>
-                  </a>
-                )}
-
-                {tour.description && (
+                
+                {(tour.description || tour.address) && (
                   <div className="bg-white/10 rounded-xl p-2 md:p-3 border border-white/5">
-                    <p className="text-[8px] md:text-[9px] font-black text-primary uppercase tracking-wider mb-1">Descripción de la propiedad</p>
-                    <p className="text-[10px] md:text-sm text-white/70 font-medium leading-relaxed">{tour.description}</p>
+                    <p className="inline-block text-[8px] md:text-[9px] font-black bg-primary text-white uppercase tracking-wider mb-2 px-2 py-0.5 rounded-sm">Descripción de la propiedad</p>
+                    
+                    <div className="space-y-2">
+                      {tour.address && (
+                        <a href={getMapsUrl() || '#'} target="_blank" rel="noopener noreferrer" className="group flex items-start gap-2 text-[10px] md:text-xs text-white hover:text-primary transition-colors">
+                          <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5 mt-0.5 text-primary" /><span className="underline underline-offset-4 decoration-white/20 group-hover:decoration-primary">{tour.address}</span>
+                        </a>
+                      )}
+                      {tour.description && (
+                        <p className="text-[10px] md:text-sm text-white/70 font-medium leading-relaxed">{tour.description}</p>
+                      )}
+                    </div>
                   </div>
                 )}
                 
