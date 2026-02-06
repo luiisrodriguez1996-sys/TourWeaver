@@ -12,6 +12,8 @@ import {
   ArrowLeft,
   Calendar,
   Smartphone,
+  Tablet,
+  Monitor,
   CheckCircle2,
   AlertCircle,
   MessageCircle,
@@ -103,6 +105,17 @@ export default function TourAnalytics() {
       formatDuration
     };
   }, [visits]);
+
+  const getDeviceIcon = (ua: string) => {
+    const userAgent = (ua || '').toLowerCase();
+    if (userAgent.includes('tablet') || userAgent.includes('ipad') || userAgent.includes('playbook') || userAgent.includes('silk')) {
+      return <Tablet className="w-4 h-4 text-muted-foreground" title="Tablet" />;
+    }
+    if (userAgent.includes('mobile') || userAgent.includes('android') || userAgent.includes('iphone') || userAgent.includes('phone')) {
+      return <Smartphone className="w-4 h-4 text-muted-foreground" title="Móvil" />;
+    }
+    return <Monitor className="w-4 h-4 text-muted-foreground" title="Escritorio" />;
+  };
 
   if (isTourLoading || isVisitsLoading) {
     return (
@@ -265,7 +278,7 @@ export default function TourAnalytics() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="pl-6 md:pl-8 text-[11px] uppercase font-bold">Fecha / Hora</TableHead>
-                  <TableHead className="text-[11px] uppercase font-bold">Dispositivo</TableHead>
+                  <TableHead className="text-center text-[11px] uppercase font-bold">Dispositivo</TableHead>
                   <TableHead className="text-center text-[11px] uppercase font-bold">Interacción</TableHead>
                   <TableHead className="text-right pr-6 md:pr-8 text-[11px] uppercase font-bold">Duración</TableHead>
                 </TableRow>
@@ -283,10 +296,9 @@ export default function TourAnalytics() {
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground max-w-[120px] md:max-w-xs truncate" title={visit.userAgent}>
-                        <Smartphone className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{visit.userAgent}</span>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center" title={visit.userAgent}>
+                        {getDeviceIcon(visit.userAgent)}
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
