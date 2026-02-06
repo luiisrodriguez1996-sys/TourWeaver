@@ -121,7 +121,7 @@ export default function TourAnalytics() {
     return (
       <div className="space-y-8 p-4">
         <Skeleton className="h-10 w-64" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 w-full rounded-3xl" />)}
         </div>
         <Skeleton className="h-[400px] w-full rounded-3xl" />
@@ -178,90 +178,98 @@ export default function TourAnalytics() {
       </div>
 
       <TooltipProvider>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-2">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 px-2">
           <Card className="rounded-[2rem] border-none shadow-md bg-white">
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 px-4 md:px-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Users className="text-primary w-5 h-5" />
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                      <button className="focus:outline-none">
+                        <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                      </button>
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-[200px] rounded-xl p-3">
+                    <TooltipContent className="max-w-[200px] rounded-xl p-3" side="bottom">
                       <p className="text-xs">Número total de veces que se ha accedido a esta propiedad específica.</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
               </div>
-              <p className="text-3xl font-bold">{stats?.totalVisits || 0}</p>
-              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Aperturas Totales</p>
+              <p className="text-2xl md:text-3xl font-bold">{stats?.totalVisits || 0}</p>
+              <p className="text-[9px] md:text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Aperturas Totales</p>
             </CardContent>
           </Card>
 
           <Card className="rounded-[2rem] border-none shadow-md bg-white">
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 px-4 md:px-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Clock className="text-accent w-5 h-5" />
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                      <button className="focus:outline-none">
+                        <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                      </button>
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-[200px] rounded-xl p-3">
+                    <TooltipContent className="max-w-[200px] rounded-xl p-3" side="bottom">
                       <p className="text-xs">Promedio de tiempo que los visitantes pasan explorando las estancias de este tour.</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
               </div>
-              <p className="text-3xl font-bold">{stats?.avgDuration}</p>
-              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Permanencia Media</p>
+              <p className="text-2xl md:text-3xl font-bold">{stats?.avgDuration}</p>
+              <p className="text-[9px] md:text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Permanencia Media</p>
             </CardContent>
           </Card>
 
           <Card className="rounded-[2rem] border-none shadow-md bg-white">
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 px-4 md:px-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Zap className="text-yellow-500 w-5 h-5" />
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                      <button className="focus:outline-none">
+                        <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                      </button>
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-[200px] rounded-xl p-3">
+                    <TooltipContent className="max-w-[200px] rounded-xl p-3" side="bottom">
                       <p className="text-xs">Porcentaje de visitantes que utilizaron los métodos de contacto directo: WhatsApp, Llamada o Email.</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
               </div>
               <div className="flex items-baseline gap-1">
-                <p className="text-3xl font-bold">{stats?.contactRate}%</p>
+                <p className="text-2xl md:text-3xl font-bold">{stats?.contactRate}%</p>
                 <p className="text-[10px] text-muted-foreground font-bold">({stats?.directContactVisits})</p>
               </div>
-              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Conversión Directa</p>
+              <p className="text-[9px] md:text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Conversión Directa</p>
             </CardContent>
           </Card>
 
           <Card className="rounded-[2rem] border-none shadow-md bg-white">
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 px-4 md:px-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <MousePointer2 className="text-blue-500 w-5 h-5" />
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                      <button className="focus:outline-none">
+                        <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                      </button>
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-[200px] rounded-xl p-3">
+                    <TooltipContent className="max-w-[200px] rounded-xl p-3" side="bottom">
                       <p className="text-xs">Porcentaje de visitantes que interactuaron con el tour: solicitar información general, ver ubicación o compartir.</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
               </div>
               <div className="flex items-baseline gap-1">
-                <p className="text-3xl font-bold">{stats?.engagementRate}%</p>
+                <p className="text-2xl md:text-3xl font-bold">{stats?.engagementRate}%</p>
                 <p className="text-[10px] text-muted-foreground font-bold">({stats?.engagementVisits})</p>
               </div>
-              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Interés en Propiedad</p>
+              <p className="text-[9px] md:text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Interés en Propiedad</p>
             </CardContent>
           </Card>
         </div>
