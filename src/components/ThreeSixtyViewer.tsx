@@ -370,7 +370,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
         </div>
       )}
 
-      <div className="absolute bottom-4 left-4 z-30">
+      <div className="absolute bottom-2 left-4 z-30">
         <span 
           className="text-neutral-700 text-[8px] md:text-[10px] font-bold tracking-widest uppercase"
         >
