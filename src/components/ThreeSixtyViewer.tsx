@@ -188,16 +188,13 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     const update = () => {
       if (!cameraRef.current || !rendererRef.current || !sceneRef.current) return;
       
-      // Aplicar inercia si no hay interacción del usuario
       if (!isUserInteractingRef.current) {
         lonRef.current += lonVelocityRef.current;
         latRef.current += latVelocityRef.current;
         
-        // Amortiguación (damping)
         lonVelocityRef.current *= 0.95;
         latVelocityRef.current *= 0.95;
         
-        // Detener completamente si es muy lento
         if (Math.abs(lonVelocityRef.current) < 0.001) lonVelocityRef.current = 0;
         if (Math.abs(latVelocityRef.current) < 0.001) latVelocityRef.current = 0;
       }
@@ -246,11 +243,9 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     pointerDownPos.current = { x: event.clientX, y: event.clientY };
     pointerDownTime.current = Date.now();
     
-    // Resetear velocidad al iniciar nueva interacción
     lonVelocityRef.current = 0;
     latVelocityRef.current = 0;
     
-    // Auto-cierre de paneles al iniciar interacción
     onInteractionStart?.();
   };
 
@@ -263,7 +258,6 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     lonRef.current += deltaLon;
     latRef.current += deltaLat;
     
-    // Guardar velocidad para la inercia
     lonVelocityRef.current = deltaLon;
     latVelocityRef.current = deltaLat;
     
@@ -331,7 +325,6 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
 
       {!isFading && !isLoadingTexture && (
         <div className="absolute inset-0 pointer-events-none">
-          {/* Render Hotspots */}
           {visibleHotspots.map(({h, x, y}) => (
             <div 
               key={h.id}
@@ -367,7 +360,6 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
             </div>
           ))}
 
-          {/* Render Annotations */}
           {visibleAnnotations.map(({a, x, y}) => (
             <div 
               key={a.id}

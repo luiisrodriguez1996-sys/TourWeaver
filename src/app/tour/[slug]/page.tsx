@@ -114,7 +114,7 @@ export default function PublicTourViewer() {
     if (showOnboarding) {
       const timer = setTimeout(() => {
         setShowOnboarding(false);
-      }, 8000); // Aumentado a 8 segundos
+      }, 8000);
       return () => clearTimeout(timer);
     }
   }, [showOnboarding]);
@@ -543,7 +543,7 @@ export default function PublicTourViewer() {
                 <DialogHeader className="p-6 border-b border-white/10 text-left">
                   <DialogTitle className="font-bold text-lg">Explorar Estancias</DialogTitle>
                   <DialogDescription>
-                    Lista de todas las habitaciones y estancias disponibles en este tour virtual con sus respectivas plantas.
+                    Lista de todas las habitaciones y estancias disponibles
                   </DialogDescription>
                 </DialogHeader>
                 <ScrollArea className="max-h-[60vh] p-4">
