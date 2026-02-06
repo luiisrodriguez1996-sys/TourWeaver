@@ -92,7 +92,8 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     const scene = new THREE_REAL.Scene();
     sceneRef.current = scene;
 
-    const camera = new THREE_REAL.PerspectiveCamera(75, width / height, 1, 1100);
+    // Aumentamos el FOV de 75 a 85 para una vista más amplia y espaciosa
+    const camera = new THREE_REAL.PerspectiveCamera(85, width / height, 1, 1100);
     cameraRef.current = camera;
 
     const geometry = new THREE_REAL.SphereGeometry(500, 60, 40);
