@@ -10,69 +10,67 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Verifica si el usuario es administrador consultando la colección protegida
+    // Verifica si el usuario es administrador consultando la colección protegida.
+    // Usamos get() directamente; si el documento no existe o isAdmin no es true, la regla falla.
     function isAdmin() {
       return isSignedIn() && 
         get(/databases/$(database)/documents/roles_admin/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // Validadores de tipos de datos para prevenir inyecciones
+    // Validadores de tipos de datos básicos.
     function isValidString(val) { return val is string && val.size() > 0; }
-    function isValidBool(val) { return val is bool; }
 
     // --- REGLAS DE COLECCIONES ---
 
+    // Configuración del sitio: Lectura pública, escritura solo admin.
     match /siteConfigurations/{siteConfigurationId} {
-      // Configuración pública para lectura, pero solo admin puede tocar
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
     }
 
+    // Roles de administrador: El usuario ve el suyo, admin ve todos. No se crean desde la app.
     match /roles_admin/{userId} {
-      // Nadie puede crear administradores desde la app (solo consola de Firebase)
-      // Un usuario solo puede leer su propio perfil de admin
       allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow list: if isAdmin();
       allow create, update, delete: if false; 
     }
 
+    // Telemetría de visitas: Creación pública, gestión solo admin.
     match /tourVisits/{visitId} {
-      // Registro de visitas (Telemetría interna)
       allow create: if request.resource.data.keys().hasAll(['tourId', 'timestamp', 'userAgent'])
-                    && request.resource.data.tourId is string
-                    && request.resource.data.timestamp is number;
+                    && request.resource.data.tourId is string;
       
-      // Permitimos actualizar duración y conversiones. 
-      // Validamos que no se alteren los datos base de la visita.
+      // Permitimos actualización limitada (para duración y clics) sin ser admin,
+      // siempre que no se cambien datos base.
       allow update: if request.resource.data.tourId == resource.data.tourId
-                    && request.resource.data.timestamp == resource.data.timestamp
                     && (request.resource.data.duration is number || !request.resource.data.keys().contains('duration'))
-                    && (request.resource.data.contacted is bool || !request.resource.data.keys().contains('contacted'))
-                    && (request.resource.data.contactMethods is list || !request.resource.data.keys().contains('contactMethods'));
+                    && (request.resource.data.contacted is bool || !request.resource.data.keys().contains('contacted'));
 
-      // Solo el administrador autorizado puede consultar o borrar las estadísticas
       allow get, list, delete: if isAdmin();
     }
 
+    // Tours y Propiedades: Núcleo de la aplicación.
     match /tours/{tourId} {
-      // El público solo ve propiedades publicadas. Admin ve todo.
-      allow get, list: if resource.data.published == true || isAdmin();
+      // Lectura: Público ve lo publicado, Admin ve todo. 
+      // Se añade comprobación de existencia (resource != null) para evitar errores.
+      allow get, list: if (resource != null && resource.data.published == true) || isAdmin();
       
-      // Solo admin puede crear/editar propiedades
+      // Escritura: Solo administradores con validación de campos mínimos.
       allow create, update: if isAdmin() && 
         isValidString(request.resource.data.name) && 
         isValidString(request.resource.data.slug);
+      
+      // Eliminación: Permitida para cualquier administrador.
       allow delete: if isAdmin();
 
-      match /scenes/{sceneId} {
-        // Hereda la visibilidad de la propiedad padre
-        allow get, list: if get(/databases/$(database)/documents/tours/$(tourId)).data.published == true || isAdmin();
-        allow create, update, delete: if isAdmin();
-
-        match /hotspots/{hotspotId} {
-          allow get, list: if get(/databases/$(database)/documents/tours/$(tourId)).data.published == true || isAdmin();
-          allow create, update, delete: if isAdmin();
-        }
+      // Subcolecciones (Escenas, Hotspots, Anotaciones):
+      // Usamos un comodín recursivo para asegurar que el admin tenga control total sobre los hijos del tour.
+      match /{allSubcollections=**} {
+        // El acceso de lectura depende de si el tour padre es público o si eres admin.
+        allow read: if isAdmin() || get(/databases/$(database)/documents/tours/$(tourId)).data.published == true;
+        
+        // Escritura total en subcolecciones para administradores.
+        allow write: if isAdmin();
       }
     }
   }
