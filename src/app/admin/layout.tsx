@@ -124,20 +124,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       
       <nav className="flex-1 px-4 py-4 space-y-1">
         <Link href="/admin">
-          <Button variant="ghost" className={`w-full justify-start gap-3 rounded-xl ${pathname === '/admin' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:text-primary'}`}>
+          <Button variant="ghost" className={`w-full justify-start gap-3 rounded-xl transition-colors ${pathname === '/admin' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:bg-primary hover:text-white'}`}>
             <LayoutDashboard className="w-4 h-4" />
             {menuText.properties}
           </Button>
         </Link>
         <Link href="/admin/tours/new">
-          <Button variant="ghost" className={`w-full justify-start gap-3 rounded-xl ${pathname === '/admin/tours/new' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:text-primary'}`}>
+          <Button variant="ghost" className={`w-full justify-start gap-3 rounded-xl transition-colors ${pathname === '/admin/tours/new' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:bg-primary hover:text-white'}`}>
             <PlusCircle className="w-4 h-4" />
             {menuText.new}
           </Button>
         </Link>
         
         <Link href="/admin/analytics">
-          <Button variant="ghost" className={`w-full justify-start gap-3 rounded-xl ${pathname === '/admin/analytics' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:text-primary'}`}>
+          <Button variant="ghost" className={`w-full justify-start gap-3 rounded-xl transition-colors ${pathname === '/admin/analytics' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:bg-primary hover:text-white'}`}>
             <BarChart3 className="w-4 h-4" />
             {menuText.analytics}
           </Button>
@@ -145,7 +145,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <Separator className="my-4" />
         <Link href="/admin/settings">
-          <Button variant="ghost" className={`w-full justify-start gap-3 rounded-xl ${pathname === '/admin/settings' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:text-primary'}`}>
+          <Button variant="ghost" className={`w-full justify-start gap-3 rounded-xl transition-colors ${pathname === '/admin/settings' ? 'bg-primary/10 text-primary font-bold' : 'text-muted-foreground hover:bg-primary hover:text-white'}`}>
             <Settings className="w-4 h-4" />
             {menuText.settings}
           </Button>
