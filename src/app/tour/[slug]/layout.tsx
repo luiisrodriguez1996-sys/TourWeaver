@@ -27,8 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: 'website',
       images: [
         {
-          // Usamos una imagen de stock inmobiliaria profesional para evitar imágenes aleatorias
-          url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&h=630&auto=format&fit=crop",
+          url: `https://placehold.co/1200x630/29ABE2/white?text=${encodeURIComponent(displayTitle)}%0A360+Experience`,
           width: 1200,
           height: 630,
           alt: displayTitle,
@@ -39,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: "summary_large_image",
       title: `${displayTitle} | Tour Inmersivo`,
       description: "Explora cada rincón de esta propiedad en 360°.",
-      images: ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&h=630&auto=format&fit=crop"],
+      images: [`https://placehold.co/1200x630/29ABE2/white?text=${encodeURIComponent(displayTitle)}%0A360+Experience`],
     }
   };
 }

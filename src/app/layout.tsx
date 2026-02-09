@@ -34,10 +34,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1200&h=630&auto=format&fit=crop",
+        url: "https://placehold.co/1200x630/29ABE2/white?text=Tour+Weaver+360",
         width: 1200,
         height: 630,
-        alt: "Tour Weaver Virtual Experience Preview",
+        alt: "Tour Weaver Brand Identity",
       },
     ],
   },
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Tour Weaver | Tours Virtuales 360°",
     description: "La mejor solución de visualización inmersiva para el mercado inmobiliario.",
-    images: ["https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1200&h=630&auto=format&fit=crop"],
+    images: ["https://placehold.co/1200x630/29ABE2/white?text=Tour+Weaver+360"],
   },
   robots: {
     index: true,
