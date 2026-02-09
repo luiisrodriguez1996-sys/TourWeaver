@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "https://picsum.photos/seed/tourweaver-og/1200/630",
+        url: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1200&h=630&auto=format&fit=crop",
         width: 1200,
         height: 630,
         alt: "Tour Weaver Virtual Experience Preview",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Tour Weaver | Tours Virtuales 360°",
     description: "La mejor solución de visualización inmersiva para el mercado inmobiliario.",
-    images: ["https://picsum.photos/seed/tourweaver-og/1200/630"],
+    images: ["https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1200&h=630&auto=format&fit=crop"],
   },
   robots: {
     index: true,
