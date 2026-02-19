@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -42,7 +43,8 @@ import {
   Briefcase,
   Lock,
   Eye,
-  EyeOff
+  EyeOff,
+  AlertTriangle
 } from 'lucide-react';
 import {
   Select,
@@ -54,7 +56,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { useDoc, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, writeBatch, collection } from 'firebase/firestore';
+import { doc, writeBatch, collection, getDoc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 
 function sanitizeForFirestore(data: any): any {
@@ -99,6 +101,7 @@ export default function TourEditor() {
   const [localTourInfo, setLocalTourInfo] = useState({
     name: '',
     clientName: '',
+    slug: '',
     description: '',
     published: false,
     floors: [] as Floor[],
@@ -128,6 +131,7 @@ export default function TourEditor() {
       setLocalTourInfo({
         name: tour.name || '',
         clientName: tour.clientName || '',
+        slug: tour.slug || '',
         description: tour.description || '',
         published: !!tour.published,
         floors: tour.floors || [],
@@ -441,11 +445,31 @@ export default function TourEditor() {
   };
 
   const handleSaveAll = async () => {
-    if (!firestore || !id) return;
+    if (!firestore || !id || !tour) return;
     setIsSaving(true);
     try {
       const batch = writeBatch(firestore);
       
+      // Manejo de cambio de Slug si ha ocurrido
+      if (localTourInfo.slug !== tour.slug) {
+        const slugRegistryRef = doc(firestore, 'slug_registry', localTourInfo.slug);
+        const slugSnapshot = await getDoc(slugRegistryRef);
+
+        if (slugSnapshot.exists()) {
+          setIsSaving(false);
+          toast({
+            variant: "destructive",
+            title: "URL No Disponible",
+            description: "Este Identificador de URL ya está en uso. Elige uno diferente.",
+          });
+          return;
+        }
+
+        // Eliminar slug antiguo y registrar el nuevo
+        batch.delete(doc(firestore, 'slug_registry', tour.slug));
+        batch.set(slugRegistryRef, { tourId: id });
+      }
+
       for (const scene of localScenes) {
         const sceneDocRef = doc(firestore, 'tours', id as string, 'scenes', scene.id);
         batch.set(sceneDocRef, sanitizeForFirestore(scene), { merge: true });
@@ -881,6 +905,26 @@ export default function TourEditor() {
                   <Label className="text-sm font-bold">Nombre del Tour</Label>
                   <Input value={localTourInfo.name} placeholder="ej. Apartamento de Lujo en la Costa" onChange={e => { setLocalTourInfo({...localTourInfo, name: e.target.value}); setHasUnsavedChanges(true); }} className="rounded-xl h-11" />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-bold">Identificador de URL (Slug)</Label>
+                <div className="flex items-center gap-2">
+                   <span className="hidden sm:inline text-xs font-mono text-muted-foreground bg-muted px-3 py-2.5 rounded-xl border">/tour/</span>
+                   <Input 
+                    value={localTourInfo.slug} 
+                    placeholder="identificador-unico" 
+                    onChange={e => {
+                      const newSlug = e.target.value.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, '');
+                      setLocalTourInfo({...localTourInfo, slug: newSlug});
+                      setHasUnsavedChanges(true);
+                    }} 
+                    className="rounded-xl h-11 font-mono" 
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" /> Importante: Cambiar el identificador romperá los enlaces compartidos anteriormente.
+                </p>
               </div>
               
               <div className="space-y-2">
