@@ -55,8 +55,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const tour = await getTourData(slug);
   
-  // Si no se encuentra el tour o hay un error, usamos un texto fijo profesional
-  const displayTitle = tour?.name || "Propiedad Exclusiva | Experiencia Inmersiva";
+  // Si se encuentra el tour, usamos el formato solicitado. Si no, el texto fijo de fallback.
+  const displayTitle = tour?.name 
+    ? `${tour.name} | Tour Virtual 360°` 
+    : "Propiedad Exclusiva | Experiencia Inmersiva";
   
   const description = tour?.description || "Explora esta propiedad en detalle con nuestro tour virtual 360°. Una experiencia exclusiva en la plataforma Tour Weaver.";
   const image = tour?.thumbnailUrl || `https://placehold.co/1200x630/29ABE2/white?text=Tour+Virtual+360`;
@@ -65,7 +67,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: displayTitle,
     description: description,
     openGraph: {
-      title: `${displayTitle}`,
+      title: displayTitle,
       description: description,
       url: `https://tour-weaver.com/tour/${slug}`,
       siteName: "Tour Weaver",
@@ -76,7 +78,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           url: image,
           width: 1200,
           height: 630,
-          alt: displayTitle,
+          alt: tour?.name || "Tour Virtual",
         }
       ]
     },
