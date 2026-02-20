@@ -28,7 +28,7 @@ export function VersionIndicator() {
   return (
     <div className="inline-flex items-center gap-1.5 bg-primary/10 text-primary px-2 py-0.5 rounded-md border border-primary/20 transition-colors cursor-default select-none">
       <Shield className="w-2.5 h-2.5" />
-      <span className="text-[9px] font-black tracking-wider uppercase">v1.3.9 Admin Mode</span>
+      <span className="text-[9px] font-black tracking-wider uppercase">v1.4.0 Admin Mode</span>
     </div>
   );
 }
