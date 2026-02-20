@@ -33,6 +33,9 @@ async function getTourData(slug: string) {
     if (!tourRes.ok) return null;
     const tourData = await tourRes.json();
     
+    // Verificamos si la propiedad está publicada antes de devolver los datos para SEO
+    if (tourData.fields?.published?.booleanValue === false) return null;
+
     return {
       name: tourData.fields?.name?.stringValue,
       thumbnailUrl: tourData.fields?.thumbnailUrl?.stringValue,
@@ -52,20 +55,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const tour = await getTourData(slug);
   
-  // Si no se encuentra el tour, usamos una versión legible del slug como fallback
-  const displayTitle = tour?.name || slug
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  // Si no se encuentra el tour o hay un error, usamos un texto fijo profesional
+  const displayTitle = tour?.name || "Propiedad Exclusiva | Experiencia Inmersiva";
   
-  const description = tour?.description || "Explora esta propiedad en detalle con nuestro tour virtual 360°. Una experiencia inmersiva exclusiva en Tour Weaver.";
-  const image = tour?.thumbnailUrl || `https://placehold.co/1200x630/29ABE2/white?text=${encodeURIComponent(displayTitle)}%0A360+Experience`;
+  const description = tour?.description || "Explora esta propiedad en detalle con nuestro tour virtual 360°. Una experiencia exclusiva en la plataforma Tour Weaver.";
+  const image = tour?.thumbnailUrl || `https://placehold.co/1200x630/29ABE2/white?text=Tour+Virtual+360`;
 
   return {
     title: displayTitle,
     description: description,
     openGraph: {
-      title: `${displayTitle} | Tour Virtual 360°`,
+      title: `${displayTitle}`,
       description: description,
       url: `https://tour-weaver.com/tour/${slug}`,
       siteName: "Tour Weaver",
@@ -82,7 +82,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: `${displayTitle} | Tour Inmersivo`,
+      title: displayTitle,
       description: description,
       images: [image],
     }
