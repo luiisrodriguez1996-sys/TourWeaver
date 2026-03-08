@@ -1,0 +1,19 @@
+# Exported from Render on 2026-03-08T23:38:52Z
+version: "1"
+projects:
+- name: Luis
+  environments:
+  - name: Production
+    services:
+    - type: web
+      name: TourWeaver
+      runtime: node
+      repo: https://github.com/luiisrodriguez1996-sys/TourWeaver
+      plan: starter
+      envVars:
+      - key: PORT
+        sync: false
+      region: virginia
+      buildCommand: npm install; npm run build
+      startCommand: npm run start
+      autoDeployTrigger: "off"
