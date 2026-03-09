@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Hotspot, Annotation } from '@/lib/types';
 import { Button } from './ui/button';
-import { ArrowUp, Loader2, Settings2, Info } from 'lucide-react';
+import { ArrowUp, Loader2, Settings2, Info, MonitorOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import * as THREE_REAL from 'three';
 
@@ -39,6 +39,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
   
   const [internalImageUrl, setInternalImageUrl] = useState(imageUrl);
   const [isLoadingTexture, setIsLoadingTexture] = useState(true);
+  const [webGLError, setWebGLError] = useState<string | null>(null);
   const isLoadingRef = useRef(true); 
   const [isFading, setIsFading] = useState(false);
   const isUserInteractingRef = useRef(false);
@@ -51,7 +52,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
   const onPointerDownMouseY = useRef(0);
   const pointerDownPos = useRef({ x: 0, y: 0 });
   const pointerDownTime = useRef(0);
-  const lastMoveTimeRef = useRef(0); // Referencia para controlar el fin del movimiento
+  const lastMoveTimeRef = useRef(0);
 
   const [visibleHotspots, setVisibleHotspots] = useState<{h: Hotspot, x: number, y: number}[]>([]);
   const [visibleAnnotations, setVisibleAnnotations] = useState<{a: Annotation, x: number, y: number}[]>([]);
@@ -80,6 +81,7 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
   useEffect(() => {
     if (!canvasHolderRef.current || !internalImageUrl) return;
 
+    setWebGLError(null);
     setIsLoadingTexture(true);
     isLoadingRef.current = true;
 
@@ -126,12 +128,25 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     scene.add(sphere);
     sphereRef.current = sphere;
 
-    const renderer = new THREE_REAL.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(width, height);
-    
-    canvasHolderRef.current.appendChild(renderer.domElement);
-    rendererRef.current = renderer;
+    let renderer: THREE_REAL.WebGLRenderer;
+    try {
+      renderer = new THREE_REAL.WebGLRenderer({ 
+        antialias: true, 
+        alpha: true, 
+        powerPreference: 'high-performance' 
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(width, height);
+      
+      canvasHolderRef.current.appendChild(renderer.domElement);
+      rendererRef.current = renderer;
+    } catch (e) {
+      console.error("Error al inicializar WebGL:", e);
+      setWebGLError("Tu navegador o dispositivo no soporta aceleración gráfica WebGL, necesaria para ver tours 360°.");
+      setIsLoadingTexture(false);
+      isLoadingRef.current = false;
+      return;
+    }
 
     const handleResize = () => {
       if (!canvasHolderRef.current || !cameraRef.current || !rendererRef.current) return;
@@ -270,15 +285,13 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     
     onPointerDownMouseX.current = event.clientX;
     onPointerDownMouseY.current = event.clientY;
-    lastMoveTimeRef.current = Date.now(); // Actualizar tiempo del último movimiento
+    lastMoveTimeRef.current = Date.now();
   };
 
   const onPointerUp = (event: React.PointerEvent) => {
     if (event.isPrimary === false) return;
     isUserInteractingRef.current = false;
 
-    // Si ha pasado más de 100ms desde el último movimiento real, anulamos la inercia
-    // Esto detecta cuando el usuario deja el dedo quieto antes de soltarlo.
     const timeSinceLastMove = Date.now() - lastMoveTimeRef.current;
     if (timeSinceLastMove > 100) {
       lonVelocityRef.current = 0;
@@ -327,19 +340,30 @@ export const ThreeSixtyViewer: React.FC<ThreeSixtyViewerProps> = ({
     >
       <div ref={canvasHolderRef} className="absolute inset-0" />
 
+      {webGLError && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-zinc-900/90 p-8 text-center text-white">
+          <MonitorOff className="w-12 h-12 text-destructive mb-4" />
+          <h3 className="text-lg font-bold mb-2">Error de Compatibilidad</h3>
+          <p className="text-sm text-zinc-400 max-w-xs">{webGLError}</p>
+          <Button variant="outline" className="mt-6 border-white/20 text-white hover:bg-white/10" onClick={() => window.location.reload()}>
+            Reintentar
+          </Button>
+        </div>
+      )}
+
       <div className={cn(
         "absolute inset-0 bg-black pointer-events-none z-40 transition-opacity duration-700 ease-in-out",
         (isFading || isLoadingTexture) ? "opacity-100" : "opacity-0"
       )} />
 
-      {(isLoadingTexture && !isFading) && (
+      {(isLoadingTexture && !isFading && !webGLError) && (
         <div className="absolute inset-0 flex flex-col items-center justify-center z-50">
            <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
            <p className="text-white text-sm font-medium animate-pulse">Sincronizando estancia...</p>
         </div>
       )}
 
-      {!isFading && !isLoadingTexture && (
+      {!isFading && !isLoadingTexture && !webGLError && (
         <div className="absolute inset-0 pointer-events-none">
           {visibleHotspots.map(({h, x, y}) => (
             <div 
