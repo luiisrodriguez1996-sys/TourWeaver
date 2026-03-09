@@ -1,6 +1,10 @@
-# Tour Weaver v1.5.5
+# Tour Weaver v1.5.6
 
 Plataforma profesional para la creación y exhibición de tours virtuales 360°. Unificada con auditoría de seguridad integral, soporte SEO dinámico y compartición inteligente mediante códigos QR.
+
+### Características v1.5.6:
+- **Seguridad de Scripts**: Ampliada la directiva Content-Security-Policy (CSP) para soportar integraciones de Google adicionales requeridas por servicios de análisis y mapas.
+- **Consistencia de Datos**: Normalización de esquemas de datos en el entorno de desarrollo para alineación estricta con TypeScript.
 
 ### Características v1.5.5:
 - **Estabilidad de Consultas**: Optimización de la lógica de carga en el visor público para evitar errores de permisos intermitentes durante la hidratación de la sesión de Firebase.
