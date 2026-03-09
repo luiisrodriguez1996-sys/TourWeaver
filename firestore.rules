@@ -66,8 +66,8 @@ service cloud.firestore {
       // GET individual: público si está publicado
       allow get: if (resource != null && resource.data.published == true) || isAdmin();
       
-      // LIST: solo administradores
-      allow list: if isAdmin();
+      // LIST: permitimos listar si son publicados (necesario para buscar por slug y para el portfolio)
+      allow list: if isAdmin() || (resource != null && resource.data.published == true);
       
       allow create, update: if isAdmin() && 
         isValidString(request.resource.data.name) && 
