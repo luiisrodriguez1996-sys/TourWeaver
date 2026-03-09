@@ -31,10 +31,12 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    const isProd = process.env.NODE_ENV === 'production';
+
     const commonHeaders = [
       {
         key: 'X-Frame-Options',
-        value: 'DENY',
+        value: isProd ? 'DENY' : 'SAMEORIGIN',
       },
       {
         key: 'X-Content-Type-Options',
@@ -56,7 +58,7 @@ const nextConfig: NextConfig = {
 
     const cspBase = [
       "default-src 'self'",
-      "frame-ancestors 'none'",
+      ...(isProd ? ["frame-ancestors 'none'"] : []),
       "form-action 'self'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https://placehold.co https://images.unsplash.com https://picsum.photos https://*.googleapis.com https://*.gstatic.com https://firebasestorage.googleapis.com",
