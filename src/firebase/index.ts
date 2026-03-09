@@ -2,7 +2,7 @@
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, setPersistence, browserSessionPersistence } from 'firebase/auth';
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
@@ -15,10 +15,10 @@ export function initializeFirebase() {
     const firebaseApp = initializeApp(firebaseConfig);
     const sdks = getSdks(firebaseApp);
 
-    // PRIORIDAD 1: Timeout de sesión / Persistencia volátil
-    // Configuramos que la sesión expire al cerrar el navegador para evitar accesos persistentes no autorizados.
+    // PRIORIDAD 1: Persistencia de sesión
+    // Configuramos que la sesión persista localmente para comodidad del administrador.
     if (sdks.auth) {
-      setPersistence(sdks.auth, browserSessionPersistence).catch((err) => {
+      setPersistence(sdks.auth, browserLocalPersistence).catch((err) => {
         console.error("Auth persistence failed:", err);
       });
     }
