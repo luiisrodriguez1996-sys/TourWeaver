@@ -65,8 +65,8 @@ const nextConfig: NextConfig = {
       "object-src 'none'",
     ];
 
-    const scriptSrcNoEval = "script-src 'self' 'unsafe-inline' https://*.googleapis.com https://*.firebaseapp.com https://www.gstatic.com https://www.googletagmanager.com https://recaptchaenterprise.googleapis.com";
-    const scriptSrcWithEval = "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.firebaseapp.com https://www.gstatic.com https://www.googletagmanager.com https://recaptchaenterprise.googleapis.com";
+    const scriptSrcNoEval = "script-src 'self' 'unsafe-inline' https://*.googleapis.com https://*.firebaseapp.com https://www.gstatic.com https://www.googletagmanager.com https://recaptchaenterprise.googleapis.com https://www.google.com";
+    const scriptSrcWithEval = "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.firebaseapp.com https://www.gstatic.com https://www.googletagmanager.com https://recaptchaenterprise.googleapis.com https://www.google.com";
 
     return [
       {
