@@ -1,4 +1,4 @@
-# Tour Weaver v1.5.6
+# Tour Weaver v1.5.7
 
 Plataforma profesional para la creación y exhibición de tours virtuales 360°. Unificada con auditoría de seguridad integral, soporte SEO dinámico y compartición inteligente mediante códigos QR.
 
@@ -18,12 +18,13 @@ Plataforma profesional para la creación y exhibición de tours virtuales 360°.
 └── next.config.ts                # CSP y Configuración de Red
 ```
 
-### Características v1.5.6:
-- **Seguridad de Scripts**: Ampliada la directiva Content-Security-Policy (CSP) para soportar dominios de Google necesarios para reCAPTCHA y Analytics.
-- **Persistencia Mejorada**: Implementada `browserLocalPersistence` para mantener las sesiones administrativas activas.
-- **Consistencia de Datos**: Normalización de esquemas en `mock-data.ts` para alineación estricta con TypeScript.
+### Características v1.5.7:
+- **Inmersión Ultra-Wide**: Campo de visión (FOV) ampliado a 120° para una experiencia más inmersiva.
+- **CSP Adaptativo**: Políticas de seguridad condicionales para soportar el entorno de desarrollo de Firebase Studio.
+- **Estabilidad de Workstations**: Ajuste de puerto 9000 y host 0.0.0.0 para compatibilidad total con contenedores.
+- **Corrección de Hidratación**: Cálculo de fechas de analíticas movido al cliente para evitar errores de renderizado.
 
-### Características v1.5.5:
-- **Estabilidad de Consultas**: Optimización de la carga en el visor público para evitar errores de permisos intermitentes.
-- **Corrección de Tipado**: Ajustado el manejo de parámetros de URL en el dashboard de analíticas.
-- **Acceso Público Restaurado**: Reglas de seguridad refinadas para permitir búsquedas por slug en modo público.
+### Características v1.5.6:
+- **Seguridad de Scripts**: Ampliada la directiva Content-Security-Policy (CSP) para soportar dominios de Google.
+- **Persistencia Mejorada**: Implementada `browserLocalPersistence` para sesiones administrativas.
+- **Consistencia de Datos**: Normalización de esquemas en `mock-data.ts`.
