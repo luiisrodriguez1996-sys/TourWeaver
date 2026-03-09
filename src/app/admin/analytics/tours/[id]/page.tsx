@@ -168,7 +168,7 @@ export default function TourAnalytics() {
               ) : (
                 <Badge variant="secondary" className="text-[10px]">Borrador</Badge>
               )}
-              <Badge variant="ghost" className="text-[9px] text-muted-foreground gap-1">
+              <Badge variant="outline" className="text-[9px] text-muted-foreground gap-1">
                 <Calendar className="w-2.5 h-2.5" /> Registrado: {tour.createdAt ? format(new Date(tour.createdAt), 'dd/MM/yy') : '---'}
               </Badge>
             </div>
