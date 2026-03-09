@@ -56,6 +56,7 @@ export default function PublicTourViewer() {
 
   const tourQuery = useMemoFirebase(() => {
     if (!firestore || !slug) return null;
+    if (isUserLoading || (user && isAdminLoading)) return null;
     const toursCol = collection(firestore, 'tours');
     
     if (isAdmin) {
@@ -67,7 +68,7 @@ export default function PublicTourViewer() {
       where('published', '==', true), 
       limit(1)
     );
-  }, [firestore, slug, isAdmin]);
+  }, [firestore, slug, isAdmin, isUserLoading, isAdminLoading, user]);
 
   const { data: tours, isLoading: isTourLoading, error: tourError } = useCollection(tourQuery);
   const tour = tours?.[0];
