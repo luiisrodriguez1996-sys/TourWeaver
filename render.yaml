@@ -1,5 +1,5 @@
 # Configuración de despliegue optimizada para Render.com
-# Incluye blindaje de cabeceras HTTP según auditoría OWASP v1.5.0
+# Incluye blindaje de infraestructura según auditoría OWASP v1.5.0
 version: "1"
 services:
   - type: web
@@ -15,23 +15,4 @@ services:
       - key: PORT
         value: 10000
     
-    # Cabeceras de seguridad globales para cumplimiento OWASP
-    headers:
-      - path: /*
-        name: Content-Security-Policy
-        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.firebaseapp.com https://www.gstatic.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://placehold.co https://images.unsplash.com https://picsum.photos https://*.googleapis.com https://*.gstatic.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://www.google-analytics.com; frame-src 'self' https://*.firebaseapp.com; worker-src 'self' blob:; media-src 'self' data:;"
-      - path: /*
-        name: X-Frame-Options
-        value: DENY
-      - path: /*
-        name: X-Content-Type-Options
-        value: nosniff
-      - path: /*
-        name: Referrer-Policy
-        value: strict-origin-when-cross-origin
-      - path: /*
-        name: Permissions-Policy
-        value: camera=(), microphone=(), geolocation=()
-      - path: /*
-        name: Strict-Transport-Security
-        value: max-age=31536000; includeSubDomains
+    # ELIMINADO: sección headers — las cabeceras HTTP ahora se gestionan centralizadamente desde next.config.ts
