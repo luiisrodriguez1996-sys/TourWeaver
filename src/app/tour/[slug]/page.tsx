@@ -43,8 +43,8 @@ export default function PublicTourViewer() {
 
   const visitIdRef = useRef<string | null>(null);
   const startTimeRef = useRef<number>(Date.now());
-  const cumulativeTimeRef = useRef<number>(0); // Tiempo acumulado en milisegundos
-  const lastVisibleStartTimeRef = useRef<number>(Date.now()); // Última vez que se hizo visible
+  const cumulativeTimeRef = useRef<number>(0); 
+  const lastVisibleStartTimeRef = useRef<number>(Date.now()); 
   const contactedMethodsRef = useRef<Set<string>>(new Set());
   const qrRef = useRef<SVGSVGElement>(null);
 
@@ -87,15 +87,12 @@ export default function PublicTourViewer() {
     };
   }, []);
 
-  // Seguimiento de Visita y Duración Activa (Visibility API)
   useEffect(() => {
     if (isUserLoading || isAdminLoading || !tour || !firestore || isAdmin) return;
 
-    // Reiniciar contadores para la nueva sesión
     cumulativeTimeRef.current = 0;
     lastVisibleStartTimeRef.current = Date.now();
 
-    // 1. Crear el registro de visita inicial
     const createVisitRecord = async () => {
       try {
         const visitsRef = collection(firestore, 'tourVisits');
@@ -118,7 +115,6 @@ export default function PublicTourViewer() {
 
     createVisitRecord();
 
-    // Calcula el total de segundos activos (acumulado + tramo actual si es visible)
     const getActiveDurationSeconds = () => {
       let totalMs = cumulativeTimeRef.current;
       if (document.visibilityState === 'visible' && lastVisibleStartTimeRef.current) {
@@ -127,7 +123,6 @@ export default function PublicTourViewer() {
       return Math.floor(totalMs / 1000);
     };
 
-    // 2. Función para actualizar la duración en Firestore (Heartbeat)
     const updateDuration = () => {
       if (!visitIdRef.current || !firestore) return;
       
@@ -139,20 +134,16 @@ export default function PublicTourViewer() {
       }
     };
 
-    // Latido cada 15 segundos para asegurar datos parciales si se cierra bruscamente
     const heartbeatInterval = setInterval(updateDuration, 15000);
 
-    // Manejo de visibilidad para pausar/reanudar el contador
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        // Al ocultar la pestaña, guardamos el tramo actual de tiempo en el acumulador
         if (lastVisibleStartTimeRef.current) {
           cumulativeTimeRef.current += (Date.now() - lastVisibleStartTimeRef.current);
-          lastVisibleStartTimeRef.current = 0; // Marcamos como no cronometrando
+          lastVisibleStartTimeRef.current = 0; 
         }
-        updateDuration(); // Guardamos el estado actual al ocultar
+        updateDuration(); 
       } else {
-        // Al volver a la pestaña, iniciamos un nuevo tramo
         lastVisibleStartTimeRef.current = Date.now();
       }
     };
@@ -164,7 +155,7 @@ export default function PublicTourViewer() {
       clearInterval(heartbeatInterval);
       window.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', updateDuration);
-      updateDuration(); // Intento final al desmontar
+      updateDuration(); 
     };
   }, [tour?.id, firestore, isAdmin, isAdminLoading, isUserLoading]);
 
@@ -326,7 +317,6 @@ export default function PublicTourViewer() {
 
   return (
     <div className="fixed inset-0 w-full h-full overflow-hidden bg-black flex flex-col touch-none select-none z-0">
-      {/* Header controls */}
       <div className="absolute top-0 left-0 right-0 p-2 md:p-4 z-20 pointer-events-none flex flex-col md:flex-row justify-between items-start gap-4">
         <div className="pointer-events-auto w-full md:w-[40%]">
           <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 text-white w-full shadow-2xl overflow-hidden">
@@ -349,7 +339,6 @@ export default function PublicTourViewer() {
             
             <div className={cn("overflow-hidden transition-all duration-300 ease-in-out px-2 md:px-3", isDetailsExpanded && hasDetailsContent ? "max-h-[600px] pb-3 opacity-100" : "max-h-0 opacity-0")}>
               <div className="space-y-2 pt-1">
-                
                 {(tour.description || tour.address) && (
                   <div className="bg-white/10 rounded-xl overflow-hidden border border-white/5">
                     <div className="flex items-center justify-between bg-primary text-white px-2 py-1">
@@ -553,7 +542,6 @@ export default function PublicTourViewer() {
           />
         )}
 
-        {/* Guía de Interacción Inicial */}
         {showOnboarding && (
           <div className="absolute inset-0 z-[60] flex items-center justify-center pointer-events-none animate-in fade-in duration-700">
             <div className="bg-black/40 backdrop-blur-md rounded-[2rem] p-6 flex flex-col items-center gap-4 border border-white/10 shadow-2xl scale-75 md:scale-100">
