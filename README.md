@@ -1,4 +1,4 @@
-# Vistar v1.5.7
+# Vistar v1.6.0
 
 Plataforma profesional para la creación y exhibición de tours virtuales 360°. Unificada con auditoría de seguridad integral, soporte SEO dinámico y compartición inteligente mediante códigos QR.
 
@@ -18,13 +18,15 @@ Plataforma profesional para la creación y exhibición de tours virtuales 360°.
 └── next.config.ts                # CSP y Configuración de Red
 ```
 
+### Características v1.6.0:
+- **Personalización de Interfaz**: Opciones para ocultar cabeceras, selectores de estancias y créditos de plataforma desde el editor.
+- **Contacto Inteligente**: El botón de solicitud de información adapta su contenido según las preferencias de visibilidad del tour.
+- **Navegación Dinámica**: El selector inferior refleja el nombre real de la estancia actual.
+- **Robustez WebGL**: Sistema de detección y manejo de errores gráficos mejorado en el visor 360°.
+- **Branding Vistar**: Transición completa de la marca en todas las interfaces públicas y privadas.
+
 ### Características v1.5.7:
 - **Inmersión Ultra-Wide**: Campo de visión (FOV) ampliado a 120° para una experiencia más inmersiva.
 - **CSP Adaptativo**: Políticas de seguridad condicionales para soportar el entorno de desarrollo de Firebase Studio.
 - **Estabilidad de Workstations**: Ajuste de puerto 9000 y host 0.0.0.0 para compatibilidad total con contenedores.
 - **Corrección de Hidratación**: Cálculo de fechas de analíticas movido al cliente para evitar errores de renderizado.
-
-### Características v1.5.6:
-- **Seguridad de Scripts**: Ampliada la directiva Content-Security-Policy (CSP) para soportar dominios de Google.
-- **Persistencia Mejorada**: Implementada `browserLocalPersistence` para sesiones administrativas.
-- **Consistencia de Datos**: Normalización de esquemas en `mock-data.ts`.
