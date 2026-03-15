@@ -603,7 +603,7 @@ export default function PublicTourViewer() {
              <DialogTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-white/10 hover:text-white rounded-full h-9 px-3 md:px-4 flex-shrink-0">
                   <ChevronUp className="w-4 h-4" />
-                  <span className="text-[10px] md:text-sm font-medium whitespace-nowrap">Estancias ({orderedScenes?.length || 0})</span>
+                  <span className="text-[10px] md:text-sm font-medium whitespace-nowrap">{activeScene?.name || 'Estancias'}</span>
                 </Button>
              </DialogTrigger>
              <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[425px] bg-black/80 backdrop-blur-xl border-white/10 text-white p-0 rounded-[2.5rem] overflow-hidden shadow-2xl">
